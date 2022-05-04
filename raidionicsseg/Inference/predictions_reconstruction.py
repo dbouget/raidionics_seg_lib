@@ -1,9 +1,9 @@
+import logging
+
 from nibabel import four_to_three
 from nibabel.processing import resample_to_output, resample_from_to
 from skimage.measure import regionprops, label
 from skimage.transform import resize
-from tensorflow.python.keras.models import load_model
-import matplotlib.pyplot as plt
 from scipy.ndimage import zoom
 import os
 import nibabel as nib
@@ -13,10 +13,13 @@ import sys
 from shutil import copy
 from math import ceil, floor
 from copy import deepcopy
+from typing import Any
+from raidionicsseg.Utils.configuration_parser import ConfigResources
 
 
-def reconstruct_post_predictions(predictions, parameters, crop_bbox, nib_volume, resampled_volume):
-    print("Resampling predictions...")
+def reconstruct_post_predictions(predictions: np.ndarray, parameters: ConfigResources, crop_bbox: Any,
+                                 nib_volume: nib.Nifti1Image, resampled_volume: np.ndarray) -> np.ndarray:
+    logging.info("Reconstructing predictions.\n")
     reconstruction_method = parameters.predictions_reconstruction_method
     probability_thresholds = parameters.training_optimal_thresholds
     swap_input = parameters.swap_training_input

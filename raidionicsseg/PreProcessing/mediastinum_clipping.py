@@ -55,16 +55,17 @@ def mediastinum_clipping(volume, parameters):
     return cropped_volume, crop_bbox
 
 
-def mediastinum_clipping_DL(filepath, volume, new_spacing, storage_prefix, parameters):
+def mediastinum_clipping_DL(filepath, volume, new_spacing, storage_path, parameters):
+    # @TODO. Deprecated, must be updated similar to the brain clipping process.
     if not os.path.exists(parameters.runtime_lungs_mask_filepath):
         script_path = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-2]) + '/main.py'
         subprocess.call(['python3', '{script}'.format(script=script_path),
                          '-t{task}'.format(task='segmentation'),
                          '-i{input}'.format(input=filepath),
-                         '-o{output}'.format(output=storage_prefix),
+                         '-o{output}'.format(output=storage_path),
                          '-m{model}'.format(model='CT_Lungs'),
                          '-g{gpu}'.format(gpu=os.environ["CUDA_VISIBLE_DEVICES"])])
-        lungs_mask_filename = storage_prefix + '-pred_Lungs.nii.gz'
+        lungs_mask_filename = os.path.join(storage_path, 'pred_Lungs.nii.gz')
     else:
         lungs_mask_filename = parameters.runtime_lungs_mask_filepath
 

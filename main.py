@@ -3,7 +3,6 @@ import os
 import sys
 import traceback
 import logging
-from raidionicsseg.Utils.configuration_parser import ConfigResources
 from raidionicsseg.fit import run_model
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 

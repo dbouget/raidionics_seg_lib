@@ -1,3 +1,4 @@
+import logging
 import os
 import nibabel as nib
 from nibabel import four_to_three
@@ -19,7 +20,7 @@ def load_nifti_volume(volume_path):
 
 
 def dump_predictions(predictions, parameters, nib_volume, storage_path):
-    print("Writing predictions to files...")
+    logging.info("Writing predictions to files.\n")
     naming_suffix = 'pred' if parameters.predictions_reconstruction_method == 'probabilities' else 'labels'
     class_names = parameters.training_class_names
 
@@ -54,9 +55,6 @@ def convert_and_export_to_nifti(input_filepath):
     return output_filepath
 
 
-#-t segmentation -i /media/dbouget/ihdb/Data/NeuroDatabase/20/3860/volumes/3860_MR_T1_pre_4778.nii.gz -o ./Results -m MRI_HGGlioma -g -1
-#-t segmentation -i /media/dbouget/ihdb/Data/NeuroDatabase/4/722/volumes/722_MR_T1_pre_887.nii.gz -o ./Results -m MRI_Meningioma -g -1
-#-t segmentation -i /media/dbouget/ihdb/Data/NeuroDatabase/7/1257/volumes/1257_MR_T1_pre_1518.nii.gz -o ./Results -m MRI_Meningioma -g -1
 def dump_feature_maps(model, data_prep):
     output_root = '/media/dbouget/ihda/Studies/NetworkValidation/Meningioma/Viz'
     # output_root = '/media/dbouget/ihda/Studies/NetworkValidation/G2Paper/Viz'

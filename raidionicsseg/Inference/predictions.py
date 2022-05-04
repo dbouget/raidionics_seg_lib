@@ -1,3 +1,5 @@
+import logging
+
 from nibabel import four_to_three
 from nibabel.processing import resample_to_output, resample_from_to
 from skimage.measure import regionprops, label
@@ -18,13 +20,13 @@ from copy import deepcopy
 # from raidionicsseg.Models.UNet.UNet import UnetModular
 from raidionicsseg.Utils.volume_utilities import padding_for_inference, padding_for_inference_both_ends
 from raidionicsseg.Utils.io import dump_feature_maps
+from raidionicsseg.Utils.configuration_parser import ConfigResources
 
 
-def run_predictions(data, model_path, parameters):
+def run_predictions(data: np.ndarray, model_path: str, parameters: ConfigResources) -> np.ndarray:
     """
     Only the prediction is done in this function, possible thresholdings and re-sampling are not included here.
-    :param data:
-    :return:
+
     """
     if model_path.split('.')[-1] == 'ckpt':
         pass
@@ -86,7 +88,7 @@ def __run_predictions_pytorch(data, model_path, parameters):
 
 
 def __run_predictions_tensorflow(data, model_path, parameters):
-    print("Loading model...")
+    logging.info("Loading tensorflow model.\n")
     model = load_model(model_path, compile=False)
 
     whole_input_at_once = False
@@ -95,7 +97,7 @@ def __run_predictions_tensorflow(data, model_path, parameters):
 
     final_result = None
 
-    print("Predicting...")
+    logging.info("Predicting...\n")
     if whole_input_at_once:
         final_result = __run_predictions_whole(data=data, model=model,
                                                deep_supervision=parameters.training_deep_supervision)
@@ -104,7 +106,6 @@ def __run_predictions_tensorflow(data, model_path, parameters):
                                                  deep_supervision=parameters.training_deep_supervision)
 
     return final_result
-
 
 def __run_predictions_whole(data, model, deep_supervision=False):
     data_prep = np.expand_dims(data, axis=0)
