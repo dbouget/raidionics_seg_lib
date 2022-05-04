@@ -1,7 +1,6 @@
-# SINTEF segmenter
-The code corresponds to the segmentation core used either stand-alone to generate the 
-segmentation of new MRI/CT volumes, or to serve as backend to the 3D Slicer plugin (from the
-corresponding Docker image).
+# Raidionics backend for segmentation/classification
+The code corresponds to the TensorFlow segmentation or classification backend of MRI/CT volumes.  
+The module can either be used as a Python library, as CLI, or as Docker container.
 
 ## 1. Trained segmentation models
 The models and associated configuration files to be used should be placed inside a folder

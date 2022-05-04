@@ -1,5 +1,5 @@
 import configparser
-
+from typing import Tuple, List
 import numpy as np
 from copy import deepcopy
 from scipy.ndimage import binary_fill_holes
@@ -11,13 +11,42 @@ import shutil
 import os
 from raidionicsseg.Utils.io import load_nifti_volume, convert_and_export_to_nifti
 from raidionicsseg.Utils.configuration_parser import generate_runtime_config
+from raidionicsseg.Utils.configuration_parser import ConfigResources
 
 
-def crop_MR_background(filepath, volume, new_spacing, storage_prefix, parameters):
+def crop_MR_background(filepath: str, volume: np.ndarray, new_spacing: Tuple[float], storage_path: str,
+                       parameters: ConfigResources) -> Tuple[np.ndarray, List[int]]:
+    """
+    Performs different background cropping inside an MRI volume, as defined by the 'crop_background' stored in a model
+    preprocessing configuration file.
+    In 'minimum' mode, the black space around the head is removed, in 'brain_mask' mode all voxels not belonging to the
+    brain are set to rgb(0, 0, 0), and in 'brain_clip' mode only the smallest bounding region around the brain is kept.
+
+    Parameters
+    ----------
+    filepath : str
+        Filepath of the input volume (CT or MRI) to use.
+    volume : np.ndarray
+        .
+    new_spacing : Tuple[float]
+        .
+    storage_path : str
+        .
+    parameters : :obj:`ConfigResources`
+        .
+    Returns
+    -------
+    np.ndarray
+        New volume after background cropping procedure.
+    List[int]
+        Indices of a bounding region within the volume for additional cropping (e.g. coordinates around the head,
+        or tightly around the brain only).
+        The bounding region is expressed as: [minx, miny, minz, maxx, maxy, maxz].
+    """
     if parameters.crop_background == 'minimum':
         return crop_MR(volume, parameters)
     elif parameters.crop_background == 'brain_clip' or parameters.crop_background == 'brain_mask':
-        return brain_selection_DL(filepath, volume, new_spacing, storage_prefix, parameters)
+        return brain_selection_DL(filepath, volume, new_spacing, storage_path, parameters)
 
 
 def crop_MR(volume, parameters):

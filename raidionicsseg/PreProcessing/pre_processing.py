@@ -1,5 +1,5 @@
 import logging
-from typing import Tuple, Any
+from typing import Tuple, Any, List
 import numpy as np
 import nibabel as nib
 from nibabel.processing import resample_to_output
@@ -13,34 +13,35 @@ from raidionicsseg.Utils.configuration_parser import ConfigResources
 
 
 def run_pre_processing(filename: str, pre_processing_parameters: ConfigResources,
-                       storage_path: str) -> Tuple[nib.Nifti1Image, np.ndarray, np.ndarray, Any]:
+                       storage_path: str) -> Tuple[nib.Nifti1Image, nib.Nifti1Image, np.ndarray, List[int]]:
     """
 
     Parameters
     ----------
     filename : str
-        The first parameter.
+        Filepath of the input volume (CT or MRI) to use.
     pre_processing_parameters : :obj:`ConfigResources`
-        The second parameter.
+        Loaded configuration specifying runtime parameters.
     storage_path: str
-        The third parameter.
+        Folder where the computed results should be stored.
 
     Returns
     -------
     nib.Nifti1Image
-        First return
+        Original Nifti object from loading the content of filename.
+    nib.Nifti1Image
+        Nifti object after conversion to a normalized space (resample_to_output).
     np.ndarray
-        Second return
-    np.ndarray
-        Third return
-    Any
-        Fourth return
+        Fully preprocessed volume ready for inference.
+    List[int]
+        Indices of a bounding region within the preprocessed volume for additional cropping
+         (e.g. coordinates around the brain or lungs).
+         The bounding region is expressed as: [minx, miny, minz, maxx, maxy, maxz].
     """
-    logging.info("Extracting input data.\n")
+    logging.info("Preprocessing - Extracting input data.\n")
     nib_volume = load_nifti_volume(filename)
 
-    logging.info("Resampling.\n")
-    # Normalize spacing
+    logging.info("Preprocessing - Resampling.\n")
     new_spacing = pre_processing_parameters.output_spacing
     if pre_processing_parameters.output_spacing == None:
         tmp = np.min(nib_volume.header.get_zooms())
@@ -54,7 +55,7 @@ def run_pre_processing(filename: str, pre_processing_parameters: ConfigResources
         data, aff = reslice(nib_volume.get_data(), nib_volume.affine, nib_volume.header.get_zooms(), new_zooms=new_spacing)
         resampled_volume = nib.Nifti1Image(data, affine=aff)
 
-    logging.info("Clipping and intensity normalization.\n")
+    logging.info("Preprocessing - Clipping and intensity normalization.\n")
     crop_bbox = None
     if pre_processing_parameters.imaging_modality == ImagingModalityType.CT:
         # Exclude background
@@ -73,7 +74,7 @@ def run_pre_processing(filename: str, pre_processing_parameters: ConfigResources
         if pre_processing_parameters.crop_background is not None:
             data, crop_bbox = crop_MR_background(filename, data, new_spacing, storage_path, pre_processing_parameters)
 
-    logging.info("Volume resizing.\n")
+    logging.info("Preprocessing - Volume resizing.\n")
     data = resize_volume(data, pre_processing_parameters.new_axial_size, pre_processing_parameters.slicing_plane,
                          order=1)
 
