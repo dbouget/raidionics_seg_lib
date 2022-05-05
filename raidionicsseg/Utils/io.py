@@ -3,8 +3,6 @@ import os
 import nibabel as nib
 from nibabel import four_to_three
 import SimpleITK as sitk
-import numpy as np
-# import pandas as pd
 from tensorflow.python.keras.models import Model
 
 
@@ -41,10 +39,12 @@ def dump_classification_predictions(predictions, parameters, storage_path):
     print("Writing predictions to files...")
     class_names = parameters.training_class_names
     prediction_filename = os.path.join(storage_path, 'classification-results.csv')
+    with open(prediction_filename, 'w') as file:
+        file.write("Class, Prediction\n")
+        for c, cla in enumerate(class_names):
+            file.write("{}, {}\n".format(cla, predictions[c]))
 
-    # @TODO. Including pandas just for this might not be necessary?
-    # results_df = pd.DataFrame(np.expand_dims(predictions, axis=0), columns=class_names)
-    # results_df.to_csv(prediction_filename, index=False)
+    file.close()
 
 
 def convert_and_export_to_nifti(input_filepath):
@@ -56,6 +56,7 @@ def convert_and_export_to_nifti(input_filepath):
 
 
 def dump_feature_maps(model, data_prep):
+    import numpy as np
     output_root = '/media/dbouget/ihda/Studies/NetworkValidation/Meningioma/Viz'
     # output_root = '/media/dbouget/ihda/Studies/NetworkValidation/G2Paper/Viz'
     affine_default = [[1,0,0,0], [0,1,0,0], [0,0,1,0],[0,0,0,0]]

@@ -1,24 +1,44 @@
 import logging
-
-from nibabel import four_to_three
+from typing import List
 from nibabel.processing import resample_to_output, resample_from_to
 from skimage.measure import regionprops, label
 from skimage.transform import resize
 from scipy.ndimage import zoom
 import os
 import nibabel as nib
-from os.path import join
 import numpy as np
 import sys
 from shutil import copy
 from math import ceil, floor
 from copy import deepcopy
-from typing import Any
 from raidionicsseg.Utils.configuration_parser import ConfigResources
 
 
-def reconstruct_post_predictions(predictions: np.ndarray, parameters: ConfigResources, crop_bbox: Any,
-                                 nib_volume: nib.Nifti1Image, resampled_volume: np.ndarray) -> np.ndarray:
+def reconstruct_post_predictions(predictions: np.ndarray, parameters: ConfigResources, crop_bbox: List[int],
+                                 nib_volume: nib.Nifti1Image, resampled_volume: nib.Nifti1Image) -> np.ndarray:
+    """
+    Reconstructing the inference predictions back into the original patient space.
+
+    Parameters
+    ----------
+    predictions : np.ndarray
+        Results from the inference process.
+    parameters : :obj:`ConfigResources`
+        Loaded configuration specifying runtime parameters.
+    crop_bbox : List[int]
+        Indices of a bounding region within the preprocessed volume for additional cropping
+        (e.g. coordinates around the brain or lungs).
+        The bounding region is expressed as: [minx, miny, minz, maxx, maxy, maxz].
+    nib_volume : nib.Nifti1Image
+        .
+    resampled_volume : nib.Nifti1Image
+        .
+
+    Returns
+    -------
+    np.ndarray
+.       Predictions expressed in the original patient space.
+    """
     logging.info("Reconstructing predictions.\n")
     reconstruction_method = parameters.predictions_reconstruction_method
     probability_thresholds = parameters.training_optimal_thresholds
