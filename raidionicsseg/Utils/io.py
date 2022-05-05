@@ -17,7 +17,18 @@ def load_nifti_volume(volume_path):
     return nib_volume
 
 
-def dump_predictions(predictions, parameters, nib_volume, storage_path):
+def dump_predictions(predictions: np.ndarray, parameters, nib_volume: nib.Nifti1Image, storage_path: str) -> None:
+    """
+    Saves the predictions on disk.
+
+    Parameters
+    ----------
+    predictions : np.ndarray
+        .
+    Returns
+    -------
+
+    """
     logging.info("Writing predictions to files.\n")
     naming_suffix = 'pred' if parameters.predictions_reconstruction_method == 'probabilities' else 'labels'
     class_names = parameters.training_class_names
@@ -36,7 +47,7 @@ def dump_predictions(predictions, parameters, nib_volume, storage_path):
 
 
 def dump_classification_predictions(predictions, parameters, storage_path):
-    print("Writing predictions to files...")
+    logging.info("Writing predictions to files...\n")
     class_names = parameters.training_class_names
     prediction_filename = os.path.join(storage_path, 'classification-results.csv')
     with open(prediction_filename, 'w') as file:

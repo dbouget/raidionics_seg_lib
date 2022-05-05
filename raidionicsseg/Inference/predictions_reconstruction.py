@@ -30,9 +30,9 @@ def reconstruct_post_predictions(predictions: np.ndarray, parameters: ConfigReso
         (e.g. coordinates around the brain or lungs).
         The bounding region is expressed as: [minx, miny, minz, maxx, maxy, maxz].
     nib_volume : nib.Nifti1Image
-        .
+        Original MRI volume, in the patient space, as Nifti format.
     resampled_volume : nib.Nifti1Image
-        .
+        Processed MRI volume, resampled to output, as Nifti format.
 
     Returns
     -------
