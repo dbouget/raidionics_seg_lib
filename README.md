@@ -2,37 +2,47 @@
 
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause)
 [![Build Actions Status](https://github.com/dbouget/raidionics-seg-lib/workflows/Build/badge.svg)](https://github.com/dbouget/raidionics-seg-lib/actions)
-[![Paper](https://zenodo.org/badge/DOI/10.1038/s41598-017-17204-5.svg)](https://doi.org/10.48550/arXiv.2204.14199)
+[![Paper](https://zenodo.org/badge/DOI/10.48550/arXiv.2204.14199.svg)](https://doi.org/10.48550/arXiv.2204.14199)
 
 The code corresponds to the TensorFlow segmentation or classification backend of MRI/CT volumes.  
 The module can either be used as a Python library, as CLI, or as Docker container.
 
 # Installation
-> pip install git+https://github.com/dbouget/raidionics-seg-lib
+```
+pip install git+https://github.com/dbouget/raidionics-seg-lib
+```
 
 No GPU support for TensorFlow on macOS.
 
 # Usage
 ## CLI
-> raidionicsseg CONFIG
+```
+raidionicsseg CONFIG
+```
 
 CONFIG should point to a configuration file (*.ini), specifying all runtime parameters,
-according to the pattern from **blank_main_config.ini**.
+according to the pattern from [**blank_main_config.ini**](https://github.com/dbouget/raidionics-seg-lib/blob/master/blank_main_config.ini).
 
 ## Python module
-> from raidionicsseg import run_model  
-> run_model(config_filename="/path/to/main_config.ini")
+```
+from raidionicsseg import run_model
+run_model(config_filename="/path/to/main_config.ini")
+```
 
 ## Docker
-> docker pull dbouget/raidionics-segmenter:v1  
-> docker run --entrypoint /bin/bash -v /home/ubuntu:/home/ubuntu -t -i --runtime=nvidia --network=host --ipc=host dbouget/raidionics-segmenter:v1 
+```
+docker pull dbouget/raidionics-segmenter:v1
+docker run --entrypoint /bin/bash -v /home/ubuntu:/home/ubuntu -t -i --runtime=nvidia --network=host --ipc=host dbouget/raidionics-segmenter:v1
+```
 
-The '/home/ubuntu' before the column sign has to be changed to match your local machine.
+The `/home/ubuntu` before the column sign has to be changed to match your local machine.
 
 # Models
 The trained models are automatically downloaded when running Raidionics or Raidionics-Slicer.
+
 # How to cite
 Please, consider citing our paper, if you find the work useful:
+
 ```
 @misc{https://doi.org/10.48550/arXiv.2204.14199,
 title = {Preoperative brain tumor imaging: models and software for segmentation and standardized reporting},
