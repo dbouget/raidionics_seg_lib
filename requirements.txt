@@ -3,7 +3,7 @@ aenum==3.1.11
 astor==0.8.1
 cached-property==1.5.2
 cycler==0.11.0
-dataclasses==0.8
+# dataclasses==0.8 # Only for Python < 3.7
 decorator==4.4.2
 gast==0.5.3
 google-pasta==0.2.0
