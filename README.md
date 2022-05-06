@@ -8,8 +8,9 @@ The code corresponds to the TensorFlow segmentation or classification backend of
 The module can either be used as a Python library, as CLI, or as Docker container.
 
 # Installation
+
 ```
-pip install git+https://github.com/dbouget/raidionics-seg-lib
+pip install git+https://github.com/dbouget/raidionics-seg-lib.git
 ```
 
 No GPU support for TensorFlow on macOS.
