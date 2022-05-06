@@ -4,6 +4,7 @@ import sys
 import traceback
 import logging
 from raidionicsseg.fit import run_model
+# Adjust level of prints from TensorFlow
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
@@ -11,8 +12,8 @@ def main(argv):
     config_filename = None
     try:
         logging.basicConfig()
-        logging.getLogger().setLevel(logging.DEBUG)
-        opts, args = getopt.getopt(argv, "h:c:", ["Config="])
+        logging.getLogger().setLevel(logging.WARNING)
+        opts, args = getopt.getopt(argv, "h:c:v:", ["Config=", "Verbose="])
     except getopt.GetoptError:
         print('usage: main.py --Config <config_file>')
         sys.exit(2)
@@ -22,6 +23,15 @@ def main(argv):
             sys.exit()
         elif opt in ("-c", "--Config"):
             config_filename = arg
+        elif opt in ("-v", "--Verbose"):
+            if opt.lower() == 'debug':
+                logging.getLogger().setLevel(logging.DEBUG)
+            elif opt.lower() == 'info':
+                logging.getLogger().setLevel(logging.INFO)
+            elif opt.lower() == 'warning':
+                logging.getLogger().setLevel(logging.WARNING)
+            elif opt.lower() == 'error':
+                logging.getLogger().setLevel(logging.ERROR)
 
     if not config_filename or not os.path.exists(config_filename):
         print('usage: main.py --Config <config_file>')

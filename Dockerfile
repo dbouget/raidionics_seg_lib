@@ -44,8 +44,8 @@ USER ubuntu
 RUN pip3 install --upgrade pip
 RUN pip3 install tensorflow==1.14.0
 RUN pip3 install tensorflow-gpu==1.14.0
-RUN pip3 install torch==1.4.0
-RUN pip3 install pytorch-lightning==0.7.3
+#RUN pip3 install torch==1.4.0
+#RUN pip3 install pytorch-lightning==0.7.3
 RUN pip3 install progressbar2
 RUN pip3 install nibabel==3.0.1
 
@@ -61,24 +61,18 @@ RUN pip3 install sklearn
 RUN pip3 install h5py==2.10.0
 RUN pip3 install pandas
 
-#RUN mkdir /home/ubuntu/models
-#WORKDIR "/home/ubuntu/models"
-#COPY models $WORKDIR
 RUN mkdir /home/ubuntu/raidionicsseg
 WORKDIR "/home/ubuntu/raidionicsseg"
 COPY raidionicsseg/ $WORKDIR
 WORKDIR "/home/ubuntu"
 COPY Dockerfile $WORKDIR
 COPY main.py $WORKDIR
-#COPY sintef-segmenter.json $WORKDIR
 
 #RUN mkdir /home/ubuntu/data
 RUN mkdir /home/ubuntu/resources
 USER root
-#RUN chown -R ubuntu:ubuntu /home/ubuntu/models
 #RUN chown -R ubuntu:ubuntu /home/ubuntu/data
 RUN chown -R ubuntu:ubuntu /home/ubuntu/resources
-#RUN chmod -R 777 /home/ubuntu/models
 RUN chmod -R 777 /home/ubuntu/resources
 USER ubuntu
 EXPOSE 8888

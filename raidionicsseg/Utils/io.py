@@ -1,6 +1,7 @@
 import logging
 import os
 import nibabel as nib
+import numpy as np
 from nibabel import four_to_three
 import SimpleITK as sitk
 from tensorflow.python.keras.models import Model
