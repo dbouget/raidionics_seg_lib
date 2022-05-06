@@ -3,7 +3,7 @@ from typing import Tuple, Any, List
 import numpy as np
 import nibabel as nib
 from nibabel.processing import resample_to_output
-from dipy.align.reslice import reslice  # @TODO. Is dipy really needed?
+# from dipy.align.reslice import reslice  # @TODO. Is dipy really needed?
 from raidionicsseg.Utils.volume_utilities import intensity_normalization, resize_volume
 from raidionicsseg.Utils.io import load_nifti_volume
 from raidionicsseg.PreProcessing.mediastinum_clipping import mediastinum_clipping, mediastinum_clipping_DL
@@ -51,9 +51,9 @@ def run_pre_processing(filename: str, pre_processing_parameters: ConfigResources
     if library == 'nibabel':
         resampled_volume = resample_to_output(nib_volume, new_spacing, order=1)
         data = resampled_volume.get_data().astype('float32')
-    elif library == 'dipy':
-        data, aff = reslice(nib_volume.get_data(), nib_volume.affine, nib_volume.header.get_zooms(), new_zooms=new_spacing)
-        resampled_volume = nib.Nifti1Image(data, affine=aff)
+    # elif library == 'dipy':
+    #     data, aff = reslice(nib_volume.get_data(), nib_volume.affine, nib_volume.header.get_zooms(), new_zooms=new_spacing)
+    #     resampled_volume = nib.Nifti1Image(data, affine=aff)
 
     logging.info("Preprocessing - Clipping and intensity normalization.\n")
     crop_bbox = None
