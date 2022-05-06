@@ -1,7 +1,8 @@
 # Raidionics backend for segmentation/classification
 
-[![license](https://img.shields.io/github/license/DAVFoundation/captain-n3m0.svg?style=flat-square)](https://github.com/DAVFoundation/captain-n3m0/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause)
 [![Build Actions Status](https://github.com/dbouget/raidionics-seg-lib/workflows/Build/badge.svg)](https://github.com/dbouget/raidionics-seg-lib/actions)
+[![Paper](https://zenodo.org/badge/DOI/10.1038/s41598-017-17204-5.svg)](https://doi.org/10.48550/arXiv.2204.14199)
 
 The code corresponds to the TensorFlow segmentation or classification backend of MRI/CT volumes.  
 The module can either be used as a Python library, as CLI, or as Docker container.
