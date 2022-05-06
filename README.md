@@ -7,48 +7,40 @@
 The code corresponds to the TensorFlow segmentation or classification backend of MRI/CT volumes.  
 The module can either be used as a Python library, as CLI, or as Docker container.
 
-## 1. Trained segmentation models
-The models and associated configuration files to be used should be placed inside a folder
-at the project root directory. The folder name should be: *resources/models/*, and there
-should be one sub-folder for each separate models (e.g., MRI_Tumor, CT_LymphNodes).  
-The following is an example of the folder structure:
-> * ./  
-> --- resources/  
-> ------ models/  
-> --------- MRI_Brain/  
-> ------------ model.hd5  
-> ------------ pre_processing.ini
+# Installation
+> pip install git+https://github.com/dbouget/raidionics-seg-lib
 
-## 2. Runtime segmentation configuration
-A runtime configuration file (runtime_config.ini) can be used to specify some user choices.
-The configuration file should look like this:  
+No GPU support for TensorFlow on macOS.
 
->[Predictions]  
->non_overlapping=False  
->reconstruction_method= #argmax, probabilities, thresholding  
->reconstruction_order= #resample_first, resample_second  
->probability_threshold=0.5  
+# Usage
+## CLI
+> raidionicsseg CONFIG
 
-The configuration file should be placed within */resources/data*:
-> * ./  
-> --- resources/  
-> ------ data/  
-> --------- runtime_config.ini  
+CONFIG should point to a configuration file (*.ini), specifying all runtime parameters,
+according to the pattern from **blank_main_config.ini**.
 
-## 3. Command line execution
-The usage is:  
-> main.py --Task *TaskName* --Input *InputFilename* --Output *OutputDirname* --Model *model_name* --GPU *gpu_id*
+## Python module
+> from raidionicsseg import run_model  
+> run_model(config_filename="/path/to/main_config.ini")
 
-* Task: segmentation or classification.  
-* Input: complete filename of the input MRI volume to process.  
-* Output: folder where to dump the computed results.  
-* Model: name of the sub-folder containing the model to be used (e.g., MRI_Brain).  
-* GPU: id of the GPU to use, -1 to use the CPU (default).  
+## Docker
+> docker pull dbouget/raidionics-segmenter:v1  
+> docker run --entrypoint /bin/bash -v /home/ubuntu:/home/ubuntu -t -i --runtime=nvidia --network=host --ipc=host dbouget/raidionics-segmenter:v1 
 
-## 4. Creating the Docker image
-The Dockerfile specifies the content of the Docker image, and the following lines should be 
-executed to update the image with the latest source code modifications. The created image is used 
-as backend for the 3D Slicer plugin.  
+The '/home/ubuntu' before the column sign has to be changed to match your local machine.
 
-> docker build --network=host -t *username*/*image\_name*:*tag* */path/to/Dockerfile*  
-> docker push *username*/*image\_name*:*tag*  
+# Models
+The trained models are automatically downloaded when running Raidionics or Raidionics-Slicer.
+# How to cite
+Please, consider citing our paper, if you find the work useful:
+```
+@misc{https://doi.org/10.48550/arXiv.2204.14199,
+title = {Preoperative brain tumor imaging: models and software for segmentation and standardized reporting},
+author = {Bouget, D. and Pedersen, A. and Jakola, A. S. and Kavouridis, V. and Emblem, K. E. and Eijgelaar, R. S. and Kommers, I. and Ardon, H. and Barkhof, F. and Bello, L. and Berger, M. S. and Nibali, M. C. and Furtner, J. and Hervey-Jumper, S. and Idema, A. J. S. and Kiesel, B. and Kloet, A. and Mandonnet, E. and Müller, D. M. J. and Robe, P. A. and Rossi, M. and Sciortino, T. and Brink, W. Van den and Wagemakers, M. and Widhalm, G. and Witte, M. G. and Zwinderman, A. H. and Hamer, P. C. De Witt and Solheim, O. and Reinertsen, I.},
+doi = {10.48550/ARXIV.2204.14199},
+url = {https://arxiv.org/abs/2204.14199},
+keywords = {Image and Video Processing (eess.IV), Computer Vision and Pattern Recognition (cs.CV), Machine Learning (cs.LG), FOS: Electrical engineering, electronic engineering, information engineering, FOS: Electrical engineering, electronic engineering, information engineering, FOS: Computer and information sciences, FOS: Computer and information sciences, I.4.6; J.3},
+publisher = {arXiv},
+year = {2022},
+copyright = {Creative Commons Attribution 4.0 International}}
+```
