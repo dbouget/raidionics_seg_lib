@@ -15,7 +15,6 @@ from shutil import copy
 from math import ceil, floor
 from copy import deepcopy
 from raidionicsseg.Utils.volume_utilities import padding_for_inference, padding_for_inference_both_ends
-from raidionicsseg.Utils.io import dump_feature_maps
 from raidionicsseg.Utils.configuration_parser import ConfigResources
 
 

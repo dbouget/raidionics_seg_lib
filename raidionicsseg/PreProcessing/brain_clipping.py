@@ -13,7 +13,6 @@ import os
 import logging
 from pathlib import PurePath
 from raidionicsseg.Utils.io import load_nifti_volume, convert_and_export_to_nifti
-from raidionicsseg.Utils.configuration_parser import generate_runtime_config
 from raidionicsseg.Utils.configuration_parser import ConfigResources
 
 

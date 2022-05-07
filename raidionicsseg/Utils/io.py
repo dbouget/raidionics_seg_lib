@@ -4,7 +4,7 @@ import nibabel as nib
 import numpy as np
 from nibabel import four_to_three
 import SimpleITK as sitk
-from tensorflow.python.keras.models import Model
+from raidionicsseg.Utils.configuration_parser import ConfigResources
 
 
 def load_nifti_volume(volume_path):
@@ -18,14 +18,29 @@ def load_nifti_volume(volume_path):
     return nib_volume
 
 
-def dump_predictions(predictions: np.ndarray, parameters, nib_volume: nib.Nifti1Image, storage_path: str) -> None:
+def convert_and_export_to_nifti(input_filepath):
+    input_sitk = sitk.ReadImage(input_filepath)
+    output_filepath = input_filepath.split('.')[0] + '.nii.gz'
+    sitk.WriteImage(input_sitk, output_filepath)
+
+    return output_filepath
+
+
+def dump_predictions(predictions: np.ndarray, parameters: ConfigResources, nib_volume: nib.Nifti1Image,
+                     storage_path: str) -> None:
     """
-    Saves the predictions on disk.
+    Saves the segmentation predictions on disk.
 
     Parameters
     ----------
     predictions : np.ndarray
-        .
+        Output collected from running inference on the input patient volume.
+    parameters :  :obj:`ConfigResources`
+        Loaded configuration specifying runtime parameters.
+    nib_volume : nib.Nifti1Image
+        Nifti object after conversion to a normalized space (resample_to_output).
+    storage_path: str
+        Folder where the computed results should be stored.
     Returns
     -------
 
@@ -47,7 +62,22 @@ def dump_predictions(predictions: np.ndarray, parameters, nib_volume: nib.Nifti1
         nib.save(img, predictions_output_path)
 
 
-def dump_classification_predictions(predictions, parameters, storage_path):
+def dump_classification_predictions(predictions: np.ndarray, parameters: ConfigResources, storage_path: str) -> None:
+    """
+    Saves the classification predictions on disk.
+
+    Parameters
+    ----------
+    predictions : np.ndarray
+        Output collected from running inference on the input patient volume.
+    parameters :  :obj:`ConfigResources`
+        Loaded configuration specifying runtime parameters.
+    storage_path: str
+        Folder where the computed results should be stored.
+    Returns
+    -------
+
+    """
     logging.info("Writing predictions to files...\n")
     class_names = parameters.training_class_names
     prediction_filename = os.path.join(storage_path, 'classification-results.csv')
@@ -57,65 +87,3 @@ def dump_classification_predictions(predictions, parameters, storage_path):
             file.write("{}, {}\n".format(cla, predictions[c]))
 
     file.close()
-
-
-def convert_and_export_to_nifti(input_filepath):
-    input_sitk = sitk.ReadImage(input_filepath)
-    output_filepath = input_filepath.split('.')[0] + '.nii.gz'
-    sitk.WriteImage(input_sitk, output_filepath)
-
-    return output_filepath
-
-
-def dump_feature_maps(model, data_prep):
-    import numpy as np
-    output_root = '/media/dbouget/ihda/Studies/NetworkValidation/Meningioma/Viz'
-    # output_root = '/media/dbouget/ihda/Studies/NetworkValidation/G2Paper/Viz'
-    affine_default = [[1,0,0,0], [0,1,0,0], [0,0,1,0],[0,0,0,0]]
-    nib.save(nib.Nifti1Image(data_prep[0, :, :, :, 0], affine=affine_default), os.path.join(output_root, 'prep_input.nii.gz'))
-    layer_names = [layer.name for layer in model.layers]
-    layer_outputs = [layer.output for layer in model.layers]
-    for i in range(len(model.layers)):
-        layer = model.layers[i]
-        if 'conv' not in layer.name:
-            continue
-        print(i, layer.name, layer.output.shape)
-
-    blocks = [83, 103, 108, 111, 114, 117, 118, 123, 128, 131, 134] # [63, 66, 71, 74, 77]
-    outputs = [model.layers[i].output for i in blocks]
-
-    model2 = Model(inputs=model.inputs, outputs=outputs)
-    feature_map = model2.predict(data_prep)
-    for i, fmap in zip(blocks, feature_map):
-        # Number of feature images/dimensions in a feature map of a layer
-        k = fmap.shape[-1]
-        for fm in range(k):
-            output_filename = os.path.join(output_root, 'Layer_' + str(i) + '_fm' + str(fm) + '.nii.gz')
-            if len(fmap.shape) == 4:
-                curr_fm = fmap[:, :, :, fm]
-            elif len(fmap.shape) == 5:
-                curr_fm = fmap[0, :, :, :, fm]
-            # mean = curr_fm.mean()
-            # std = curr_fm.std()
-            # curr_fm -= mean
-            # curr_fm /= std
-            min = curr_fm.min()
-            max = curr_fm.max()
-            curr_fm -= min
-            curr_fm /= (max - min)
-            layer_viz_ni = nib.Nifti1Image(curr_fm, affine=affine_default)
-            nib.save(layer_viz_ni, output_filename)
-
-    # for layer_name, layer_output in zip(layer_names, layer_outputs):
-    #     # Number of feature images/dimensions in a feature map of a layer
-    #     k = layer_output.shape[-1]
-    #     for fm in range(k):
-    #         output_filename = os.path.join(output_root, layer_name + '_fm' + str(fm) + '.nii.gz')
-    #         feature_map = layer_output[0, :, :, :, fm]
-    #         feature_map -= feature_map.mean()
-    #         feature_map /= feature_map.std()
-    #         feature_map *= 64
-    #         feature_map += 128
-    #         feature_map = np.clip(feature_map, 0, 255).astype('uint8')
-    #         layer_viz_ni = nib.Nifti1Image(feature_map, affine=affine_default)
-    #         nib.save(layer_viz_ni, output_filename)

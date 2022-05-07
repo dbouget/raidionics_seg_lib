@@ -27,16 +27,6 @@ def get_type_from_string(EnumType, string):
         return -1
 
 
-def generate_runtime_config(runtime_filename):
-    parser = configparser.ConfigParser()
-    parser.read(runtime_filename)
-
-    parser.set('Predictions', 'reconstruction_method', 'probabilities')
-    parser.set('Predictions', 'reconstruction_order', 'resample_first')
-
-    return parser
-
-
 class ConfigResources:
     """
     Singleton class to have access from anywhere in the code at the various local paths where the data, or code are
@@ -74,7 +64,6 @@ class ConfigResources:
 
         self.runtime_lungs_mask_filepath = ''
         self.runtime_brain_mask_filepath = ''
-
 
     def init_environment(self, config_filename):
         self.config_filename = config_filename
@@ -123,14 +112,6 @@ class ConfigResources:
         if self.config.has_option('Runtime', 'reconstruction_order'):
             if self.config['Runtime']['reconstruction_order'].split('#')[0].strip() != '':
                 self.predictions_reconstruction_order = self.config['Runtime']['reconstruction_order'].split('#')[0].strip()
-
-        # if self.runtime_config.has_option('Mediastinum', 'lungs_segmentation_filename'):
-        #     if self.runtime_config['Mediastinum']['lungs_segmentation_filename'].split('#')[0].strip() != '':
-        #         self.runtime_lungs_mask_filepath = self.runtime_config['Mediastinum']['lungs_segmentation_filename'].split('#')[0].strip()
-        #
-        # if self.runtime_config.has_option('Neuro', 'brain_segmentation_filename'):
-        #     if self.runtime_config['Neuro']['brain_segmentation_filename'].split('#')[0].strip() != '':
-        #         self.runtime_brain_mask_filepath = self.runtime_config['Neuro']['brain_segmentation_filename'].split('#')[0].strip()
 
     def __parse_content(self):
         if self.pre_processing_config.has_option('Default', 'imaging_modality'):

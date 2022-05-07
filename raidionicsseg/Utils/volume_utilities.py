@@ -37,9 +37,6 @@ def __intensity_normalization_CT(volume, parameters):
 
 
 def __intensity_normalization_MRI(volume, parameters):
-    #result = np.zeros(shape=volume.shape)
-    #original = np.copy(volume)
-
     result = deepcopy(volume).astype('float32')
     result[result < 0] = 0  # Soft clipping at 0 for MRI
     if parameters.intensity_clipping_range[1] - parameters.intensity_clipping_range[0] != 100:
