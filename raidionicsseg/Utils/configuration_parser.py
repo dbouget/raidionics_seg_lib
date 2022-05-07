@@ -75,6 +75,7 @@ class ConfigResources:
         self.runtime_lungs_mask_filepath = ''
         self.runtime_brain_mask_filepath = ''
 
+
     def init_environment(self, config_filename):
         self.config_filename = config_filename
         self.config = configparser.ConfigParser()

@@ -24,13 +24,13 @@ def main(argv):
         elif opt in ("-c", "--Config"):
             config_filename = arg
         elif opt in ("-v", "--Verbose"):
-            if opt.lower() == 'debug':
+            if arg.lower() == 'debug':
                 logging.getLogger().setLevel(logging.DEBUG)
-            elif opt.lower() == 'info':
+            elif arg.lower() == 'info':
                 logging.getLogger().setLevel(logging.INFO)
-            elif opt.lower() == 'warning':
+            elif arg.lower() == 'warning':
                 logging.getLogger().setLevel(logging.WARNING)
-            elif opt.lower() == 'error':
+            elif arg.lower() == 'error':
                 logging.getLogger().setLevel(logging.ERROR)
 
     if not config_filename or not os.path.exists(config_filename):

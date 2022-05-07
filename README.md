@@ -13,7 +13,12 @@ The module can either be used as a Python library, as CLI, or as Docker containe
 pip install git+https://github.com/dbouget/raidionics-seg-lib.git
 ```
 
-No GPU support for TensorFlow on macOS.
+No GPU support for TensorFlow by default. A manual installation of CUDA and of
+the following Python package is necessary.
+
+```
+pip install tensorflow-gpu==1.14.0
+```
 
 # Usage
 ## CLI
