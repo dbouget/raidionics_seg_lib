@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 with open("README.md", "r", errors='ignore') as f:
     long_description = f.read()
 
-with open('requirements.txt', 'r', encoding='utf-16', errors='ignore') as ff:
+with open('requirements.txt', 'r', encoding='utf-8', errors='ignore') as ff:
     required = ff.read().splitlines()
 
 setup(
@@ -23,7 +23,7 @@ setup(
     },
     install_requires=required,
     python_requires=">=3.6",
-    version='0.1.0',
+    version='0.1.1',
     author='David Bouget (david.bouget@sintef.no)',
     license='BSD 2-Clause',
     description='Raidionics segmentation and classification back-end with TensorFlow',
