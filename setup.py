@@ -3,13 +3,11 @@ from setuptools import find_packages, setup
 with open("README.md", "r", errors='ignore') as f:
     long_description = f.read()
 
-with open('requirements.txt', 'r', errors='ignore') as ff:
+with open('requirements.txt', 'r', encoding='utf-16', errors='ignore') as ff:
     required = ff.read().splitlines()
 
 setup(
     name='raidionicsseg',
-    # package_dir={"": "raidionicsseg"},
-    # packages=find_packages(where="raidionicsseg"),
     packages=find_packages(
         include=[
             'raidionicsseg',
@@ -24,11 +22,10 @@ setup(
         ]
     },
     install_requires=required,
-    # include_package_data=True,
     python_requires=">=3.6",
     version='0.1.0',
     author='David Bouget (david.bouget@sintef.no)',
-    license='MIT',
+    license='BSD 2-Clause',
     description='Raidionics segmentation and classification back-end with TensorFlow',
     long_description=long_description,
     long_description_content_type="text/markdown",
