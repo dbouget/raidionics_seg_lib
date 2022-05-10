@@ -77,7 +77,7 @@ jobs:
         - name: Singular unit test
           run: cd ${{github.workspace}}/tests && python inference_test.py
 
-        - name: Test with pytest
-          run: |
-            pip install pytest
-            pytest --verbose tests/
+#        - name: Test with pytest
+#          run: |
+#            pip install pytest
+#            pytest --verbose tests/
