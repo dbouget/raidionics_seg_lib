@@ -66,13 +66,12 @@ jobs:
             name: "Python wheel"
 
         - name: Install wheel
-          run: |
-            ls -la
-            pip install --find-links=${{github.workspace}} raidionicsseg
+          run: pip install --find-links=${{github.workspace}} raidionicsseg
 
         - name: Test CLI
           run: raidionicsseg --help
 
         - name: Test with pytest
           run: |
+            pip install pytest
             pytest tests/
