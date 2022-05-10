@@ -14,16 +14,19 @@ jobs:
         include:
           - os: ubuntu-18.04
             TARGET: ubuntu
-            CMD_BUILD: "pip install tensorflow-gpu==1.13.1 && 
-                        pip install git+https://github.com/dbouget/raidionics-seg-lib.git"
+            CMD_BUILD: python setup.py bdist_wheel
 
           - os: macos-10.15
             TARGET: macos
-            CMD_BUILD: pip install git+https://github.com/dbouget/raidionics-seg-lib.git
+            CMD_BUILD: python setup.py bdist_wheel
 
           - os: windows-2019
             TARGET: windows
-            CMD_BUILD: pip install git+https://github.com/dbouget/raidionics-seg-lib.git
+            CMD_BUILD: python setup.py bdist_wheel
+
+#          - os: windows-2019
+#            TARGET: windows
+#            CMD_BUILD: python setup_sse2.py bdist_wheel --plat-name win_amd64_sse2
     steps:
       - uses: actions/checkout@v1
       - name: Set up Python 3.7
@@ -34,8 +37,8 @@ jobs:
       - name: Install dependencies
         run: pip install wheel setuptools
 
-      - name: Build wheel
-        run: python setup.py bdist_wheel --universal
+      - name: Built wheel for ${{matrix.TARGET}}
+        run: ${{matrix.CMD_BUILD}}
 
       - name: Install program for ${{matrix.TARGET}}
         run: ${{matrix.CMD_BUILD}}
@@ -43,21 +46,36 @@ jobs:
       - name: Test CLI
         run: raidionicsseg --help
 
-      #- name: Download test sample
-      #  run: |
-      #    pip install gdown
-      #    mkdir samples
-      #    cd samples
-      #    gdown https://drive.google.com/uc?id=1shjSrFjS4PHE5sTku30PZTLPZpGu24o3
-      #    gdown https://drive.google.com/uc?id=1bNmls5o0Rxw5HvBF1IYnEzmpysYJaywN
-
-      #- name: Test inference
-      #  run: |
-      #    livermask --input samples --output samples --verbose --vessels
-
       - name: Upload Python wheel
         uses: actions/upload-artifact@v2
         with:
           name: Python wheel
           path: ${{github.workspace}}/dist/raidionicsseg-*.whl
           if-no-files-found: error
+
+  test:
+    needs: build
+    strategy:
+      matrix:
+        os: [ windows-2019, ubuntu-18.04, macos-10.15 ]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+        - name: Set up Python 3.7
+          uses: actions/setup-python@v2
+          with:
+            python-version: 3.7
+
+        - name: Download artifact
+          uses: actions/download-artifact@master
+          with:
+            name: "Python wheel"
+
+        - name: Install wheel
+          run: |
+            ls -la
+            pip install --find-links=${{github.workspace}} raidionicsseg
+
+        - name: Test with pytest
+          run: |
+            pytest tests/

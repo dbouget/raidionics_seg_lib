@@ -14,11 +14,8 @@ pip install git+https://github.com/dbouget/raidionics-seg-lib.git
 ```
 
 No GPU support for TensorFlow by default. A manual installation of CUDA and of
-the following Python package is necessary.
+the corresponding TensorFlow Python package (version 1.13.1) is necessary.
 
-```
-pip install tensorflow-gpu==1.14.0
-```
 
 # Usage
 ## CLI
@@ -45,6 +42,13 @@ The `/home/ubuntu` before the column sign has to be changed to match your local 
 
 # Models
 The trained models are automatically downloaded when running Raidionics or Raidionics-Slicer.
+
+# Developers
+To run the unit tests, type the following within your virtual environment and within the raidionics-seg-lib folder:
+```
+pip install pytest
+pytest tests/
+```
 
 # How to cite
 Please, consider citing our paper, if you find the work useful:

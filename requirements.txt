@@ -3,7 +3,6 @@ aenum==3.1.11
 astor==0.8.1
 cached-property==1.5.2
 cycler==0.11.0
-# dataclasses==0.8 # Only for Python < 3.7
 decorator==4.4.2
 gast==0.5.3
 google-pasta==0.2.0
@@ -30,9 +29,7 @@ scikit-image==0.17.2
 scipy==1.5.4
 SimpleITK==2.1.1.2
 six==1.16.0
-tensorboard==1.14.0
-tensorflow==1.14.0
-tensorflow-estimator==1.14.0
+tensorboard==1.13.1
 termcolor==1.1.0
 tifffile==2020.9.3
 tqdm==4.64.0

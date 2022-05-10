@@ -1,10 +1,15 @@
+import sys
 from setuptools import find_packages, setup
+import platform
 
 with open("README.md", "r", errors='ignore') as f:
     long_description = f.read()
 
 with open('requirements.txt', 'r', encoding='utf-8', errors='ignore') as ff:
     required = ff.read().splitlines()
+
+required.append('tensorflow==1.13.1')
+
 
 setup(
     name='raidionicsseg',
@@ -23,7 +28,7 @@ setup(
     },
     install_requires=required,
     python_requires=">=3.6",
-    version='0.1.1',
+    version='0.1.2',
     author='David Bouget (david.bouget@sintef.no)',
     license='BSD 2-Clause',
     description='Raidionics segmentation and classification back-end with TensorFlow',
