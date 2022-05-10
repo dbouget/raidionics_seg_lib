@@ -40,12 +40,6 @@ jobs:
       - name: Built wheel for ${{matrix.TARGET}}
         run: ${{matrix.CMD_BUILD}}
 
-      - name: Install program for ${{matrix.TARGET}}
-        run: ${{matrix.CMD_BUILD}}
-
-      - name: Test CLI
-        run: raidionicsseg --help
-
       - name: Upload Python wheel
         uses: actions/upload-artifact@v2
         with:
@@ -75,6 +69,9 @@ jobs:
           run: |
             ls -la
             pip install --find-links=${{github.workspace}} raidionicsseg
+
+        - name: Test CLI
+          run: raidionicsseg --help
 
         - name: Test with pytest
           run: |
