@@ -74,7 +74,10 @@ jobs:
         - name: Clone repo
           uses: actions/checkout@v1
 
+        - name: Singular unit test
+          run: cd ${{github.workspace}}/tests && python inference_test.py
+
         - name: Test with pytest
           run: |
             pip install pytest
-            pytest tests/
+            pytest --verbose tests/
