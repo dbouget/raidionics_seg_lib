@@ -19,6 +19,7 @@ setup(
             'raidionicsseg.Utils',
             'raidionicsseg.PreProcessing',
             'raidionicsseg.Inference',
+            'tests',
         ]
     ),
     entry_points={
