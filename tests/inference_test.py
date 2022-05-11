@@ -75,9 +75,15 @@ def inference_test():
 
     logging.info("Inference CLI unit test started.\n")
     try:
-        subprocess.check_call(['raidionicsseg',
-                               '{config}'.format(config=seg_config_filename),
-                               '--verbose', 'debug'], shell=True)
+        import platform
+        if platform.system() == 'Windows':
+            subprocess.check_call(['raidionicsseg',
+                                   '{config}'.format(config=seg_config_filename),
+                                   '--verbose', 'debug'], shell=True)
+        else:
+            subprocess.check_call(['raidionicsseg',
+                                   '{config}'.format(config=seg_config_filename),
+                                   '--verbose', 'debug'])
     except Exception as e:
         logging.error("Error during inference CLI unit test with: \n {}.\n".format(traceback.format_exc()))
         shutil.rmtree(test_dir)
