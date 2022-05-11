@@ -39,7 +39,7 @@ def inference_test():
     except Exception as e:
         logging.error("Error during resources download with: \n {}.\n".format(traceback.format_exc()))
         shutil.rmtree(test_dir)
-        return
+        raise ValueError("Error during resources download.\n")
 
     logging.info("Preparing configuration file.\n")
     try:
@@ -63,23 +63,32 @@ def inference_test():
         logging.info("Collecting and comparing results.\n")
         brain_segmentation_filename = os.path.join(test_dir, 'labels_Brain.nii.gz')
         if not os.path.exists(brain_segmentation_filename):
-            logging.error("Inference unit test failed, no created brain mask was generated.\n")
+            logging.error("Inference unit test failed, no brain mask was generated.\n")
+            raise ValueError("Inference unit test failed, no brain mask was generated.\n")
+        os.remove(brain_segmentation_filename)
     except Exception as e:
         logging.error("Error during inference unit test with: \n {}.\n".format(traceback.format_exc()))
         shutil.rmtree(test_dir)
-        return
+        raise ValueError("Error during inference unit test.\n")
 
     logging.info("Inference unit test succeeded.\n")
 
     logging.info("Inference CLI unit test started.\n")
     try:
-        subprocess.call(['raidionicsseg',
-                         '{config}'.format(config=seg_config_filename),
-                         '--verbose', 'debug'])
+        subprocess.check_call(['raidionicsseg',
+                               '{config}'.format(config=seg_config_filename),
+                               '--verbose', 'debug'])
     except Exception as e:
         logging.error("Error during inference CLI unit test with: \n {}.\n".format(traceback.format_exc()))
         shutil.rmtree(test_dir)
-        return
+        raise ValueError("Error during inference CLI unit test.\n")
+
+    logging.info("Collecting and comparing results.\n")
+    brain_segmentation_filename = os.path.join(test_dir, 'labels_Brain.nii.gz')
+    if not os.path.exists(brain_segmentation_filename):
+        logging.error("Inference CLI unit test failed, no brain mask was generated.\n")
+        shutil.rmtree(test_dir)
+        raise ValueError("Inference CLI unit test failed, no brain mask was generated.\n")
 
     logging.info("Inference CLI unit test succeeded.\n")
 

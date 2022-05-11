@@ -55,7 +55,7 @@ def __segment() -> None:
                                                                            pre_processing_parameters=pre_processing_parameters,
                                                                            storage_path=output_path)
         logging.info('Preprocessing: {} seconds.\n'.format(time.time() - start))
-        print('LOG: Preprocessing - End (1/4)\n')
+        logging.info('LOG: Preprocessing - End (1/4)\n')
 
         logging.info('LOG: Inference - Begin (2/4)\n')
         start = time.time()
