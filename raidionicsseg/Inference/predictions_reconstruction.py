@@ -40,7 +40,7 @@ def reconstruct_post_predictions(predictions: np.ndarray, parameters: ConfigReso
     np.ndarray
 .       Predictions expressed in the original patient space.
     """
-    logging.info("Reconstructing predictions.\n")
+    logging.debug("Reconstructing predictions.\n")
     reconstruction_method = parameters.predictions_reconstruction_method
     probability_thresholds = parameters.training_optimal_thresholds
     swap_input = parameters.swap_training_input
@@ -67,6 +67,7 @@ def reconstruct_post_predictions(predictions: np.ndarray, parameters: ConfigReso
 
 def __cut_predictions(predictions, probability_threshold, reconstruction_method):
     try:
+        logging.debug("Clipping predictions with {}.\n".format(reconstruction_method))
         if reconstruction_method == 'probabilities':
             return predictions
         elif reconstruction_method == 'thresholding':
@@ -92,6 +93,7 @@ def __cut_predictions(predictions, probability_threshold, reconstruction_method)
 
 def __resample_predictions(predictions, crop_bbox, nib_volume, resampled_volume, reconstruction_method, swap_input):
     try:
+        logging.debug("Resampling predictions with {}.\n".format(reconstruction_method))
         labels_type = predictions.dtype
         order = 0 if labels_type == np.uint8 else 1
         data = deepcopy(predictions).astype(labels_type)

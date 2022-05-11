@@ -80,7 +80,7 @@ def crop_MR(volume: np.ndarray, parameters) -> Tuple[np.ndarray, List[int]]:
     cropped_volume = original_volume[min_row:max_row, min_col:max_col, min_depth:max_depth]
     bbox = [min_row, min_col, min_depth, max_row, max_col, max_depth]
 
-    logging.info('MRI background cropping with: [{}, {}, {}, {}, {}, {}].\n'.format(min_row, min_col, min_depth,
+    logging.debug('MRI background cropping with: [{}, {}, {}, {}, {}, {}].\n'.format(min_row, min_col, min_depth,
                                                                                     max_row, max_col, max_depth))
     return cropped_volume, bbox
 
@@ -182,6 +182,6 @@ def advanced_crop_exclude_background(volume: np.ndarray, crop_mode: str,
 
     cropped_data = original_data[min_row:max_row, min_col:max_col, min_depth:max_depth]
     bbox = [min_row, min_col, min_depth, max_row, max_col, max_depth]
-    logging.info('MRI skull stripping with: [{}, {}, {}, {}, {}, {}].\n'.format(min_row, min_col, min_depth,
-                                                                                max_row, max_col, max_depth))
+    logging.debug('MRI skull stripping with: [{}, {}, {}, {}, {}, {}].\n'.format(min_row, min_col, min_depth,
+                                                                                 max_row, max_col, max_depth))
     return cropped_data, bbox

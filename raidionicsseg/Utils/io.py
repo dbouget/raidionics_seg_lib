@@ -4,6 +4,7 @@ import nibabel as nib
 import numpy as np
 from nibabel import four_to_three
 import SimpleITK as sitk
+import traceback
 from raidionicsseg.Utils.configuration_parser import ConfigResources
 
 
@@ -45,21 +46,25 @@ def dump_predictions(predictions: np.ndarray, parameters: ConfigResources, nib_v
     -------
 
     """
-    logging.info("Writing predictions to files.\n")
-    naming_suffix = 'pred' if parameters.predictions_reconstruction_method == 'probabilities' else 'labels'
-    class_names = parameters.training_class_names
+    logging.debug("Writing predictions to files.\n")
+    try:
+        naming_suffix = 'pred' if parameters.predictions_reconstruction_method == 'probabilities' else 'labels'
+        class_names = parameters.training_class_names
 
-    if len(predictions.shape) == 4:
-        for c in range(1, predictions.shape[-1]):
-            img = nib.Nifti1Image(predictions[..., c], affine=nib_volume.affine)
-            predictions_output_path = os.path.join(storage_path, naming_suffix + '_' + class_names[c] + '.nii.gz')
+        if len(predictions.shape) == 4:
+            for c in range(1, predictions.shape[-1]):
+                img = nib.Nifti1Image(predictions[..., c], affine=nib_volume.affine)
+                predictions_output_path = os.path.join(storage_path, naming_suffix + '_' + class_names[c] + '.nii.gz')
+                os.makedirs(os.path.dirname(predictions_output_path), exist_ok=True)
+                nib.save(img, predictions_output_path)
+        else:
+            img = nib.Nifti1Image(predictions, affine=nib_volume.affine)
+            predictions_output_path = os.path.join(storage_path, naming_suffix + '_' + 'argmax' + '.nii.gz')
             os.makedirs(os.path.dirname(predictions_output_path), exist_ok=True)
             nib.save(img, predictions_output_path)
-    else:
-        img = nib.Nifti1Image(predictions, affine=nib_volume.affine)
-        predictions_output_path = os.path.join(storage_path, naming_suffix + '_' + 'argmax' + '.nii.gz')
-        os.makedirs(os.path.dirname(predictions_output_path), exist_ok=True)
-        nib.save(img, predictions_output_path)
+    except Exception as e:
+        logging.error("Following error collected during model predictions dump on disk: \n {}\n".format(traceback.format_exc()))
+        raise ValueError("Predictions dump on disk could not fully proceed.\n")
 
 
 def dump_classification_predictions(predictions: np.ndarray, parameters: ConfigResources, storage_path: str) -> None:
@@ -78,12 +83,16 @@ def dump_classification_predictions(predictions: np.ndarray, parameters: ConfigR
     -------
 
     """
-    logging.info("Writing predictions to files...\n")
-    class_names = parameters.training_class_names
-    prediction_filename = os.path.join(storage_path, 'classification-results.csv')
-    with open(prediction_filename, 'w') as file:
-        file.write("Class, Prediction\n")
-        for c, cla in enumerate(class_names):
-            file.write("{}, {}\n".format(cla, predictions[c]))
+    logging.debug("Writing predictions to files...\n")
+    try:
+        class_names = parameters.training_class_names
+        prediction_filename = os.path.join(storage_path, 'classification-results.csv')
+        with open(prediction_filename, 'w') as file:
+            file.write("Class, Prediction\n")
+            for c, cla in enumerate(class_names):
+                file.write("{}, {}\n".format(cla, predictions[c]))
 
-    file.close()
+        file.close()
+    except Exception as e:
+        logging.error("Following error collected during model predictions dump on disk: \n {}\n".format(traceback.format_exc()))
+        raise ValueError("Predictions dump on disk could not fully proceed.\n")

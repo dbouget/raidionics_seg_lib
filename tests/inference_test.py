@@ -65,11 +65,24 @@ def inference_test():
         if not os.path.exists(brain_segmentation_filename):
             logging.error("Inference unit test failed, no created brain mask was generated.\n")
     except Exception as e:
-        logging.error("Error during inference with: \n {}.\n".format(traceback.format_exc()))
+        logging.error("Error during inference unit test with: \n {}.\n".format(traceback.format_exc()))
         shutil.rmtree(test_dir)
         return
 
     logging.info("Inference unit test succeeded.\n")
+
+    logging.info("Inference CLI unit test started.\n")
+    try:
+        subprocess.call(['raidionicsseg',
+                         '{config}'.format(config=seg_config_filename),
+                         '--verbose', 'debug'])
+    except Exception as e:
+        logging.error("Error during inference CLI unit test with: \n {}.\n".format(traceback.format_exc()))
+        shutil.rmtree(test_dir)
+        return
+
+    logging.info("Inference CLI unit test succeeded.\n")
+
     shutil.rmtree(test_dir)
 
 

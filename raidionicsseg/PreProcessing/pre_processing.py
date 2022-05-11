@@ -38,10 +38,10 @@ def run_pre_processing(filename: str, pre_processing_parameters: ConfigResources
          (e.g. coordinates around the brain or lungs).
          The bounding region is expressed as: [minx, miny, minz, maxx, maxy, maxz].
     """
-    logging.info("Preprocessing - Extracting input data.\n")
+    logging.debug("Preprocessing - Extracting input data.\n")
     nib_volume = load_nifti_volume(filename)
 
-    logging.info("Preprocessing - Resampling.\n")
+    logging.debug("Preprocessing - Resampling.\n")
     new_spacing = pre_processing_parameters.output_spacing
     if pre_processing_parameters.output_spacing == None:
         tmp = np.min(nib_volume.header.get_zooms())
@@ -55,7 +55,7 @@ def run_pre_processing(filename: str, pre_processing_parameters: ConfigResources
     #     data, aff = reslice(nib_volume.get_data(), nib_volume.affine, nib_volume.header.get_zooms(), new_zooms=new_spacing)
     #     resampled_volume = nib.Nifti1Image(data, affine=aff)
 
-    logging.info("Preprocessing - Clipping and intensity normalization.\n")
+    logging.debug("Preprocessing - Clipping and intensity normalization.\n")
     crop_bbox = None
     if pre_processing_parameters.imaging_modality == ImagingModalityType.CT:
         # Exclude background
@@ -74,7 +74,7 @@ def run_pre_processing(filename: str, pre_processing_parameters: ConfigResources
         if pre_processing_parameters.crop_background is not None:
             data, crop_bbox = crop_MR_background(filename, data, new_spacing, storage_path, pre_processing_parameters)
 
-    logging.info("Preprocessing - Volume resizing.\n")
+    logging.debug("Preprocessing - Volume resizing.\n")
     data = resize_volume(data, pre_processing_parameters.new_axial_size, pre_processing_parameters.slicing_plane,
                          order=1)
 
