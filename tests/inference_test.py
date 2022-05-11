@@ -77,7 +77,7 @@ def inference_test():
     try:
         subprocess.check_call(['raidionicsseg',
                                '{config}'.format(config=seg_config_filename),
-                               '--verbose', 'debug'])
+                               '--verbose', 'debug'], shell=True)
     except Exception as e:
         logging.error("Error during inference CLI unit test with: \n {}.\n".format(traceback.format_exc()))
         shutil.rmtree(test_dir)
