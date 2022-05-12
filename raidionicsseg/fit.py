@@ -3,6 +3,7 @@ import sys
 import time
 import traceback
 import logging
+import threading
 from raidionicsseg.Utils.configuration_parser import *
 from raidionicsseg.PreProcessing.pre_processing import run_pre_processing
 from raidionicsseg.Inference.predictions import run_predictions
@@ -11,7 +12,6 @@ from raidionicsseg.Utils.io import dump_predictions, dump_classification_predict
 from raidionicsseg.Utils.configuration_parser import ConfigResources
 
 
-# @TODO. Better way to report log info to 3D Slicer and potentially Raidionics?
 def run_model(config_filename: str) -> None:
     """
     Entry point for running inference.
@@ -28,11 +28,15 @@ def run_model(config_filename: str) -> None:
     None
     """
     ConfigResources.getInstance().init_environment(config_filename)
+
     # @TODO. Maybe should store the segmentation/classification flag inside the model .ini
     if 'classifier' in os.path.basename(ConfigResources.getInstance().model_folder).lower():
-        __classify()
+        execution_thread = threading.Thread(target=__classify)
     else:
-        __segment()
+        execution_thread = threading.Thread(target=__segment)
+
+    execution_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
+    execution_thread.start()
 
 
 def __segment() -> None:
@@ -79,6 +83,7 @@ def __segment() -> None:
         logging.info('Total processing time: {} seconds.\n'.format(time.time() - overall_start))
     except Exception as e:
         logging.error('Segmentation failed to proceed with:\n {}\n'.format(traceback.format_exc()))
+        raise RuntimeError("Segmentation failed to proceed.\n")
 
 
 def __classify():
@@ -117,3 +122,4 @@ def __classify():
         logging.info('Total processing time: {} seconds.\n'.format(time.time() - overall_start))
     except Exception as e:
         logging.error('Classification failed to process with:\n {}\n'.format(traceback.format_exc()))
+        raise RuntimeError("Classification failed to proceed.\n")

@@ -8,7 +8,6 @@ from nibabel.processing import resample_to_output
 from scipy.ndimage.measurements import label
 from skimage.measure import regionprops
 import subprocess
-import shutil
 import os
 import logging
 from pathlib import PurePath

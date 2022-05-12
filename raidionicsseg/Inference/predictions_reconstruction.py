@@ -1,15 +1,9 @@
 import logging
 from typing import List
-from nibabel.processing import resample_to_output, resample_from_to
-from skimage.measure import regionprops, label
-from skimage.transform import resize
+from nibabel.processing import resample_from_to
 from scipy.ndimage import zoom
-import os
 import nibabel as nib
 import numpy as np
-import sys
-from shutil import copy
-from math import ceil, floor
 import traceback
 from copy import deepcopy
 from raidionicsseg.Utils.configuration_parser import ConfigResources
