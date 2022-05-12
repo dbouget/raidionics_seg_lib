@@ -31,12 +31,16 @@ def run_model(config_filename: str) -> None:
 
     # @TODO. Maybe should store the segmentation/classification flag inside the model .ini
     if 'classifier' in os.path.basename(ConfigResources.getInstance().model_folder).lower():
-        execution_thread = threading.Thread(target=__classify)
+        __classify()
+        # execution_thread = threading.Thread(target=__classify)
     else:
-        execution_thread = threading.Thread(target=__segment)
+        __segment()
+        # execution_thread = threading.Thread(target=__segment)
 
-    execution_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
-    execution_thread.start()
+    # execution_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
+    # execution_thread.start()
+    from tensorflow.python.keras import backend as K
+    K.clear_session()
 
 
 def __segment() -> None:
