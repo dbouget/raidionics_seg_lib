@@ -17,7 +17,7 @@ def path(string):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('config', metavar='config', type=path, help='Path to the configuration file (*.ini)')
-    parser.add_argument('--verbose', help="To specify the level of verbose, Default: warning", type=str,
+    parser.add_argument('-v', '--verbose', help="To specify the level of verbose, Default: warning", type=str,
                         choices=['debug', 'info', 'warning', 'error'], default='warning')
 
     argsin = sys.argv[1:]
@@ -26,7 +26,7 @@ def main():
     config_filename = args.config
 
     logging.basicConfig()
-    logging.getLogger().setLevel(logging.WARNING)
+    logging.getLogger().setLevel(logging.DEBUG)
 
     if args.verbose == 'debug':
         logging.getLogger().setLevel(logging.DEBUG)
@@ -34,6 +34,8 @@ def main():
         logging.getLogger().setLevel(logging.INFO)
     elif args.verbose == 'error':
         logging.getLogger().setLevel(logging.ERROR)
+    logging.getLogger().setLevel(logging.DEBUG)
+    logging.info("Received arguments: {}".format(args))
     try:
         run_model(config_filename=config_filename)
     except Exception as e:

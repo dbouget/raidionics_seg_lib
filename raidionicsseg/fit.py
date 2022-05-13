@@ -4,12 +4,22 @@ import time
 import traceback
 import logging
 import threading
+import multiprocessing as mp
 from raidionicsseg.Utils.configuration_parser import *
 from raidionicsseg.PreProcessing.pre_processing import run_pre_processing
 from raidionicsseg.Inference.predictions import run_predictions
 from raidionicsseg.Inference.predictions_reconstruction import reconstruct_post_predictions
 from raidionicsseg.Utils.io import dump_predictions, dump_classification_predictions
 from raidionicsseg.Utils.configuration_parser import ConfigResources
+
+
+def run_model_wrapper(config_filename: str) -> None:
+    # run inference in a different process
+    logging.debug("Spawning multiprocess...")
+    p = mp.Process(target=run_model, args=(config_filename,))
+    p.start()
+    p.join()
+    logging.debug("Collecting results from multiprocess...")
 
 
 def run_model(config_filename: str) -> None:
@@ -32,15 +42,8 @@ def run_model(config_filename: str) -> None:
     # @TODO. Maybe should store the segmentation/classification flag inside the model .ini
     if 'classifier' in os.path.basename(ConfigResources.getInstance().model_folder).lower():
         __classify()
-        # execution_thread = threading.Thread(target=__classify)
     else:
         __segment()
-        # execution_thread = threading.Thread(target=__segment)
-
-    # execution_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
-    # execution_thread.start()
-    from tensorflow.python.keras import backend as K
-    K.clear_session()
 
 
 def __segment() -> None:
