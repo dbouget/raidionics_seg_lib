@@ -3,6 +3,8 @@ import sys
 import traceback
 import argparse
 import logging
+import platform
+
 from raidionicsseg.fit import run_model
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
@@ -43,6 +45,10 @@ def main():
 
 
 if __name__ == "__main__":
+    if platform.system() == 'Windows':
+        from multiprocessing import freeze_support
+        freeze_support()
+
     logging.info("Internal main call.\n")
     main()
 

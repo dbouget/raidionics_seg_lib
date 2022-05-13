@@ -2,7 +2,7 @@ import numpy as np
 from copy import deepcopy
 from skimage.transform import resize
 from skimage.measure import regionprops
-from raidionicsseg.Utils.configuration_parser import *
+from .configuration_parser import *
 
 
 def resize_volume(volume, new_slice_size, slicing_plane, order=1):

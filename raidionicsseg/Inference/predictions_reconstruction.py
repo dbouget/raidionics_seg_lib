@@ -6,7 +6,7 @@ import nibabel as nib
 import numpy as np
 import traceback
 from copy import deepcopy
-from raidionicsseg.Utils.configuration_parser import ConfigResources
+from ..Utils.configuration_parser import ConfigResources
 
 
 def reconstruct_post_predictions(predictions: np.ndarray, parameters: ConfigResources, crop_bbox: List[int],

@@ -4,12 +4,12 @@ import numpy as np
 import nibabel as nib
 from nibabel.processing import resample_to_output
 # from dipy.align.reslice import reslice  # @TODO. Is dipy really needed?
-from raidionicsseg.Utils.volume_utilities import intensity_normalization, resize_volume
-from raidionicsseg.Utils.io import load_nifti_volume
-from raidionicsseg.PreProcessing.mediastinum_clipping import mediastinum_clipping, mediastinum_clipping_DL
-from raidionicsseg.PreProcessing.brain_clipping import crop_MR_background
-from raidionicsseg.Utils.configuration_parser import ImagingModalityType
-from raidionicsseg.Utils.configuration_parser import ConfigResources
+from ..Utils.volume_utilities import intensity_normalization, resize_volume
+from ..Utils.io import load_nifti_volume
+from .mediastinum_clipping import mediastinum_clipping, mediastinum_clipping_DL
+from .brain_clipping import crop_MR_background
+from ..Utils.configuration_parser import ImagingModalityType
+from ..Utils.configuration_parser import ConfigResources
 
 
 def run_pre_processing(filename: str, pre_processing_parameters: ConfigResources,

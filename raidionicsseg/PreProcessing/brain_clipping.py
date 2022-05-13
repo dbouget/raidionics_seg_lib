@@ -11,8 +11,8 @@ import subprocess
 import os
 import logging
 from pathlib import PurePath
-from raidionicsseg.Utils.io import load_nifti_volume, convert_and_export_to_nifti
-from raidionicsseg.Utils.configuration_parser import ConfigResources
+from ..Utils.io import load_nifti_volume, convert_and_export_to_nifti
+from ..Utils.configuration_parser import ConfigResources
 
 
 def crop_MR_background(filepath: str, volume: np.ndarray, new_spacing: Tuple[float], storage_path: str,
@@ -117,15 +117,15 @@ def skull_stripping_tf(filepath, volume: np.ndarray, new_spacing: Tuple[float], 
         with open(brain_config_filename, 'w') as cf:
             new_parameters.write(cf)
         if os.name == 'nt':
-            script_path_parts = list(PurePath(os.path.realpath(__file__)).parts[:-2] + ('__main__.py',))
+            script_path_parts = list(PurePath(os.path.realpath(__file__)).parts[:-3] + ('main.py',))
             script_path = PurePath()
             for x in script_path_parts:
                 script_path = script_path.joinpath(x)
-            subprocess.call([sys.executable, '{script}'.format(script=script_path),
+            subprocess.call([sys.executable, '{script}'.format(script=script_path), '-c',
                              '{config}'.format(config=brain_config_filename)])
         else:
-            script_path = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-1]) + '/__main__.py'
-            subprocess.call(['python3', '{script}'.format(script=script_path),
+            script_path = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-2]) + '/main.py'
+            subprocess.call(['python3', '{script}'.format(script=script_path), '-c',
                              '{config}'.format(config=brain_config_filename)])
         brain_mask_filename = os.path.join(storage_path, 'labels_Brain.nii.gz')
         os.remove(brain_config_filename)

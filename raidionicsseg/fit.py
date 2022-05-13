@@ -4,18 +4,23 @@ import time
 import traceback
 import logging
 import threading
+import platform
 import multiprocessing as mp
-from raidionicsseg.Utils.configuration_parser import *
-from raidionicsseg.PreProcessing.pre_processing import run_pre_processing
-from raidionicsseg.Inference.predictions import run_predictions
-from raidionicsseg.Inference.predictions_reconstruction import reconstruct_post_predictions
-from raidionicsseg.Utils.io import dump_predictions, dump_classification_predictions
-from raidionicsseg.Utils.configuration_parser import ConfigResources
+from .Utils.configuration_parser import *
+from .PreProcessing.pre_processing import run_pre_processing
+from .Inference.predictions import run_predictions
+from .Inference.predictions_reconstruction import reconstruct_post_predictions
+from .Utils.io import dump_predictions, dump_classification_predictions
+from .Utils.configuration_parser import ConfigResources
 
 
 def run_model_wrapper(config_filename: str) -> None:
+    if platform.system() == 'Windows':
+        from multiprocessing import freeze_support
+        freeze_support()
     # run inference in a different process
     logging.debug("Spawning multiprocess...")
+    mp.set_start_method('spawn', force=True)
     p = mp.Process(target=run_model, args=(config_filename,))
     p.start()
     p.join()

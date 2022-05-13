@@ -6,7 +6,7 @@ from nibabel.processing import resample_to_output
 from skimage.measure import regionprops
 import subprocess
 import os
-from raidionicsseg.Utils.io import load_nifti_volume, convert_and_export_to_nifti
+from ..Utils.io import load_nifti_volume, convert_and_export_to_nifti
 
 
 def mediastinum_clipping(volume, parameters):

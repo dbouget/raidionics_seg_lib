@@ -5,7 +5,7 @@ import numpy as np
 from nibabel import four_to_three
 import SimpleITK as sitk
 import traceback
-from raidionicsseg.Utils.configuration_parser import ConfigResources
+from .configuration_parser import ConfigResources
 
 
 def load_nifti_volume(volume_path):

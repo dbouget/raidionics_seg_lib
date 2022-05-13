@@ -3,8 +3,8 @@ import traceback
 import numpy as np
 from math import ceil
 from copy import deepcopy
-from raidionicsseg.Utils.volume_utilities import padding_for_inference, padding_for_inference_both_ends
-from raidionicsseg.Utils.configuration_parser import ConfigResources
+from ..Utils.volume_utilities import padding_for_inference, padding_for_inference_both_ends
+from ..Utils.configuration_parser import ConfigResources
 
 
 def run_predictions(data: np.ndarray, model_path: str, parameters: ConfigResources) -> np.ndarray:
