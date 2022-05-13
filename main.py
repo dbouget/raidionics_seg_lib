@@ -38,7 +38,7 @@ def main(argv):
         sys.exit()
 
     try:
-        run_model_wrapper(config_filename=config_filename)
+        run_model(config_filename=config_filename)
     except Exception as e:
         logging.error('{}'.format(traceback.format_exc()))
 
