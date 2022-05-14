@@ -113,6 +113,14 @@ class ConfigResources:
             if self.config['Runtime']['reconstruction_order'].split('#')[0].strip() != '':
                 self.predictions_reconstruction_order = self.config['Runtime']['reconstruction_order'].split('#')[0].strip()
 
+        if self.config.has_option('Neuro', 'brain_segmentation_filename'):
+            if self.config['Neuro']['brain_segmentation_filename'].split('#')[0].strip() != '':
+                self.runtime_brain_mask_filepath = self.config['Neuro']['brain_segmentation_filename'].split('#')[0].strip()
+
+        if self.config.has_option('Mediastinum', 'lungs_segmentation_filename'):
+            if self.config['Mediastinum']['lungs_segmentation_filename'].split('#')[0].strip() != '':
+                self.runtime_lungs_mask_filepath = self.config['Mediastinum']['lungs_segmentation_filename'].split('#')[0].strip()
+
     def __parse_content(self):
         if self.pre_processing_config.has_option('Default', 'imaging_modality'):
             param = self.pre_processing_config['Default']['imaging_modality'].split('#')[0].strip()
