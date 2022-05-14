@@ -116,17 +116,19 @@ def skull_stripping_tf(filepath, volume: np.ndarray, new_spacing: Tuple[float], 
         new_parameters.set('Runtime', 'reconstruction_order', 'resample_first')
         with open(brain_config_filename, 'w') as cf:
             new_parameters.write(cf)
-        if os.name == 'nt':
-            script_path_parts = list(PurePath(os.path.realpath(__file__)).parts[:-3] + ('main.py',))
-            script_path = PurePath()
-            for x in script_path_parts:
-                script_path = script_path.joinpath(x)
-            subprocess.call([sys.executable, '{script}'.format(script=script_path), '-c',
-                             '{config}'.format(config=brain_config_filename)])
-        else:
-            script_path = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-2]) + '/main.py'
-            subprocess.call(['python3', '{script}'.format(script=script_path), '-c',
-                             '{config}'.format(config=brain_config_filename)])
+        # if os.name == 'nt':
+        #     script_path_parts = list(PurePath(os.path.realpath(__file__)).parts[:-3] + ('main.py',))
+        #     script_path = PurePath()
+        #     for x in script_path_parts:
+        #         script_path = script_path.joinpath(x)
+        #     subprocess.call([sys.executable, '{script}'.format(script=script_path), '-c',
+        #                      '{config}'.format(config=brain_config_filename)])
+        # else:
+        #     script_path = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-2]) + '/main.py'
+        #     subprocess.call(['python3', '{script}'.format(script=script_path), '-c',
+        #                      '{config}'.format(config=brain_config_filename)])
+        from raidionicsseg.fit import run_model
+        run_model(brain_config_filename)
         brain_mask_filename = os.path.join(storage_path, 'labels_Brain.nii.gz')
         os.remove(brain_config_filename)
     else:
