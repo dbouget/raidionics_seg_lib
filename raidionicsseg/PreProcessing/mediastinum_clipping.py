@@ -6,6 +6,7 @@ from nibabel.processing import resample_to_output
 from skimage.measure import regionprops
 import subprocess
 import os
+import configparser
 from ..Utils.io import load_nifti_volume, convert_and_export_to_nifti
 
 
@@ -56,16 +57,21 @@ def mediastinum_clipping(volume, parameters):
 
 
 def mediastinum_clipping_DL(filepath, volume, new_spacing, storage_path, parameters):
-    # @TODO. Deprecated, must be updated similar to the brain clipping process.
     if not os.path.exists(parameters.runtime_lungs_mask_filepath):
-        script_path = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-2]) + '/main.py'
-        subprocess.call(['python3', '{script}'.format(script=script_path),
-                         '-t{task}'.format(task='segmentation'),
-                         '-i{input}'.format(input=filepath),
-                         '-o{output}'.format(output=storage_path),
-                         '-m{model}'.format(model='CT_Lungs'),
-                         '-g{gpu}'.format(gpu=os.environ["CUDA_VISIBLE_DEVICES"])])
-        lungs_mask_filename = os.path.join(storage_path, 'pred_Lungs.nii.gz')
+        lung_config_filename = os.path.join(os.path.dirname(parameters.config_filename), 'lungs_main_config.ini')
+        new_parameters = configparser.ConfigParser()
+        new_parameters.read(parameters.config_filename)
+        new_parameters.set('System', 'model_folder', os.path.join(os.path.dirname(parameters.model_folder), 'CT_Lungs'))
+        new_parameters.set('Runtime', 'reconstruction_method', 'thresholding')
+        new_parameters.set('Runtime', 'reconstruction_order', 'resample_first')
+        with open(lung_config_filename, 'w') as cf:
+            new_parameters.write(cf)
+        old_parameters = deepcopy(parameters)
+        from raidionicsseg.fit import run_model
+        run_model(lung_config_filename)
+        lungs_mask_filename = os.path.join(storage_path, 'labels_Lungs.nii.gz')
+        os.remove(lung_config_filename)
+        parameters = old_parameters
     else:
         lungs_mask_filename = parameters.runtime_lungs_mask_filepath
 

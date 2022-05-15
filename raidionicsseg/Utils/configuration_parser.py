@@ -29,25 +29,10 @@ def get_type_from_string(EnumType, string):
 
 class ConfigResources:
     """
-    Singleton class to have access from anywhere in the code at the various local paths where the data, or code are
-    located.
+    Class defining and holding the various (user-specified) configuration and runtime parameters.
     """
-    __instance = None
-
-    @staticmethod
-    def getInstance():
-        """ Static access method. """
-        if ConfigResources.__instance == None:
-            ConfigResources()
-        return ConfigResources.__instance
-
     def __init__(self):
-        """ Virtually private constructor. """
-        if ConfigResources.__instance != None:
-            raise Exception("This class is a singleton!")
-        else:
-            ConfigResources.__instance = self
-            self.__setup()
+        self.__setup()
 
     def __setup(self):
         self.config_filename = None

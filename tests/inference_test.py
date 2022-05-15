@@ -56,17 +56,6 @@ def inference_test():
         with open(seg_config_filename, 'w') as outfile:
             seg_config.write(outfile)
 
-        # logging.info("Running wrapped inference.\n")
-        # from raidionicsseg.fit import run_model_wrapper
-        # run_model_wrapper(seg_config_filename)
-        #
-        # logging.info("Collecting and comparing results.\n")
-        # brain_segmentation_filename = os.path.join(test_dir, 'labels_Brain.nii.gz')
-        # if not os.path.exists(brain_segmentation_filename):
-        #     logging.error("Wrapped inference unit test failed, no brain mask was generated.\n")
-        #     raise ValueError("Wrapped inference unit test failed, no brain mask was generated.\n")
-        # os.remove(brain_segmentation_filename)
-
         logging.info("Inference CLI unit test started.\n")
         try:
             import platform

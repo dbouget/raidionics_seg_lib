@@ -42,26 +42,26 @@ def run_model(config_filename: str) -> None:
     -------
     None
     """
-    ConfigResources.getInstance().init_environment(config_filename)
-
+    config_parameters = ConfigResources()
+    config_parameters.init_environment(config_filename)
     # @TODO. Maybe should store the segmentation/classification flag inside the model .ini
-    if 'classifier' in os.path.basename(ConfigResources.getInstance().model_folder).lower():
-        __classify()
+    if 'classifier' in os.path.basename(config_parameters.model_folder).lower():
+        __classify(config_parameters)
     else:
-        __segment()
+        __segment(config_parameters)
 
 
-def __segment() -> None:
+def __segment(pre_processing_parameters: ConfigResources) -> None:
     """
 
     """
-    input_filename = ConfigResources.getInstance().input_volume_filename
-    output_path = ConfigResources.getInstance().output_folder
-    selected_model = ConfigResources.getInstance().model_folder
+    input_filename = pre_processing_parameters.input_volume_filename
+    output_path = pre_processing_parameters.output_folder
+    selected_model = pre_processing_parameters.model_folder
 
     logging.info("Starting inference for file: {}, with model: {}.\n".format(input_filename, selected_model))
     overall_start = start = time.time()
-    pre_processing_parameters = ConfigResources.getInstance()
+
     model_path = os.path.join(selected_model, 'model.hd5')
     if not os.path.exists(model_path):
         raise ValueError('Requested model cannot be found on disk at location: \'{}\'.\n'.format(model_path))
@@ -98,17 +98,17 @@ def __segment() -> None:
         raise RuntimeError("Segmentation failed to proceed.\n")
 
 
-def __classify():
+def __classify(pre_processing_parameters: ConfigResources):
     """
 
     """
-    input_filename = ConfigResources.getInstance().input_volume_filename
-    output_path = ConfigResources.getInstance().output_folder
-    selected_model = ConfigResources.getInstance().model_folder
+    input_filename = pre_processing_parameters.input_volume_filename
+    output_path = pre_processing_parameters.output_folder
+    selected_model = pre_processing_parameters.model_folder
 
     logging.info("Starting inference for file: {}, with model: {}.\n".format(input_filename, selected_model))
     overall_start = start = time.time()
-    pre_processing_parameters = ConfigResources.getInstance()
+
     model_path = os.path.join(selected_model, 'model.hd5')
     if not os.path.exists(model_path):
         raise ValueError('Requested model cannot be found on disk at location: \'{}\'.'.format(model_path))
