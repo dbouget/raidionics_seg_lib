@@ -66,32 +66,32 @@ def __segment(pre_processing_parameters: ConfigResources) -> None:
     if not os.path.exists(model_path):
         raise ValueError('Requested model cannot be found on disk at location: \'{}\'.\n'.format(model_path))
     try:
-        logging.info('LOG: Preprocessing - Begin (1/4)\n')
+        logging.info('LOG: Segmentation - Preprocessing - Begin (1/4)\n')
         nib_volume, resampled_volume, data, crop_bbox = run_pre_processing(filename=input_filename,
                                                                            pre_processing_parameters=pre_processing_parameters,
                                                                            storage_path=output_path)
-        logging.info('Preprocessing: {} seconds.\n'.format(time.time() - start))
-        logging.info('LOG: Preprocessing - End (1/4)\n')
+        logging.info('LOG: Segmentation - Runtime: {} seconds.\n'.format(time.time() - start))
+        logging.info('LOG: Segmentation - Preprocessing - End (1/4)\n')
 
-        logging.info('LOG: Inference - Begin (2/4)\n')
+        logging.info('LOG: Segmentation - Inference - Begin (2/4)\n')
         start = time.time()
         predictions = run_predictions(data=data, model_path=model_path, parameters=pre_processing_parameters)
-        logging.info('Model loading + inference time: {} seconds.\n'.format(time.time() - start))
-        logging.info('LOG: Inference - End (2/4)\n')
+        logging.info('LOG: Segmentation - Runtime: {} seconds.\n'.format(time.time() - start))
+        logging.info('LOG: Segmentation - Inference - End (2/4)\n')
 
-        logging.info('LOG: Reconstruction - Begin (3/4)\n')
+        logging.info('LOG: Segmentation - Reconstruction - Begin (3/4)\n')
         start = time.time()
         final_predictions = reconstruct_post_predictions(predictions=predictions, parameters=pre_processing_parameters,
                                                          crop_bbox=crop_bbox, nib_volume=nib_volume, resampled_volume=resampled_volume)
-        logging.info('Prediction reconstruction time: {} seconds.\n'.format(time.time() - start))
-        logging.info('LOG: Reconstruction - End (3/4)\n')
+        logging.info('LOG: Segmentation - Runtime: {} seconds.\n'.format(time.time() - start))
+        logging.info('LOG: Segmentation - Reconstruction - End (3/4)\n')
 
-        logging.info('LOG: Data dump - Begin (4/4)\n')
+        logging.info('LOG: Segmentation - Data dump - Begin (4/4)\n')
         start = time.time()
         dump_predictions(predictions=final_predictions, parameters=pre_processing_parameters, nib_volume=nib_volume,
                          storage_path=output_path)
-        logging.info('Data dump time: {} seconds.\n'.format(time.time() - start))
-        logging.info('LOG: Data dump - End (4/4)\n')
+        logging.info('LOG: Segmentation - Runtime: {} seconds.\n'.format(time.time() - start))
+        logging.info('LOG: Segmentation - Data dump - End (4/4)\n')
         logging.info('Total processing time: {} seconds.\n'.format(time.time() - overall_start))
     except Exception as e:
         logging.error('Segmentation failed to proceed with:\n {}\n'.format(traceback.format_exc()))
@@ -107,6 +107,7 @@ def __classify(pre_processing_parameters: ConfigResources):
     selected_model = pre_processing_parameters.model_folder
 
     logging.info("Starting inference for file: {}, with model: {}.\n".format(input_filename, selected_model))
+    logging.info('LOG: Classification - 3 steps.\n')
     overall_start = start = time.time()
 
     model_path = os.path.join(selected_model, 'model.hd5')
@@ -114,23 +115,24 @@ def __classify(pre_processing_parameters: ConfigResources):
         raise ValueError('Requested model cannot be found on disk at location: \'{}\'.'.format(model_path))
 
     try:
-        logging.info('LOG: Preprocessing - Begin (1/3)\n')
+        logging.info('LOG: Classification - Preprocessing - Begin (1/3)\n')
         nib_volume, resampled_volume, data, crop_bbox = run_pre_processing(filename=input_filename,
                                                                            pre_processing_parameters=pre_processing_parameters,
                                                                            storage_path=output_path)
-        logging.info('Preprocessing: {} seconds.\n'.format(time.time() - start))
-        logging.info('LOG: Preprocessing - End (1/3)\n')
+        logging.info('LOG: Classification - Runtime {} seconds.\n'.format(time.time() - start))
+        logging.info('LOG: Classification - Preprocessing - End (1/3)\n')
 
-        logging.info('LOG: Inference - Begin (2/3)\n')
+        logging.info('LOG: Classification - Inference - Begin (2/3)\n')
         start = time.time()
         predictions = run_predictions(data=data, model_path=model_path, parameters=pre_processing_parameters)
-        logging.info('Model loading + inference time: {} seconds.\n'.format(time.time() - start))
-        logging.info('LOG: Inference - End (2/3)\n')
+        logging.info('LOG: Classification - Runtime {} seconds.\n'.format(time.time() - start))
+        logging.info('LOG: Classification - Inference - End (2/3)\n')
 
-        logging.info('LOG: Data dump - Begin (3/3)\n')
+        logging.info('LOG: Classification - Data dump - Begin (3/3)\n')
         dump_classification_predictions(predictions=predictions, parameters=pre_processing_parameters,
                                         storage_path=output_path)
-        logging.info('LOG: Data dump - End (3/3)\n')
+        logging.info('LOG: Classification - Runtime {} seconds.\n'.format(time.time() - start))
+        logging.info('LOG: Classification - Data dump - End (3/3)\n')
         logging.info('Total processing time: {} seconds.\n'.format(time.time() - overall_start))
     except Exception as e:
         logging.error('Classification failed to process with:\n {}\n'.format(traceback.format_exc()))
