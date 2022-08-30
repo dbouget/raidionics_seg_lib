@@ -60,6 +60,7 @@ def __segment(pre_processing_parameters: ConfigResources) -> None:
     selected_model = pre_processing_parameters.model_folder
 
     logging.info("Starting inference for file: {}, with model: {}.\n".format(input_filename, selected_model))
+    logging.info('LOG: Segmentation - 4 steps.\n')
     overall_start = start = time.time()
 
     model_path = os.path.join(selected_model, 'model.hd5')
