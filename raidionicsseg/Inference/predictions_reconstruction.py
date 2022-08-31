@@ -34,7 +34,7 @@ def reconstruct_post_predictions(predictions: np.ndarray, parameters: ConfigReso
     np.ndarray
 .       Predictions expressed in the original patient space.
     """
-    logging.debug("Reconstructing predictions.\n")
+    logging.debug("Reconstructing predictions.")
     reconstruction_method = parameters.predictions_reconstruction_method
     probability_thresholds = parameters.training_optimal_thresholds
     swap_input = parameters.swap_training_input
@@ -61,7 +61,7 @@ def reconstruct_post_predictions(predictions: np.ndarray, parameters: ConfigReso
 
 def __cut_predictions(predictions, probability_threshold, reconstruction_method):
     try:
-        logging.debug("Clipping predictions with {}.\n".format(reconstruction_method))
+        logging.debug("Clipping predictions with {}.".format(reconstruction_method))
         if reconstruction_method == 'probabilities':
             return predictions
         elif reconstruction_method == 'thresholding':
@@ -79,15 +79,15 @@ def __cut_predictions(predictions, probability_threshold, reconstruction_method)
         else:
             raise ValueError('Unknown reconstruction_method with {}!'.format(reconstruction_method))
     except Exception as e:
-        logging.error("Following error collected during predictions clipping: \n {}\n".format(traceback.format_exc()))
-        raise ValueError("Predictions clipping process could not fully proceed.\n")
+        logging.error("Following error collected during predictions clipping: \n {}".format(traceback.format_exc()))
+        raise ValueError("Predictions clipping process could not fully proceed.")
 
     return final_predictions
 
 
 def __resample_predictions(predictions, crop_bbox, nib_volume, resampled_volume, reconstruction_method, swap_input):
     try:
-        logging.debug("Resampling predictions with {}.\n".format(reconstruction_method))
+        logging.debug("Resampling predictions with {}.".format(reconstruction_method))
         labels_type = predictions.dtype
         order = 0 if labels_type == np.uint8 else 1
         data = deepcopy(predictions).astype(labels_type)
@@ -148,7 +148,7 @@ def __resample_predictions(predictions, crop_bbox, nib_volume, resampled_volume,
                 if (max_val - min_val) != 0:
                     resampled_predictions[..., c] = (resampled_predictions[..., c] - min_val) / (max_val - min_val)
     except Exception as e:
-        logging.error("Following error collected during predictions resampling: \n {}\n".format(traceback.format_exc()))
-        raise ValueError("Predictions resampling process could not fully proceed.\n")
+        logging.error("Following error collected during predictions resampling: \n {}".format(traceback.format_exc()))
+        raise ValueError("Predictions resampling process could not fully proceed.")
 
     return resampled_predictions

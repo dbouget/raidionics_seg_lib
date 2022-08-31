@@ -46,7 +46,7 @@ def dump_predictions(predictions: np.ndarray, parameters: ConfigResources, nib_v
     -------
 
     """
-    logging.debug("Writing predictions to files.\n")
+    logging.debug("Writing predictions to files.")
     try:
         naming_suffix = 'pred' if parameters.predictions_reconstruction_method == 'probabilities' else 'labels'
         class_names = parameters.training_class_names
@@ -63,8 +63,8 @@ def dump_predictions(predictions: np.ndarray, parameters: ConfigResources, nib_v
             os.makedirs(os.path.dirname(predictions_output_path), exist_ok=True)
             nib.save(img, predictions_output_path)
     except Exception as e:
-        logging.error("Following error collected during model predictions dump on disk: \n {}\n".format(traceback.format_exc()))
-        raise ValueError("Predictions dump on disk could not fully proceed.\n")
+        logging.error("Following error collected during model predictions dump on disk: \n {}".format(traceback.format_exc()))
+        raise ValueError("Predictions dump on disk could not fully proceed.")
 
 
 def dump_classification_predictions(predictions: np.ndarray, parameters: ConfigResources, storage_path: str) -> None:
@@ -83,7 +83,7 @@ def dump_classification_predictions(predictions: np.ndarray, parameters: ConfigR
     -------
 
     """
-    logging.debug("Writing predictions to files...\n")
+    logging.debug("Writing predictions to files...")
     try:
         class_names = parameters.training_class_names
         prediction_filename = os.path.join(storage_path, 'classification-results.csv')
@@ -94,5 +94,5 @@ def dump_classification_predictions(predictions: np.ndarray, parameters: ConfigR
 
         file.close()
     except Exception as e:
-        logging.error("Following error collected during model predictions dump on disk: \n {}\n".format(traceback.format_exc()))
-        raise ValueError("Predictions dump on disk could not fully proceed.\n")
+        logging.error("Following error collected during model predictions dump on disk: \n {}".format(traceback.format_exc()))
+        raise ValueError("Predictions dump on disk could not fully proceed.")

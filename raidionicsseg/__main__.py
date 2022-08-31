@@ -27,7 +27,7 @@ def main():
 
     config_filename = args.config
 
-    logging.basicConfig()
+    logging.basicConfig(format="%(asctime)s ; %(name)s ; %(levelname)s ; %(message)s", datefmt='%d/%m/%Y %H.%M')
     logging.getLogger().setLevel(logging.DEBUG)
 
     if args.verbose == 'debug':
@@ -49,6 +49,6 @@ if __name__ == "__main__":
         from multiprocessing import freeze_support
         freeze_support()
 
-    logging.info("Internal main call.\n")
+    logging.info("Internal main call.")
     main()
 
