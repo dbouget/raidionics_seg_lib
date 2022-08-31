@@ -174,6 +174,6 @@ def advanced_crop_exclude_background(volume: np.ndarray, crop_mode: str,
 
     cropped_data = original_data[min_row:max_row, min_col:max_col, min_depth:max_depth]
     bbox = [min_row, min_col, min_depth, max_row, max_col, max_depth]
-    logging.debug('MRI skull stripping with: [{}, {}, {}, {}, {}, {}].\n'.format(min_row, min_col, min_depth,
-                                                                                 max_row, max_col, max_depth))
+    logging.debug('MRI skull stripping with: [{}, {}, {}, {}, {}, {}].'.format(min_row, min_col, min_depth,
+                                                                               max_row, max_col, max_depth))
     return cropped_data, bbox
