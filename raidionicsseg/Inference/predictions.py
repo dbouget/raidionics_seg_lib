@@ -63,9 +63,10 @@ def __run_predictions_whole(data: np.ndarray, model, deep_supervision: bool = Fa
     """
     try:
         logging.debug("Starting inference in full volume mode.")
-        data_prep = np.expand_dims(data, axis=0)
-        data_prep = np.expand_dims(data_prep, axis=-1)
-        predictions = model.predict(data_prep)
+        # data_prep = np.expand_dims(data, axis=0)
+        # data_prep = np.expand_dims(data_prep, axis=-1)
+        # predictions = model.predict(data_prep)
+        predictions = model.predict(data)
     except Exception as e:
         logging.error("Following error collected during model inference (whole mode): \n {}".format(traceback.format_exc()))
         raise ValueError("Segmentation inference (whole mode) could not fully proceed.")

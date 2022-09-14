@@ -7,7 +7,7 @@ import threading
 import platform
 import multiprocessing as mp
 from .Utils.configuration_parser import *
-from .PreProcessing.pre_processing import run_pre_processing
+from .PreProcessing.pre_processing import prepare_pre_processing
 from .Inference.predictions import run_predictions
 from .Inference.predictions_reconstruction import reconstruct_post_predictions
 from .Utils.io import dump_predictions, dump_classification_predictions
@@ -62,6 +62,7 @@ def __segment(pre_processing_parameters: ConfigResources) -> None:
 
     """
     input_filename = pre_processing_parameters.input_volume_filename
+    inputs_folder = pre_processing_parameters.inputs_folder
     output_path = pre_processing_parameters.output_folder
     selected_model = pre_processing_parameters.model_folder
 
@@ -74,9 +75,9 @@ def __segment(pre_processing_parameters: ConfigResources) -> None:
         raise ValueError('Requested model cannot be found on disk at location: \'{}\'.'.format(model_path))
     try:
         logging.info('LOG: Segmentation - Preprocessing - Begin (1/4)')
-        nib_volume, resampled_volume, data, crop_bbox = run_pre_processing(filename=input_filename,
-                                                                           pre_processing_parameters=pre_processing_parameters,
-                                                                           storage_path=output_path)
+        nib_volume, resampled_volume, data, crop_bbox = prepare_pre_processing(folder=inputs_folder,
+                                                                               pre_processing_parameters=pre_processing_parameters,
+                                                                               storage_path=output_path)
         logging.info('LOG: Segmentation - Runtime: {} seconds.'.format(time.time() - start))
         logging.info('LOG: Segmentation - Preprocessing - End (1/4)')
 

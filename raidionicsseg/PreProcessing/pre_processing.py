@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Tuple, Any, List
 import numpy as np
 import nibabel as nib
@@ -9,6 +10,27 @@ from .mediastinum_clipping import mediastinum_clipping, mediastinum_clipping_DL
 from .brain_clipping import crop_MR_background
 from ..Utils.configuration_parser import ImagingModalityType
 from ..Utils.configuration_parser import ConfigResources
+
+
+def prepare_pre_processing(folder: str, pre_processing_parameters: ConfigResources,
+                       storage_path: str) -> Tuple[nib.Nifti1Image, nib.Nifti1Image, np.ndarray, List[int]]:
+    # input_files = []
+    # for _, _, files in os.walk(folder):
+    #     for f in files:
+    #         input_files.append(f)
+    #     break
+
+    input_file = os.path.join(folder, 'input0.nii.gz')
+    nib_volume, resampled_volume, data, crop_bbox = run_pre_processing(input_file, pre_processing_parameters,
+                                                                       storage_path)
+    final_data = np.zeros((1,) + data.shape + (pre_processing_parameters.preprocessing_number_inputs,))
+    final_data[..., 0] = data
+    for i in range(1, pre_processing_parameters.preprocessing_number_inputs):
+        input_file = os.path.join(folder, 'input' + str(i) + '.nii.gz')
+        _, _, data, _ = run_pre_processing(input_file, pre_processing_parameters, storage_path)
+        final_data[..., i] = data
+
+    return nib_volume, resampled_volume, final_data, crop_bbox
 
 
 def run_pre_processing(filename: str, pre_processing_parameters: ConfigResources,

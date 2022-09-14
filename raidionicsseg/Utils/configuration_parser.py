@@ -40,6 +40,7 @@ class ConfigResources:
 
         self.gpu_id = "-1"
         self.input_volume_filename = None
+        self.inputs_folder = None
         self.output_folder = None
         self.model_folder = None
 
@@ -76,6 +77,10 @@ class ConfigResources:
         if self.config.has_option('System', 'input_filename'):
             if self.config['System']['input_filename'].split('#')[0].strip() != '':
                 self.input_volume_filename = self.config['System']['input_filename'].split('#')[0].strip()
+
+        if self.config.has_option('System', 'inputs_folder'):
+            if self.config['System']['inputs_folder'].split('#')[0].strip() != '':
+                self.inputs_folder = self.config['System']['inputs_folder'].split('#')[0].strip()
 
         if self.config.has_option('System', 'output_folder'):
             if self.config['System']['output_folder'].split('#')[0].strip() != '':
@@ -158,6 +163,7 @@ class ConfigResources:
         self.slicing_plane = 'axial'
         self.swap_training_input = False
         self.normalization_method = None
+        self.preprocessing_number_inputs = None
 
         if self.pre_processing_config.has_option('PreProcessing', 'library'):
             if self.pre_processing_config['PreProcessing']['library'].split('#')[0].strip() == 'dipy':
@@ -197,6 +203,10 @@ class ConfigResources:
         if self.pre_processing_config.has_option('PreProcessing', 'normalization_method'):
             if self.pre_processing_config['PreProcessing']['normalization_method'].split('#')[0].strip() != '':
                 self.normalization_method = self.pre_processing_config['PreProcessing']['normalization_method'].split('#')[0].strip().lower()
+
+        if self.pre_processing_config.has_option('PreProcessing', 'number_inputs'):
+            if self.pre_processing_config['PreProcessing']['number_inputs'].split('#')[0].strip() != '':
+                self.preprocessing_number_inputs = int(self.pre_processing_config['PreProcessing']['number_inputs'].split('#')[0].strip())
 
     def __parse_MRI_content(self):
         self.perform_bias_correction = False
