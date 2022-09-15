@@ -122,6 +122,8 @@ def __run_predictions_slabbed(data: np.ndarray, model, parameters: ConfigResourc
                 if parameters.fix_orientation:
                     slab_CT = np.transpose(slab_CT, axes=(0, 3, 1, 2, 4))
                 slab_CT_pred = model.predict(slab_CT)
+                if deep_supervision:
+                    slab_CT_pred = slab_CT_pred[0]
                 if parameters.fix_orientation:
                     slab_CT_pred = np.transpose(slab_CT_pred, axes=(0, 2, 3, 1, 4))
 
@@ -157,6 +159,8 @@ def __run_predictions_slabbed(data: np.ndarray, model, parameters: ConfigResourc
                     if np.sum(slab_CT > 0.1) == 0:
                         continue
                     slab_CT_pred = model.predict(np.reshape(slab_CT, (1, new_axial_size[0], new_axial_size[1], 1)))
+                    if deep_supervision:
+                        slab_CT_pred = slab_CT_pred[0]
                     for c in range(0, slab_CT_pred.shape[-1]):
                         final_result[:, :, slice, c] = slab_CT_pred[:, :, c]
             else:
@@ -181,6 +185,8 @@ def __run_predictions_slabbed(data: np.ndarray, model, parameters: ConfigResourc
                     if parameters.fix_orientation:
                         slab_CT = np.transpose(slab_CT, axes=(0, 3, 1, 2, 4))
                     slab_CT_pred = model.predict(slab_CT)
+                    if deep_supervision:
+                        slab_CT_pred = slab_CT_pred[0]
                     if parameters.fix_orientation:
                         slab_CT_pred = np.transpose(slab_CT_pred, axes=(0, 2, 3, 1, 4))
 

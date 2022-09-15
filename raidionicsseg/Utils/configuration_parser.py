@@ -39,7 +39,6 @@ class ConfigResources:
         self.config = None
 
         self.gpu_id = "-1"
-        self.input_volume_filename = None
         self.inputs_folder = None
         self.output_folder = None
         self.model_folder = None
@@ -73,10 +72,6 @@ class ConfigResources:
         if self.config.has_option('System', 'gpu_id'):
             if self.config['System']['gpu_id'].split('#')[0].strip() != '':
                 self.gpu_id = self.config['System']['gpu_id'].split('#')[0].strip()
-
-        if self.config.has_option('System', 'input_filename'):
-            if self.config['System']['input_filename'].split('#')[0].strip() != '':
-                self.input_volume_filename = self.config['System']['input_filename'].split('#')[0].strip()
 
         if self.config.has_option('System', 'inputs_folder'):
             if self.config['System']['inputs_folder'].split('#')[0].strip() != '':

@@ -61,12 +61,12 @@ def __segment(pre_processing_parameters: ConfigResources) -> None:
     """
 
     """
-    input_filename = pre_processing_parameters.input_volume_filename
     inputs_folder = pre_processing_parameters.inputs_folder
     output_path = pre_processing_parameters.output_folder
     selected_model = pre_processing_parameters.model_folder
 
-    logging.info("Starting inference for file: {}, with model: {}.".format(input_filename, selected_model))
+    logging.info("Starting inference for folder: {}, with model: {}.".format(os.path.basename(inputs_folder),
+                                                                             selected_model))
     logging.info('LOG: Segmentation - 4 steps.')
     overall_start = start = time.time()
 
@@ -90,7 +90,8 @@ def __segment(pre_processing_parameters: ConfigResources) -> None:
         logging.info('LOG: Segmentation - Reconstruction - Begin (3/4)')
         start = time.time()
         final_predictions = reconstruct_post_predictions(predictions=predictions, parameters=pre_processing_parameters,
-                                                         crop_bbox=crop_bbox, nib_volume=nib_volume, resampled_volume=resampled_volume)
+                                                         crop_bbox=crop_bbox, nib_volume=nib_volume,
+                                                         resampled_volume=resampled_volume)
         logging.info('LOG: Segmentation - Runtime: {} seconds.'.format(time.time() - start))
         logging.info('LOG: Segmentation - Reconstruction - End (3/4)')
 
@@ -111,11 +112,12 @@ def __classify(pre_processing_parameters: ConfigResources):
     """
 
     """
-    input_filename = pre_processing_parameters.input_volume_filename
+    inputs_folder = pre_processing_parameters.inputs_folder
     output_path = pre_processing_parameters.output_folder
     selected_model = pre_processing_parameters.model_folder
 
-    logging.info("Starting inference for file: {}, with model: {}.".format(input_filename, selected_model))
+    logging.info("Starting inference for folder: {}, with model: {}.".format(os.path.basename(inputs_folder),
+                                                                             selected_model))
     logging.info('LOG: Classification - 3 steps.')
     overall_start = start = time.time()
 
@@ -125,9 +127,9 @@ def __classify(pre_processing_parameters: ConfigResources):
 
     try:
         logging.info('LOG: Classification - Preprocessing - Begin (1/3)')
-        nib_volume, resampled_volume, data, crop_bbox = run_pre_processing(filename=input_filename,
-                                                                           pre_processing_parameters=pre_processing_parameters,
-                                                                           storage_path=output_path)
+        nib_volume, resampled_volume, data, crop_bbox = prepare_pre_processing(folder=inputs_folder,
+                                                                               pre_processing_parameters=pre_processing_parameters,
+                                                                               storage_path=output_path)
         logging.info('LOG: Classification - Runtime {} seconds.'.format(time.time() - start))
         logging.info('LOG: Classification - Preprocessing - End (1/3)')
 
