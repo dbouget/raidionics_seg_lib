@@ -54,15 +54,16 @@ def run_pre_processing(filename: str, pre_processing_parameters: ConfigResources
     logging.debug("Preprocessing - Clipping and intensity normalization.")
     crop_bbox = None
     if pre_processing_parameters.imaging_modality == ImagingModalityType.CT:
-        # Exclude background
-        if pre_processing_parameters.crop_background is not None and pre_processing_parameters.crop_background != 'false':
-                #data, crop_bbox = mediastinum_clipping(volume=data, parameters=pre_processing_parameters)
-                data, crop_bbox = mediastinum_clipping_DL(filename, data, new_spacing, storage_path, pre_processing_parameters)
         # Normalize values
         data = intensity_normalization(volume=data, parameters=pre_processing_parameters)
         # set intensity range
         mins, maxs = pre_processing_parameters.intensity_target_range
         data *= maxs  # @TODO: Modify it such that it handles scaling to i.e. [-1, -1]
+
+        # Exclude background
+        if pre_processing_parameters.crop_background is not None and pre_processing_parameters.crop_background != 'false':
+                #data, crop_bbox = mediastinum_clipping(volume=data, parameters=pre_processing_parameters)
+                data, crop_bbox = mediastinum_clipping_DL(filename, data, new_spacing, storage_path, pre_processing_parameters)
     else:
         # Normalize values
         data = intensity_normalization(volume=data, parameters=pre_processing_parameters)
@@ -71,8 +72,9 @@ def run_pre_processing(filename: str, pre_processing_parameters: ConfigResources
             data, crop_bbox = crop_MR_background(filename, data, new_spacing, storage_path, pre_processing_parameters)
 
     logging.debug("Preprocessing - Volume resizing.")
-    data = resize_volume(data, pre_processing_parameters.new_axial_size, pre_processing_parameters.slicing_plane,
-                         order=1)
+    if pre_processing_parameters.new_axial_size:
+        data = resize_volume(data, pre_processing_parameters.new_axial_size, pre_processing_parameters.slicing_plane,
+                             order=1)
 
     if pre_processing_parameters.swap_training_input:
         data = np.transpose(data, axes=(1, 0, 2))

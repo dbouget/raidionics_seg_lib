@@ -126,6 +126,8 @@ class ConfigResources:
         self.training_nb_classes = None
         self.training_class_names = None
         self.training_slab_size = None
+        self.training_patch_size = None
+        self.training_patch_offset = None
         self.training_optimal_thresholds = None
         self.training_deep_supervision = False
 
@@ -137,7 +139,16 @@ class ConfigResources:
                 self.training_class_names = [x.strip() for x in self.pre_processing_config['Training']['classes'].split('#')[0].split(',')]
 
         if self.pre_processing_config.has_option('Training', 'slab_size'):
-            self.training_slab_size = int(self.pre_processing_config['Training']['slab_size'].split('#')[0])
+            if self.pre_processing_config['Training']['slab_size'].split('#')[0].strip() != '':
+                self.training_slab_size = int(self.pre_processing_config['Training']['slab_size'].split('#')[0])
+
+        if self.pre_processing_config.has_option('Training', 'patch_size'):
+            if self.pre_processing_config['Training']['patch_size'].split('#')[0].strip() != '':
+                self.training_patch_size = [int(x) for x in self.pre_processing_config['Training']['patch_size'].split('#')[0].split(',')]
+
+        if self.pre_processing_config.has_option('Training', 'patch_offset'):
+            if self.pre_processing_config['Training']['patch_offset'].split('#')[0].strip() != '':
+                self.training_patch_offset = [int(x) for x in self.pre_processing_config['Training']['patch_offset'].split('#')[0].split(',')]
 
         if self.pre_processing_config.has_option('Training', 'optimal_thresholds'):
             if self.pre_processing_config['Training']['optimal_thresholds'].split('#')[0].strip() != '':

@@ -3,7 +3,8 @@ import traceback
 import numpy as np
 from math import ceil
 from copy import deepcopy
-from ..Utils.volume_utilities import padding_for_inference, padding_for_inference_both_ends
+from ..Utils.volume_utilities import padding_for_inference, padding_for_inference_both_ends,\
+    padding_for_inference_both_ends_patchwise
 from ..Utils.configuration_parser import ConfigResources
 
 
@@ -29,20 +30,20 @@ def run_predictions(data: np.ndarray, model_path: str, parameters: ConfigResourc
     from tensorflow.python.keras.models import load_model
     model = load_model(model_path, compile=False)
 
-    whole_input_at_once = False
-    if len(parameters.new_axial_size) == 3:
-        whole_input_at_once = True
-
     final_result = None
 
     logging.debug("Predicting...")
-    if whole_input_at_once:
+    if parameters.new_axial_size and len(parameters.new_axial_size) == 3:
         final_result = __run_predictions_whole(data=data, model=model,
                                                deep_supervision=parameters.training_deep_supervision)
-    else:
+    elif parameters.new_axial_size and len(parameters.new_axial_size) == 2:
         final_result = __run_predictions_slabbed(data=data, model=model, parameters=parameters,
                                                  deep_supervision=parameters.training_deep_supervision)
+    else:
+        final_result = __run_predictions_patch(data=data, model=model, parameters=parameters,
+                                               deep_supervision=parameters.training_deep_supervision)
     return final_result
+
 
 def __run_predictions_whole(data: np.ndarray, model, deep_supervision: bool = False) -> np.ndarray:
     """
@@ -76,7 +77,6 @@ def __run_predictions_whole(data: np.ndarray, model, deep_supervision: bool = Fa
         return predictions[0]
 
 
-#@TODO. Should handle the deep_supervision case also for slabbed input
 def __run_predictions_slabbed(data: np.ndarray, model, parameters: ConfigResources,
                               deep_supervision: bool = False) -> np.ndarray:
     try:
@@ -121,6 +121,8 @@ def __run_predictions_slabbed(data: np.ndarray, model, parameters: ConfigResourc
                 if parameters.fix_orientation:
                     slab_CT = np.transpose(slab_CT, axes=(0, 3, 1, 2, 4))
                 slab_CT_pred = model.predict(slab_CT)
+                if deep_supervision:
+                    slab_CT_pred = slab_CT_pred[0]
                 if parameters.fix_orientation:
                     slab_CT_pred = np.transpose(slab_CT_pred, axes=(0, 2, 3, 1, 4))
 
@@ -156,6 +158,8 @@ def __run_predictions_slabbed(data: np.ndarray, model, parameters: ConfigResourc
                     if np.sum(slab_CT > 0.1) == 0:
                         continue
                     slab_CT_pred = model.predict(np.reshape(slab_CT, (1, new_axial_size[0], new_axial_size[1], 1)))
+                    if deep_supervision:
+                        slab_CT_pred = slab_CT_pred[0]
                     for c in range(0, slab_CT_pred.shape[-1]):
                         final_result[:, :, slice, c] = slab_CT_pred[:, :, c]
             else:
@@ -180,6 +184,8 @@ def __run_predictions_slabbed(data: np.ndarray, model, parameters: ConfigResourc
                     if parameters.fix_orientation:
                         slab_CT = np.transpose(slab_CT, axes=(0, 3, 1, 2, 4))
                     slab_CT_pred = model.predict(slab_CT)
+                    if deep_supervision:
+                        slab_CT_pred = slab_CT_pred[0]
                     if parameters.fix_orientation:
                         slab_CT_pred = np.transpose(slab_CT_pred, axes=(0, 2, 3, 1, 4))
 
@@ -198,4 +204,73 @@ def __run_predictions_slabbed(data: np.ndarray, model, parameters: ConfigResourc
         logging.error(
             "Following error collected during model inference (slab mode): \n {}".format(traceback.format_exc()))
         raise ValueError("Segmentation inference (slab mode) could not fully proceed.")
+    return final_result
+
+
+def __run_predictions_patch(data: np.ndarray, model, parameters: ConfigResources,
+                            deep_supervision: bool = False) -> np.ndarray:
+    try:
+        logging.debug("Starting inference in patch-wise mode.")
+        patch_size = parameters.training_patch_size
+        patch_offset = parameters.training_patch_offset
+
+        # Padding in case the patch size is larger that one of the volume dimensions
+        data, extra_dims = padding_for_inference_both_ends_patchwise(data, patch_size)
+
+        # Placeholder for the final predictions -- the actual probabilities
+        final_result = np.zeros(data.shape + (parameters.training_nb_classes,))
+        data = np.expand_dims(data, axis=-1)
+
+        for x in range(0, int(np.ceil(data.shape[0] / (patch_size[0] - patch_offset[0])))):
+            for y in range(0, int(np.ceil(data.shape[1] / (patch_size[1] - patch_offset[1])))):
+                for z in range(0, int(np.ceil(data.shape[2] / (patch_size[2] - patch_offset[2])))):
+                    # patch_boundaries_x = [x * patch_size[0], (x + 1) * patch_size[0]]
+                    # patch_boundaries_y = [y * patch_size[1], (y + 1) * patch_size[1]]
+                    # patch_boundaries_z = [z * patch_size[2], (z + 1) * patch_size[2]]
+                    patch_boundaries_x = [x * (patch_size[0] - patch_offset[0]), x * (patch_size[0] - patch_offset[0]) + patch_size[0]]
+                    patch_boundaries_y = [y * (patch_size[1] - patch_offset[1]), y * (patch_size[1] - patch_offset[1]) + patch_size[1]]
+                    patch_boundaries_z = [z * (patch_size[2] - patch_offset[2]), z * (patch_size[2] - patch_offset[2]) + patch_size[2]]
+
+                    if patch_boundaries_x[1] >= data.shape[0]:
+                        diff = abs(data.shape[0] - patch_boundaries_x[1])
+                        new_patch_boundaries_x = [patch_boundaries_x[0] - diff, patch_boundaries_x[1] - diff]
+                        if new_patch_boundaries_x[0] < 0:
+                            continue
+                        patch_boundaries_x = new_patch_boundaries_x
+
+                    if patch_boundaries_y[1] >= data.shape[1]:
+                        diff = abs(data.shape[1] - patch_boundaries_y[1])
+                        new_patch_boundaries_y = [patch_boundaries_y[0] - diff, patch_boundaries_y[1] - diff]
+                        if new_patch_boundaries_y[0] < 0:
+                            continue
+                        patch_boundaries_y = new_patch_boundaries_y
+
+                    if patch_boundaries_z[1] >= data.shape[2]:
+                        diff = abs(data.shape[2] - patch_boundaries_z[1])
+                        new_patch_boundaries_z = [patch_boundaries_z[0] - diff, patch_boundaries_z[1] - diff]
+                        if new_patch_boundaries_z[0] < 0:
+                            continue
+                        patch_boundaries_z = new_patch_boundaries_z
+
+                    patch = data[patch_boundaries_x[0]:patch_boundaries_x[1], patch_boundaries_y[0]:patch_boundaries_y[1],
+                            patch_boundaries_z[0]:patch_boundaries_z[1]]
+                    model_input = np.expand_dims(np.expand_dims(patch, axis=0), axis=-1)
+                    patch_pred = model.predict(model_input)
+                    if deep_supervision:
+                        patch_pred = patch_pred[0]
+
+                    # In case of overlapping inference, taking the maximum probabilities overall.
+                    final_result[patch_boundaries_x[0]:patch_boundaries_x[1],
+                    patch_boundaries_y[0]:patch_boundaries_y[1],
+                    patch_boundaries_z[0]:patch_boundaries_z[1], :] = np.maximum(patch_pred[0],
+                                                                                 final_result[patch_boundaries_x[0]:patch_boundaries_x[1],
+                                                                                 patch_boundaries_y[0]:patch_boundaries_y[1],
+                                                                                 patch_boundaries_z[0]:patch_boundaries_z[1], :])
+        final_result = final_result[extra_dims[0]:final_result.shape[0] - extra_dims[1],
+                       extra_dims[2]:final_result.shape[1] - extra_dims[3],
+                       extra_dims[4]:final_result.shape[2] - extra_dims[5], :]
+    except Exception as e:
+        logging.error(
+            "Following error collected during model inference (patch mode): \n {}".format(traceback.format_exc()))
+        raise ValueError("Segmentation inference (patch mode) could not fully proceed.")
     return final_result

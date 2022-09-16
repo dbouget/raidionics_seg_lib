@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.ndimage.measurements as smeas
 import scipy.ndimage.morphology as smo
+from typing import Tuple, List
 from copy import deepcopy
 from nibabel.processing import resample_to_output
 from skimage.measure import regionprops
@@ -8,6 +9,42 @@ import subprocess
 import os
 import configparser
 from ..Utils.io import load_nifti_volume, convert_and_export_to_nifti
+from ..Utils.configuration_parser import ConfigResources
+
+
+def crop_mediastinum_volume(filepath: str, volume: np.ndarray, new_spacing: Tuple[float], storage_path: str,
+                            parameters: ConfigResources) -> Tuple[np.ndarray, List[int]]:
+    """
+    Performs different background cropping inside a mediastinal CT volume, as defined by the 'crop_background' stored
+    in a model preprocessing configuration file.
+    In 'minimum' mode, the black space around the head is removed, in 'lungs_mask' mode all voxels not belonging to the
+    brain are set to rgb(0, 0, 0), and in 'lungs_clip' mode only the smallest bounding region around the brain is kept.
+
+    Parameters
+    ----------
+    filepath : str
+        Filepath of the input volume (CT or MRI) to use.
+    volume : np.ndarray
+        .
+    new_spacing : Tuple[float]
+        .
+    storage_path : str
+        Destination folder where the results will be stored.
+    parameters :  :obj:`ConfigResources`
+        Loaded configuration specifying runtime parameters.
+    Returns
+    -------
+    np.ndarray
+        New volume after background cropping procedure.
+    List[int]
+        Indices of a bounding region within the volume for additional cropping (e.g. coordinates around the head,
+        or tightly around the brain only).
+        The bounding region is expressed as: [minx, miny, minz, maxx, maxy, maxz].
+    """
+    if parameters.crop_background == 'minimum':
+        return mediastinum_clipping(volume, parameters)
+    elif parameters.crop_background == 'brain_clip' or parameters.crop_background == 'brain_mask':
+        return mediastinum_clipping_DL(filepath, volume, new_spacing, storage_path, parameters)
 
 
 def mediastinum_clipping(volume, parameters):
@@ -57,7 +94,7 @@ def mediastinum_clipping(volume, parameters):
 
 
 def mediastinum_clipping_DL(filepath, volume, new_spacing, storage_path, parameters):
-    if not os.path.exists(parameters.runtime_lungs_mask_filepath):
+    if not parameters.runtime_lungs_mask_filepath and not os.path.exists(parameters.runtime_lungs_mask_filepath):
         lung_config_filename = os.path.join(os.path.dirname(parameters.config_filename), 'lungs_main_config.ini')
         new_parameters = configparser.ConfigParser()
         new_parameters.read(parameters.config_filename)
