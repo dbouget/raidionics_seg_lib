@@ -130,19 +130,19 @@ def __classify(pre_processing_parameters: ConfigResources):
         nib_volume, resampled_volume, data, crop_bbox = prepare_pre_processing(folder=inputs_folder,
                                                                                pre_processing_parameters=pre_processing_parameters,
                                                                                storage_path=output_path)
-        logging.info('LOG: Classification - Runtime {} seconds.'.format(time.time() - start))
+        logging.info('LOG: Classification - Runtime: {} seconds.'.format(time.time() - start))
         logging.info('LOG: Classification - Preprocessing - End (1/3)')
 
         logging.info('LOG: Classification - Inference - Begin (2/3)')
         start = time.time()
         predictions = run_predictions(data=data, model_path=model_path, parameters=pre_processing_parameters)
-        logging.info('LOG: Classification - Runtime {} seconds.'.format(time.time() - start))
+        logging.info('LOG: Classification - Runtime: {} seconds.'.format(time.time() - start))
         logging.info('LOG: Classification - Inference - End (2/3)')
 
         logging.info('LOG: Classification - Data dump - Begin (3/3)')
         dump_classification_predictions(predictions=predictions, parameters=pre_processing_parameters,
                                         storage_path=output_path)
-        logging.info('LOG: Classification - Runtime {} seconds.'.format(time.time() - start))
+        logging.info('LOG: Classification - Runtime: {} seconds.'.format(time.time() - start))
         logging.info('LOG: Classification - Data dump - End (3/3)')
         logging.info('Total processing time: {} seconds.'.format(time.time() - overall_start))
     except Exception as e:
