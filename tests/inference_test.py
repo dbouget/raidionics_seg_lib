@@ -27,8 +27,7 @@ def inference_test():
 
     try:
         test_image_url = 'https://drive.google.com/uc?id=1GIQUku7hTl9EmjJ9r32kIh9SmCxdTR_u'
-        test_model_url = 'https://drive.google.com/uc?id=1d6FeuQsLWliW_0-rqN8VL82l6AlD3kRs'
-
+        test_model_url = 'https://drive.google.com/uc?id=1n3FEqTzzyK0dAKqoTG-YTILCCCHxQN9P'
         archive_dl_dest = os.path.join(test_dir, 'inference_volume.zip')
         gdown.cached_download(url=test_image_url, path=archive_dl_dest)
         gdown.extractall(path=archive_dl_dest, to=test_dir)

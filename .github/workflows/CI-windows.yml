@@ -64,11 +64,11 @@ jobs:
         - name: Test CLI
           run: raidionicsseg --help
 
-#        - name: Clone repo
-#          uses: actions/checkout@v1
-#
-#        - name: Singular unit test
-#          run: cd ${{github.workspace}}/tests && python inference_test.py
+        - name: Clone repo
+          uses: actions/checkout@v1
+
+        - name: Singular unit test
+          run: cd ${{github.workspace}}/tests && python inference_test.py
 
 #        - name: Test with pytest
 #          run: |
