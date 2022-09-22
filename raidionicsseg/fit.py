@@ -69,11 +69,9 @@ def __segment(pre_processing_parameters: ConfigResources) -> None:
     logging.info('LOG: Segmentation - 4 steps.')
     overall_start = start = time.time()
 
-    model_path = os.path.join(selected_model, 'model.hd5')  # Tensorflow 1
+    model_path = os.path.join(selected_model, 'model.onnx')
     if not os.path.exists(model_path):
-        model_path = os.path.join(selected_model, 'model')  # Tensorflow 2
-        if not os.path.exists(model_path):
-            raise ValueError('Requested model cannot be found on disk at location: \'{}\'.'.format(model_path))
+        raise ValueError('Requested model cannot be found on disk at location: \'{}\'.'.format(model_path))
     try:
         logging.info('LOG: Segmentation - Preprocessing - Begin (1/4)')
         nib_volume, resampled_volume, data, crop_bbox = run_pre_processing(filename=input_filename,

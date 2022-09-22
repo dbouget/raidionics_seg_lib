@@ -8,11 +8,10 @@ with open("README.md", "r", errors='ignore') as f:
 with open('requirements.txt', 'r', encoding='utf-8', errors='ignore') as ff:
     required = ff.read().splitlines()
 
-if platform.system() == 'Windows':
-    # required.append('tensorflow@https://github.com/andreped/tensorflow-windows-wheel/raw/master/1.13.1/py37/CPU/sse2/tensorflow-1.13.1-cp37-cp37m-win_amd64.whl')
-    required.append('tensorflow==1.13.1')
+if platform.system() == 'Darwin' and platform.processor() == 'arm':  # Specific for Apple M1 chips
+    required.append('onnxruntime-silicon==1.11.1')
 else:
-    required.append('tensorflow==1.13.1')
+    required.append('onnxruntime==1.12.1')
 
 
 setup(
@@ -33,10 +32,10 @@ setup(
     },
     install_requires=required,
     python_requires=">=3.6",
-    version='0.1.2',
+    version='1.1.1',
     author='David Bouget (david.bouget@sintef.no)',
     license='BSD 2-Clause',
-    description='Raidionics segmentation and classification back-end with TensorFlow',
+    description='Raidionics segmentation and classification back-end with ONNX',
     long_description=long_description,
     long_description_content_type="text/markdown",
 )
