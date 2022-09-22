@@ -8,7 +8,7 @@ with open("README.md", "r", errors='ignore') as f:
 with open('requirements.txt', 'r', encoding='utf-8', errors='ignore') as ff:
     required = ff.read().splitlines()
 
-if platform.system() == 'Darwin' and platform.processor() == 'arm':  # Specific for Apple M1 chips
+if platform.system() == 'Darwin':  # Specific for Apple M1 chips
     required.append('onnxruntime-silicon==1.11.1')
 else:
     required.append('onnxruntime==1.12.1')

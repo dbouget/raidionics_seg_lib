@@ -14,7 +14,9 @@ numpy
 *.ckpt
 *.mhd
 *.raw
-venv/
+venv*/
+http/
+selfcheck/
 tmp_dependencies/
 build/
 dist/

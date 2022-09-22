@@ -4,7 +4,7 @@
 [![Build Actions Status](https://github.com/dbouget/raidionics-seg-lib/workflows/Build/badge.svg)](https://github.com/dbouget/raidionics-seg-lib/actions)
 [![Paper](https://zenodo.org/badge/DOI/10.3389/fneur.2022.932219.svg)](https://www.frontiersin.org/articles/10.3389/fneur.2022.932219/full)
 
-The code corresponds to the TensorFlow segmentation or classification backend of MRI/CT volumes.  
+The code corresponds to the segmentation or classification backend of MRI/CT volumes.  
 The module can either be used as a Python library, as CLI, or as Docker container.
 
 # Installation
@@ -13,8 +13,7 @@ The module can either be used as a Python library, as CLI, or as Docker containe
 pip install git+https://github.com/dbouget/raidionics-seg-lib.git
 ```
 
-No GPU support for TensorFlow by default. A manual installation of CUDA and of
-the corresponding TensorFlow Python package (version 1.13.1) is necessary.
+No GPU support is supported by default.
 
 # Usage
 ## CLI
@@ -32,6 +31,7 @@ run_model(config_filename="/path/to/main_config.ini")
 ```
 
 ## Docker
+:warning: DEPRECATED (The Docker image corresponds to the v1.1.0 code9.
 ```
 docker pull dbouget/raidionics-segmenter:v1
 docker run --entrypoint /bin/bash -v /home/ubuntu:/home/ubuntu -t -i --runtime=nvidia --network=host --ipc=host dbouget/raidionics-segmenter:v1

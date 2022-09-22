@@ -14,7 +14,7 @@ jobs:
         include:
           - os: macos-10.15
             TARGET: macos
-            CMD_BUILD: python setup.py bdist_wheel --plat-name macosx_10_13_x86_64
+            CMD_BUILD: python setup.py bdist_wheel --plat-name macosx_10_15_x86_64
 
     steps:
       - uses: actions/checkout@v1
@@ -60,11 +60,11 @@ jobs:
         - name: Test CLI
           run: raidionicsseg --help
 
-        - name: Clone repo
-          uses: actions/checkout@v1
-
-        - name: Singular unit test
-          run: cd ${{github.workspace}}/tests && python inference_test.py
+#        - name: Clone repo
+#          uses: actions/checkout@v1
+#
+#        - name: Singular unit test
+#          run: cd ${{github.workspace}}/tests && python inference_test.py
 
 #        - name: Test with pytest
 #          run: |

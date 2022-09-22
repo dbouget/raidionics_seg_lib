@@ -1,4 +1,4 @@
-name: CI Ubuntu
+name: CI MacOS
 
 on:
   push:
@@ -12,9 +12,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-18.04
-            TARGET: ubuntu
-            CMD_BUILD: python setup.py bdist_wheel --plat-name manylinux1_x86_64
+          - os: macos-10.15
+            TARGET: macos
+            CMD_BUILD: python setup_mac_m1.py bdist_wheel --plat-name macosx_10_15_m1
 
     steps:
       - uses: actions/checkout@v1
@@ -40,7 +40,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        os: [ ubuntu-18.04 ]
+        os: [ macos-10.15 ]
     runs-on: ${{ matrix.os }}
 
     steps:
