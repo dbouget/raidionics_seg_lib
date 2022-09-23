@@ -33,7 +33,7 @@ setup(
     },
     install_requires=required,
     python_requires=">=3.6",
-    version='0.1.2',
+    version='1.0.0',
     author='David Bouget (david.bouget@sintef.no)',
     license='BSD 2-Clause',
     description='Raidionics segmentation and classification back-end with TensorFlow',
