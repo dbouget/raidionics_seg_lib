@@ -30,6 +30,8 @@ def run_predictions(data: np.ndarray, model_path: str, parameters: ConfigResourc
 
     import onnxruntime as rt
     providers = ['CPUExecutionProvider']
+    if parameters.gpu_id != "-1":
+        providers = ['CUDAExecutionProvider']
     model = rt.InferenceSession(model_path, providers=providers)
     model_outputs_specfile = open('.'.join(model_path.split('.')[:-1]) + '_config.txt', 'r')
     model_outputs = model_outputs_specfile.readline().rstrip().replace("'", "").split(',')
@@ -74,9 +76,7 @@ def __run_predictions_whole(data: np.ndarray, model, model_outputs: List[str],
     """
     try:
         logging.debug("Starting inference in full volume mode.")
-        data_prep = np.expand_dims(data, axis=0)
-        data_prep = np.expand_dims(data_prep, axis=-1)
-        predictions = model.run(model_outputs, {"input": data_prep})
+        predictions = model.run(model_outputs, {"input": data})
     except Exception as e:
         logging.error("Following error collected during model inference (whole mode): \n {}".format(traceback.format_exc()))
         raise ValueError("Segmentation inference (whole mode) could not fully proceed.")
@@ -107,7 +107,6 @@ def __run_predictions_slabbed(data: np.ndarray, model, model_outputs: List[str],
 
         # Placeholder for the final predictions -- the actual probabilities
         final_result = np.zeros(data.shape + (parameters.training_nb_classes,))
-        data = np.expand_dims(data, axis=-1)
         count = 0
 
         if parameters.predictions_non_overlapping:
@@ -231,7 +230,6 @@ def __run_predictions_patch(data: np.ndarray, model, model_outputs: List[str], p
 
         # Placeholder for the final predictions -- the actual probabilities
         final_result = np.zeros(data.shape + (parameters.training_nb_classes,))
-        data = np.expand_dims(data, axis=-1)
 
         for x in range(0, int(np.ceil(data.shape[0] / (patch_size[0] - patch_offset[0])))):
             for y in range(0, int(np.ceil(data.shape[1] / (patch_size[1] - patch_offset[1])))):
