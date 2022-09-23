@@ -39,27 +39,19 @@ RUN chown ubuntu $PYTHON_DIR -R
 USER ubuntu
 
 # Python
-#TMPDIR=/media/dbouget/ihda/Python-envs pip3 install --cache-dir=/media/dbouget/ihda/Python-envs --build /media/dbouget/ihda/Python-envs <package-name>
 #RUN pip3 install --trusted-host pypi.python.org -r requirements.txt
 RUN pip3 install --upgrade pip
-RUN pip3 install tensorflow==1.14.0
-RUN pip3 install tensorflow-gpu==1.14.0
-#RUN pip3 install torch==1.4.0
-#RUN pip3 install pytorch-lightning==0.7.3
-RUN pip3 install progressbar2
-RUN pip3 install nibabel==3.0.1
+RUN pip3 install nibabel==4.0.2
+RUN pip3 install h5py==3.7.0
+RUN pip3 install pandas==1.3.5
+RUN pip3 install dipy==1.5.0
+RUN pip3 install SimpleITK==2.2.0
+RUN pip3 install aenum==3.1.11
+RUN pip3 install scikit-image==0.19.3
+RUN pip3 install tqdm==4.64.1
+RUN pip3 install onnxruntime==1.12.1
+RUN pip3 install onnxruntime-gpu==1.12.1
 
-RUN pip3 install opencv-python
-RUN pip3 install scipy
-RUN pip3 install scikit-image
-RUN pip3 install progressbar2
-RUN pip3 install tqdm
-RUN pip3 install SimpleITK
-RUN pip3 install dipy==1.1.1
-RUN pip3 install aenum
-RUN pip3 install sklearn
-RUN pip3 install h5py==2.10.0
-RUN pip3 install pandas
 
 RUN mkdir /home/ubuntu/raidionicsseg
 WORKDIR "/home/ubuntu/raidionicsseg"
