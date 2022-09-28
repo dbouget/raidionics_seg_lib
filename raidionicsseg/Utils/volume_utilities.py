@@ -38,6 +38,9 @@ def input_file_category_disambiguation(input_filename: str) -> str:
 
 def resize_volume(volume, new_slice_size, slicing_plane, order=1):
     new_volume = None
+    if not new_slice_size:
+        return volume
+
     if len(new_slice_size) == 2:
         if slicing_plane == 'axial':
             new_val = int(volume.shape[2] * (new_slice_size[1] / volume.shape[1]))
@@ -132,23 +135,24 @@ def padding_for_inference_both_ends(data, slab_size, slicing_plane):
 
 def padding_for_inference_both_ends_patchwise(data, patch_size):
     """
-    Input data is supposed to be of shape 3, with (X, Y, Z) data format.
+    Input data is supposed to be of shape 5, with (B, X, Y, Z, C) data format.
     """
     new_data = deepcopy(data)
+
     extra_dims = [0] * 6
-    if data.shape[0] <= patch_size[0]:
-        padding_val = int(np.ceil(abs(data.shape[0] - patch_size[0]) / 2))
-        new_data = np.pad(new_data, ((padding_val, padding_val), (0, 0), (0, 0)), mode='edge')
+    if data.shape[1] <= patch_size[0]:
+        padding_val = int(np.ceil(abs(data.shape[1] - patch_size[0]) / 2))
+        new_data = np.pad(new_data, ((0, 0), (padding_val, padding_val), (0, 0), (0, 0), (0, 0)), mode='edge')
         extra_dims[0] = padding_val
         extra_dims[1] = padding_val
-    if data.shape[1] <= patch_size[1]:
-        padding_val = int(np.ceil(abs(data.shape[1] - patch_size[1]) / 2))
-        new_data = np.pad(new_data, ((0, 0), (padding_val, padding_val), (0, 0)), mode='edge')
+    if data.shape[2] <= patch_size[1]:
+        padding_val = int(np.ceil(abs(data.shape[2] - patch_size[1]) / 2))
+        new_data = np.pad(new_data, ((0, 0), (0, 0), (padding_val, padding_val), (0, 0), (0, 0)), mode='edge')
         extra_dims[2] = padding_val
         extra_dims[3] = padding_val
-    if data.shape[2] <= patch_size[2]:
-        padding_val = int(np.ceil(abs(data.shape[2] - patch_size[2]) / 2))
-        new_data = np.pad(new_data, ((0, 0), (0, 0), (padding_val, padding_val)), mode='edge')
+    if data.shape[3] <= patch_size[2]:
+        padding_val = int(np.ceil(abs(data.shape[3] - patch_size[2]) / 2))
+        new_data = np.pad(new_data, ((0, 0), (0, 0), (0, 0), (padding_val, padding_val), (0, 0)), mode='edge')
         extra_dims[4] = padding_val
         extra_dims[5] = padding_val
 

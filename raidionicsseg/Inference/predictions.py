@@ -229,11 +229,11 @@ def __run_predictions_patch(data: np.ndarray, model, model_outputs: List[str], p
         data, extra_dims = padding_for_inference_both_ends_patchwise(data, patch_size)
 
         # Placeholder for the final predictions -- the actual probabilities
-        final_result = np.zeros(data.shape + (parameters.training_nb_classes,))
+        final_result = np.zeros(data.shape[1: -1] + (parameters.training_nb_classes,))
 
-        for x in range(0, int(np.ceil(data.shape[0] / (patch_size[0] - patch_offset[0])))):
-            for y in range(0, int(np.ceil(data.shape[1] / (patch_size[1] - patch_offset[1])))):
-                for z in range(0, int(np.ceil(data.shape[2] / (patch_size[2] - patch_offset[2])))):
+        for x in range(0, int(np.ceil(data.shape[1] / (patch_size[0] - patch_offset[0])))):
+            for y in range(0, int(np.ceil(data.shape[2] / (patch_size[1] - patch_offset[1])))):
+                for z in range(0, int(np.ceil(data.shape[3] / (patch_size[2] - patch_offset[2])))):
                     # patch_boundaries_x = [x * patch_size[0], (x + 1) * patch_size[0]]
                     # patch_boundaries_y = [y * patch_size[1], (y + 1) * patch_size[1]]
                     # patch_boundaries_z = [z * patch_size[2], (z + 1) * patch_size[2]]
@@ -241,30 +241,31 @@ def __run_predictions_patch(data: np.ndarray, model, model_outputs: List[str], p
                     patch_boundaries_y = [y * (patch_size[1] - patch_offset[1]), y * (patch_size[1] - patch_offset[1]) + patch_size[1]]
                     patch_boundaries_z = [z * (patch_size[2] - patch_offset[2]), z * (patch_size[2] - patch_offset[2]) + patch_size[2]]
 
-                    if patch_boundaries_x[1] >= data.shape[0]:
-                        diff = abs(data.shape[0] - patch_boundaries_x[1])
+                    if patch_boundaries_x[1] >= data.shape[1]:
+                        diff = abs(data.shape[1] - patch_boundaries_x[1])
                         new_patch_boundaries_x = [patch_boundaries_x[0] - diff, patch_boundaries_x[1] - diff]
                         if new_patch_boundaries_x[0] < 0:
                             continue
                         patch_boundaries_x = new_patch_boundaries_x
 
-                    if patch_boundaries_y[1] >= data.shape[1]:
-                        diff = abs(data.shape[1] - patch_boundaries_y[1])
+                    if patch_boundaries_y[1] >= data.shape[2]:
+                        diff = abs(data.shape[2] - patch_boundaries_y[1])
                         new_patch_boundaries_y = [patch_boundaries_y[0] - diff, patch_boundaries_y[1] - diff]
                         if new_patch_boundaries_y[0] < 0:
                             continue
                         patch_boundaries_y = new_patch_boundaries_y
 
-                    if patch_boundaries_z[1] >= data.shape[2]:
-                        diff = abs(data.shape[2] - patch_boundaries_z[1])
+                    if patch_boundaries_z[1] >= data.shape[3]:
+                        diff = abs(data.shape[3] - patch_boundaries_z[1])
                         new_patch_boundaries_z = [patch_boundaries_z[0] - diff, patch_boundaries_z[1] - diff]
                         if new_patch_boundaries_z[0] < 0:
                             continue
                         patch_boundaries_z = new_patch_boundaries_z
 
-                    patch = data[patch_boundaries_x[0]:patch_boundaries_x[1], patch_boundaries_y[0]:patch_boundaries_y[1],
-                            patch_boundaries_z[0]:patch_boundaries_z[1]]
-                    model_input = np.expand_dims(patch, axis=0)
+                    model_input = data[:, patch_boundaries_x[0]:patch_boundaries_x[1],
+                            patch_boundaries_y[0]:patch_boundaries_y[1],
+                            patch_boundaries_z[0]:patch_boundaries_z[1], :]
+                    # model_input = np.expand_dims(patch, axis=0)
                     patch_pred = model.run(model_outputs, {"input": model_input})
                     # @TODO. Have to test with a non deep supervision model with ONNX, to do array indexing always
                     if deep_supervision:
@@ -273,7 +274,7 @@ def __run_predictions_patch(data: np.ndarray, model, model_outputs: List[str], p
                     # In case of overlapping inference, taking the maximum probabilities overall.
                     final_result[patch_boundaries_x[0]:patch_boundaries_x[1],
                     patch_boundaries_y[0]:patch_boundaries_y[1],
-                    patch_boundaries_z[0]:patch_boundaries_z[1], :] = np.maximum(patch_pred[0],
+                    patch_boundaries_z[0]:patch_boundaries_z[1], :] = np.maximum(np.squeeze(patch_pred, axis=0),
                                                                                  final_result[patch_boundaries_x[0]:patch_boundaries_x[1],
                                                                                  patch_boundaries_y[0]:patch_boundaries_y[1],
                                                                                  patch_boundaries_z[0]:patch_boundaries_z[1], :])

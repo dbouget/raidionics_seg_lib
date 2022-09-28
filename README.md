@@ -40,7 +40,9 @@ docker run --entrypoint /bin/bash -v /home/ubuntu:/home/ubuntu -t -i --runtime=n
 The `/home/ubuntu` before the column sign has to be changed to match your local machine.
 
 # Models
-The trained models are automatically downloaded when running Raidionics or Raidionics-Slicer.
+The trained models are automatically downloaded when running Raidionics or Raidionics-Slicer.  
+All existing Raidionics models can be browsed [here](https://drive.google.com/drive/folders/1TUTPzY73Kyt4WedqHpeM6i-gmfOfwqWW?usp=sharing), 
+i.e., old and new models, unit test resources.
 
 # Developers
 For running inference on GPU, your machine must be properly configured (cf. [here](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html))  

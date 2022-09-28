@@ -88,9 +88,10 @@ def run_pre_processing(filename: str, pre_processing_parameters: ConfigResources
         if pre_processing_parameters.crop_background is not None:
             data, crop_bbox = crop_MR_background(filename, data, new_spacing, storage_path, pre_processing_parameters)
 
-    logging.debug("Preprocessing - Volume resizing.")
-    data = resize_volume(data, pre_processing_parameters.new_axial_size, pre_processing_parameters.slicing_plane,
-                         order=processing_order)
+    if pre_processing_parameters.new_axial_size:
+        logging.debug("Preprocessing - Volume resizing.")
+        data = resize_volume(data, pre_processing_parameters.new_axial_size, pre_processing_parameters.slicing_plane,
+                             order=processing_order)
     if input_category == 'Volume':
         # Normalize values
         logging.debug("Preprocessing - Intensity normalization.")
