@@ -1,8 +1,39 @@
 import numpy as np
 from copy import deepcopy
+import SimpleITK as sitk
 from skimage.transform import resize
 from skimage.measure import regionprops
 from .configuration_parser import *
+
+
+def input_file_category_disambiguation(input_filename: str) -> str:
+    """
+    Identifying whether the volume stored on disk under input_filename contains a raw MRI volume or is an integer-like
+    volume with labels.
+    The category belongs to [MRI, Annotation].
+
+    Parameters
+    ----------
+    input_filename: str
+        Disk location of the volume to disambiguate.
+
+    Returns
+    ----------
+    str
+        Human-readable category identified for the input.
+    """
+    category = None
+    reader = sitk.ImageFileReader()
+    reader.SetFileName(input_filename)
+    image = reader.Execute()
+    image_type = image.GetPixelIDTypeAsString()
+    array = sitk.GetArrayFromImage(image)
+
+    if len(np.unique(array)) > 255 or np.max(array) > 255 or np.min(array) < -1:
+        category = "Volume"
+    else:
+        category = "Annotation"
+    return category
 
 
 def resize_volume(volume, new_slice_size, slicing_plane, order=1):

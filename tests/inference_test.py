@@ -26,8 +26,8 @@ def inference_test():
     os.makedirs(test_dir)
 
     try:
-        test_image_url = 'https://drive.google.com/uc?id=1GIQUku7hTl9EmjJ9r32kIh9SmCxdTR_u'
-        test_model_url = 'https://drive.google.com/uc?id=1n3FEqTzzyK0dAKqoTG-YTILCCCHxQN9P'
+        test_image_url = 'https://drive.google.com/uc?id=15AtRvEOYyvOEPMmQJiIXNMOr2njYTLR8'
+        test_model_url = 'https://drive.google.com/uc?id=1FLsBz5_-w8yt6K-QmgXDMGD-v85Fl1QT'
         archive_dl_dest = os.path.join(test_dir, 'inference_volume.zip')
         gdown.cached_download(url=test_image_url, path=archive_dl_dest)
         gdown.extractall(path=archive_dl_dest, to=test_dir)
@@ -45,7 +45,7 @@ def inference_test():
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "-1")
-        seg_config.set('System', 'input_filename', os.path.join(test_dir, 'patient_mni.nii'))
+        seg_config.set('System', 'inputs_folder', os.path.join(test_dir, 'inputs'))
         seg_config.set('System', 'output_folder', test_dir)
         seg_config.set('System', 'model_folder', os.path.join(test_dir, 'MRI_Brain'))
         seg_config.add_section('Runtime')

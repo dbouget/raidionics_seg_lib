@@ -6,7 +6,6 @@ import logging
 import platform
 
 from raidionicsseg.fit import run_model
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
 def path(string):

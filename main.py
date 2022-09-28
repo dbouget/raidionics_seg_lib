@@ -4,8 +4,6 @@ import sys
 import traceback
 import logging
 from raidionicsseg.fit import run_model, run_model_wrapper
-# Adjust level of prints from TensorFlow
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
 def main(argv):
