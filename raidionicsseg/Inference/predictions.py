@@ -81,14 +81,14 @@ def __run_predictions_whole(data: np.ndarray, model, model_outputs: List[str],
         logging.error("Following error collected during model inference (whole mode): \n {}".format(traceback.format_exc()))
         raise ValueError("Segmentation inference (whole mode) could not fully proceed.")
 
-    if deep_supervision:
-        return predictions[0][0]
-    else:
-        return predictions[0]
+    # When running inference with ONNX, the outputs are packed into a list (even if one output only)
+    # Can keep the same array indexing as with the deep_supervision flag.
+    return predictions[0][0]
 
 
 def __run_predictions_slabbed(data: np.ndarray, model, model_outputs: List[str], parameters: ConfigResources,
                               deep_supervision: bool = False) -> np.ndarray:
+    # @TODO. Have to test with a non deep supervision model with ONNX, to do array indexing always
     try:
         logging.debug("Starting inference in slab-wise mode.")
         slicing_plane = parameters.slicing_plane
@@ -268,6 +268,7 @@ def __run_predictions_patch(data: np.ndarray, model, model_outputs: List[str], p
                             patch_boundaries_z[0]:patch_boundaries_z[1]]
                     model_input = np.expand_dims(patch, axis=0)
                     patch_pred = model.run(model_outputs, {"input": model_input})
+                    # @TODO. Have to test with a non deep supervision model with ONNX, to do array indexing always
                     if deep_supervision:
                         patch_pred = patch_pred[0]
 

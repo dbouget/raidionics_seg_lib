@@ -118,7 +118,7 @@ def __classify(pre_processing_parameters: ConfigResources):
     logging.info('LOG: Classification - 3 steps.')
     overall_start = start = time.time()
 
-    model_path = os.path.join(selected_model, 'model.hd5')
+    model_path = os.path.join(selected_model, 'model.onnx')
     if not os.path.exists(model_path):
         raise ValueError('Requested model cannot be found on disk at location: \'{}\'.'.format(model_path))
 
