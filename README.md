@@ -31,17 +31,20 @@ run_model(config_filename="/path/to/main_config.ini")
 ```
 
 ## Docker
-:warning: DEPRECATED (The Docker image corresponds to the v1.1.0 code9.
+:warning: The Docker image can only perform inference using the CPU, there is no GPU support at this stage.
 ```
-docker pull dbouget/raidionics-segmenter:v1
-docker run --entrypoint /bin/bash -v /home/ubuntu:/home/ubuntu -t -i --runtime=nvidia --network=host --ipc=host dbouget/raidionics-segmenter:v1
+docker pull dbouget/raidionics-segmenter:v1.2
+docker run --entrypoint /bin/bash -v /home/<username>/<resources_path>:/home/ubuntu/resources -t -i --runtime=nvidia --network=host --ipc=host dbouget/raidionics-segmenter:v1.2
 ```
 
-The `/home/ubuntu` before the column sign has to be changed to match your local machine.
+The `/home/<username>/<resources_path>` before the column sign has to be changed to match a directory on your local 
+machine containing the data to expose to the docker image. Namely, it must contain folder(s) with images you want to 
+run inference on, as long as a folder with the trained models to use, and a destination folder where the results will 
+be placed.
 
 # Models
 The trained models are automatically downloaded when running Raidionics or Raidionics-Slicer.  
-All existing Raidionics models can be browsed [here](https://drive.google.com/drive/folders/1TUTPzY73Kyt4WedqHpeM6i-gmfOfwqWW?usp=sharing), 
+Alternatively, all existing Raidionics models can be browsed [here](https://drive.google.com/drive/folders/1TUTPzY73Kyt4WedqHpeM6i-gmfOfwqWW?usp=sharing), 
 i.e., old and new models, unit test resources.
 
 # Developers
