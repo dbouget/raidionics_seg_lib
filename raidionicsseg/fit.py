@@ -44,9 +44,12 @@ def run_model(config_filename: str, logging_filename: str = None) -> None:
     None
     """
     if logging_filename:
-        logging.basicConfig(filename=logging_filename, filemode='a',
-                            format="%(asctime)s ; %(name)s ; %(levelname)s ; %(message)s", datefmt='%d/%m/%Y %H.%M')
-        logging.getLogger().setLevel(logging.DEBUG)
+        logger = logging.getLogger()
+        handler = logging.FileHandler(filename=logging_filename, mode='a', encoding='utf-8')
+        handler.setFormatter(logging.Formatter(fmt="%(asctime)s ; %(name)s ; %(levelname)s ; %(message)s",
+                                               datefmt='%d/%m/%Y %H.%M'))
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(handler)
 
     config_parameters = ConfigResources()
     config_parameters.init_environment(config_filename)
