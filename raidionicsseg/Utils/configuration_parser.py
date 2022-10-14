@@ -171,9 +171,9 @@ class ConfigResources:
         self.normalization_method = None
         self.preprocessing_number_inputs = None
 
-        if self.pre_processing_config.has_option('PreProcessing', 'library'):
-            if self.pre_processing_config['PreProcessing']['library'].split('#')[0].strip() == 'dipy':
-                self.preprocessing_library = 'dipy'
+        # if self.pre_processing_config.has_option('PreProcessing', 'library'):
+        #     if self.pre_processing_config['PreProcessing']['library'].split('#')[0].strip() == 'dipy':
+        #         self.preprocessing_library = 'dipy'
 
         if self.pre_processing_config.has_option('PreProcessing', 'output_spacing'):
             if self.pre_processing_config['PreProcessing']['output_spacing'].split('#')[0].strip() != '':
