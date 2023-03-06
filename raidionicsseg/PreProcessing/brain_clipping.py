@@ -70,8 +70,9 @@ def crop_MR(volume: np.ndarray, parameters) -> Tuple[np.ndarray, List[int]]:
         The bounding region is expressed as: [minx, miny, minz, maxx, maxy, maxz].
     """
     original_volume = np.copy(volume)
-    volume[volume >= 0.2] = 1
-    volume[volume < 0.2] = 0
+    limit = int((np.max(volume) - np.min(volume)) * 0.2)
+    volume[volume >= limit] = 1
+    volume[volume < limit] = 0
     volume = volume.astype(np.uint8)
     volume = binary_fill_holes(volume).astype(np.uint8)
     regions = regionprops(volume)
