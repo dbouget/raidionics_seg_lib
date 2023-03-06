@@ -85,7 +85,8 @@ def run_pre_processing(filename: str, pre_processing_parameters: ConfigResources
                 data, crop_bbox = mediastinum_clipping_DL(filename, data, new_spacing, storage_path,
                                                           pre_processing_parameters)
     else:
-        if pre_processing_parameters.crop_background is not None:
+        if pre_processing_parameters.crop_background is not None and \
+                not pre_processing_parameters.predictions_use_preprocessed_data:
             data, crop_bbox = crop_MR_background(filename, data, new_spacing, storage_path, pre_processing_parameters)
 
     if pre_processing_parameters.new_axial_size:
