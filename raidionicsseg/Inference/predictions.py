@@ -81,6 +81,7 @@ def __run_predictions_whole(data: np.ndarray, model, model_outputs: List[str],
         logging.error("Following error collected during model inference (whole mode): \n {}".format(traceback.format_exc()))
         raise ValueError("Segmentation inference (whole mode) could not fully proceed.")
 
+    # @TODO. Should use the deep supervisison flag?
     # When running inference with ONNX, the outputs are packed into a list (even if one output only)
     # Can keep the same array indexing as with the deep_supervision flag.
     return predictions[0][0]
@@ -99,14 +100,14 @@ def __run_predictions_slabbed(data: np.ndarray, model, model_outputs: List[str],
             new_axial_size[0] = tmp[1]
             new_axial_size[1] = tmp[0]
 
-        upper_boundary = data.shape[2]
+        upper_boundary = data.shape[3]
         if slicing_plane == 'sagittal':
-            upper_boundary = data.shape[0]
-        elif slicing_plane == 'coronal':
             upper_boundary = data.shape[1]
+        elif slicing_plane == 'coronal':
+            upper_boundary = data.shape[2]
 
         # Placeholder for the final predictions -- the actual probabilities
-        final_result = np.zeros(data.shape + (parameters.training_nb_classes,))
+        final_result = np.zeros(data.shape[1: -1] + (parameters.training_nb_classes,))
         count = 0
 
         if parameters.predictions_non_overlapping:
@@ -118,18 +119,21 @@ def __run_predictions_slabbed(data: np.ndarray, model, model_outputs: List[str],
                     unpad = True
 
                 if slicing_plane == 'axial':
-                    slab_CT = data[:, :, int(chunk * slab_size):int((chunk + 1) * slab_size), 0]
+                    slab_CT = data[:, :, :, int(chunk * slab_size):int((chunk + 1) * slab_size), :]
                 elif slicing_plane == 'sagittal':
-                    tmp = data[int(chunk * slab_size):int((chunk + 1) * slab_size), :, :, 0]
-                    slab_CT = tmp.transpose((1, 2, 0))
+                    tmp = data[:, int(chunk * slab_size):int((chunk + 1) * slab_size), :, :, :]
+                    slab_CT = tmp.transpose((0, 2, 3, 1, 4))
                 elif slicing_plane == 'coronal':
-                    tmp = data[:, int(chunk * slab_size):int((chunk + 1) * slab_size), :, 0]
-                    slab_CT = tmp.transpose((0, 2, 1))
+                    tmp = data[:, :, int(chunk * slab_size):int((chunk + 1) * slab_size), :, :]
+                    slab_CT = tmp.transpose((0, 1, 3, 2, 4))
 
-                slab_CT = np.expand_dims(np.expand_dims(slab_CT, axis=0), axis=-1)
+                # slab_CT = np.expand_dims(np.expand_dims(slab_CT, axis=0), axis=-1)
                 if parameters.fix_orientation:
                     slab_CT = np.transpose(slab_CT, axes=(0, 3, 1, 2, 4))
                 slab_CT_pred = model.run(model_outputs, {"input": slab_CT})
+
+                # When running inference with ONNX, the outputs are packed into a list (even if one output only)
+                slab_CT_pred = slab_CT_pred[0]
 
                 if deep_supervision:
                     slab_CT_pred = slab_CT_pred[0]

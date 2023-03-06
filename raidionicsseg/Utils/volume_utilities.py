@@ -103,19 +103,19 @@ def intensity_normalization(volume, parameters):
 
 
 def padding_for_inference(data, slab_size, slicing_plane):
-    new_data = data
+    new_data = deepcopy(data)
     if slicing_plane == 'axial':
-        missing_dimension = (slab_size - (data.shape[2] % slab_size)) % slab_size
+        missing_dimension = (slab_size - (data.shape[3] % slab_size)) % slab_size
         if missing_dimension != 0:
-            new_data = np.pad(data, ((0, 0), (0, 0), (0, missing_dimension), (0, 0)), mode='edge')
+            new_data = np.pad(data, ((0, 0), (0, 0), (0, 0), (0, missing_dimension), (0, 0)), mode='edge')
     elif slicing_plane == 'sagittal':
-        missing_dimension = (slab_size - (data.shape[0] % slab_size)) % slab_size
-        if missing_dimension != 0:
-            new_data = np.pad(data, ((0, missing_dimension), (0, 0), (0, 0), (0, 0)), mode='edge')
-    elif slicing_plane == 'coronal':
         missing_dimension = (slab_size - (data.shape[1] % slab_size)) % slab_size
         if missing_dimension != 0:
-            new_data = np.pad(data, ((0, 0), (0, missing_dimension), (0, 0), (0, 0)), mode='edge')
+            new_data = np.pad(data, ((0, 0), (0, missing_dimension), (0, 0), (0, 0), (0, 0)), mode='edge')
+    elif slicing_plane == 'coronal':
+        missing_dimension = (slab_size - (data.shape[2] % slab_size)) % slab_size
+        if missing_dimension != 0:
+            new_data = np.pad(data, ((0, 0), (0, 0), (0, missing_dimension), (0, 0), (0, 0)), mode='edge')
 
     return new_data, missing_dimension
 
@@ -124,11 +124,11 @@ def padding_for_inference_both_ends(data, slab_size, slicing_plane):
     new_data = data
     padding_val = int(slab_size / 2)
     if slicing_plane == 'axial':
-        new_data = np.pad(data, ((0, 0), (0, 0), (padding_val, padding_val), (0, 0)), mode='edge')
+        new_data = np.pad(data, ((0, 0), (0, 0), (0, 0), (padding_val, padding_val), (0, 0)), mode='edge')
     elif slicing_plane == 'sagittal':
-        new_data = np.pad(data, ((padding_val, padding_val), (0, 0), (0, 0), (0, 0)), mode='edge')
+        new_data = np.pad(data, ((0, 0), (padding_val, padding_val), (0, 0), (0, 0), (0, 0)), mode='edge')
     elif slicing_plane == 'coronal':
-        new_data = np.pad(data, ((0, 0), (padding_val, padding_val), (0, 0), (0, 0)), mode='edge')
+        new_data = np.pad(data, ((0, 0), (0, 0), (padding_val, padding_val), (0, 0), (0, 0)), mode='edge')
 
     return new_data
 
