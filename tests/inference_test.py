@@ -5,14 +5,18 @@ import logging
 import sys
 import subprocess
 import traceback
+import zipfile
 
 try:
+    import requests
     import gdown
     if int(gdown.__version__.split('.')[0]) < 4 or int(gdown.__version__.split('.')[1]) < 4:
         subprocess.check_call([sys.executable, "-m", "pip", "install", 'gdown==4.4.0'])
 except:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", 'requests==2.28.2'])
     subprocess.check_call([sys.executable, "-m", "pip", "install", 'gdown==4.4.0'])
     import gdown
+    import requests
 
 
 def inference_test():
@@ -27,14 +31,24 @@ def inference_test():
 
     try:
         test_image_url = 'https://drive.google.com/uc?id=15AtRvEOYyvOEPMmQJiIXNMOr2njYTLR8'
-        test_model_url = 'https://drive.google.com/uc?id=1FLsBz5_-w8yt6K-QmgXDMGD-v85Fl1QT'
+        test_model_url = 'https://github.com/dbouget/Raidionics-models/releases/download/1.2.0/Raidionics-MRI_Brain-ONNX-v12.zip'
         archive_dl_dest = os.path.join(test_dir, 'inference_volume.zip')
         gdown.cached_download(url=test_image_url, path=archive_dl_dest)
         gdown.extractall(path=archive_dl_dest, to=test_dir)
 
         archive_dl_dest = os.path.join(test_dir, 'brain_model.zip')
-        gdown.cached_download(url=test_model_url, path=archive_dl_dest)
-        gdown.extractall(path=archive_dl_dest, to=test_dir)
+        headers = {}
+        response = requests.get(test_model_url, headers=headers, stream=True)
+        response.raise_for_status()
+
+        if response.status_code == requests.codes.ok:
+            with open(archive_dl_dest, "wb") as f:
+                for chunk in response.iter_content(chunk_size=1048576):
+                    f.write(chunk)
+
+        with zipfile.ZipFile(archive_dl_dest, 'r') as zip_ref:
+            zip_ref.extractall(test_dir)
+
     except Exception as e:
         logging.error("Error during resources download with: \n {}.\n".format(traceback.format_exc()))
         shutil.rmtree(test_dir)
