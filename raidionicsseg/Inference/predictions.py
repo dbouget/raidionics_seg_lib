@@ -81,15 +81,15 @@ def __run_predictions_whole(data: np.ndarray, model, model_outputs: List[str],
         logging.error("Following error collected during model inference (whole mode): \n {}".format(traceback.format_exc()))
         raise ValueError("Segmentation inference (whole mode) could not fully proceed.")
 
-    # @TODO. Should use the deep supervisison flag?
     # When running inference with ONNX, the outputs are packed into a list (even if one output only)
-    # Can keep the same array indexing as with the deep_supervision flag.
+    # Using the deep supervision flag is hence not necessary, as the first output only is of interest regardless.
     return predictions[0][0]
-
 
 def __run_predictions_slabbed(data: np.ndarray, model, model_outputs: List[str], parameters: ConfigResources,
                               deep_supervision: bool = False) -> np.ndarray:
-    # @TODO. Have to test with a non deep supervision model with ONNX, to do array indexing always
+    """
+    @TODO. Slab-wise inference working for axial-based slabbing, not tested for the other use-cases.
+    """
     try:
         logging.debug("Starting inference in slab-wise mode.")
         slicing_plane = parameters.slicing_plane
