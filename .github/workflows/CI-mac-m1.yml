@@ -1,10 +1,8 @@
 name: CI MacOS (M1 chip)
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+  # Allows to run the workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
   build:

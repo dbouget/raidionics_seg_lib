@@ -1,11 +1,11 @@
-# Raidionics backend for segmentation/classification
+# Raidionics backend for segmentation and classification
 
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause)
 [![Build Actions Status](https://github.com/dbouget/raidionics-seg-lib/workflows/Build/badge.svg)](https://github.com/dbouget/raidionics-seg-lib/actions)
 [![Paper](https://zenodo.org/badge/DOI/10.3389/fneur.2022.932219.svg)](https://www.frontiersin.org/articles/10.3389/fneur.2022.932219/full)
 
 The code corresponds to the segmentation or classification backend of MRI/CT volumes, using ONNX runtime for inference.  
-The module can either be used as a Python library, as CLI, or as Docker container.
+The module can either be used as a Python library, as CLI, or as Docker container. By default, inference is performed on CPU only.
 
 # Installation
 
@@ -13,9 +13,12 @@ The module can either be used as a Python library, as CLI, or as Docker containe
 pip install git+https://github.com/dbouget/raidionics-seg-lib.git
 ```
 
-By default, inference is performed on CPU only.
+<details>
+<summary>
 
 # Usage
+</summary>
+
 ## CLI
 ```
 raidionicsseg CONFIG
@@ -55,20 +58,33 @@ The `<path>/<to>/main_config.ini` must point to a valid configuration file on yo
 For example, if the file is located on my machine under `/home/myuser/Data/Segmentation/main_config.ini`, 
 and that `/home/myuser/Data` is the mounted resources partition mounted on the Docker image, the new relative path will be `Segmentation/main_config.ini`.  
 The `<verbose>` level can be selected from [debug, info, warning, error].
+</details>
+
+<details>
+<summary>
 
 # Models
+</summary>
+
 The trained models are automatically downloaded when running Raidionics or Raidionics-Slicer.  
-Alternatively, all existing Raidionics models can be browsed [here](https://drive.google.com/drive/folders/1TUTPzY73Kyt4WedqHpeM6i-gmfOfwqWW?usp=sharing), 
-i.e., old and new models, unit test resources.
+Alternatively, all existing Raidionics models can be browsed [here](https://github.com/dbouget/Raidionics-models/releases/tag/1.2.0) directly.
+</details>
+
+<details>
+<summary>
 
 # Developers
+</summary>
+
 For running inference on GPU, your machine must be properly configured (cf. [here](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html))  
+In the configuration file, the gpu_id parameter should then point to the GPU that is to be used during inference.
 
 To run the unit tests, type the following within your virtual environment and within the raidionics-seg-lib folder:
 ```
 pip install pytest
 pytest tests/
 ```
+</details>
 
 # How to cite
 If you are using Raidionics in your research, please use the following citation:
