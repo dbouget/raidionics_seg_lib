@@ -33,19 +33,21 @@ USER ubuntu
 
 # downloading source code (not necessary, mostly to run the test scripts)
 WORKDIR "/home/ubuntu"
-RUN git clone https://github.com/dbouget/raidionics-seg-lib.git
+RUN git clone -b v1.2.0-beta https://github.com/dbouget/raidionics_seg_lib.git
 
 # Python packages
+WORKDIR "/home/ubuntu/raidionics_seg_lib"
 RUN pip3 install --upgrade pip
-RUN pip3 install git+https://github.com/dbouget/raidionics-seg-lib.git
+RUN pip3 install -e .
 RUN pip3 install onnxruntime-gpu==1.12.1
 
 # setting up a resources folder which should mirror a user folder, to "send" data/models in and "collect" the results
+WORKDIR "/home/ubuntu"
 USER root
 RUN mkdir /home/ubuntu/resources
 RUN chown -R ubuntu:ubuntu /home/ubuntu/resources
-RUN chown -R ubuntu:ubuntu /home/ubuntu/raidionics-seg-lib
-RUN chmod -R 777 /home/ubuntu/raidionics-seg-lib
+RUN chown -R ubuntu:ubuntu /home/ubuntu/raidionics_seg_lib
+RUN chmod -R 777 /home/ubuntu/raidionics_seg_lib
 USER ubuntu
 EXPOSE 8888
 
@@ -53,7 +55,7 @@ EXPOSE 8888
 ENV PATH="${PATH}:/home/ubuntu/.local/bin"
 
 # CMD ["/bin/bash"]
-ENTRYPOINT ["python3","/home/ubuntu/raidionics-seg-lib/main.py"]
+ENTRYPOINT ["python3","/home/ubuntu/raidionics_seg_lib/main.py"]
 
 
 
