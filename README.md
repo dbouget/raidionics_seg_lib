@@ -10,7 +10,7 @@ The module can either be used as a Python library, as CLI, or as Docker containe
 # Installation
 
 ```
-pip install git+https://github.com/dbouget/raidionics-seg-lib.git
+pip install git+https://github.com/dbouget/raidionics_seg_lib.git
 ```
 
 <details>
