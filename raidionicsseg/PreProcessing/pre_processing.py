@@ -71,10 +71,8 @@ def run_pre_processing(filename: str, pre_processing_parameters: ConfigResources
         tmp = np.min(nib_volume.header.get_zooms())
         new_spacing = [tmp, tmp, tmp]
 
-    library = pre_processing_parameters.preprocessing_library
-    if library == 'nibabel':
-        resampled_volume = resample_to_output(nib_volume, new_spacing, order=processing_order)
-        data = resampled_volume.get_data().astype('float32')
+    resampled_volume = resample_to_output(nib_volume, new_spacing, order=processing_order)
+    data = resampled_volume.get_data().astype('float32')
 
     logging.debug("Preprocessing - Background clipping.")
     crop_bbox = None

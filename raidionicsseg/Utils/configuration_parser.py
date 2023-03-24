@@ -175,10 +175,7 @@ class ConfigResources:
         self.swap_training_input = False
         self.normalization_method = None
         self.preprocessing_number_inputs = None
-
-        if self.pre_processing_config.has_option('PreProcessing', 'library'):
-            if self.pre_processing_config['PreProcessing']['library'].split('#')[0].strip() == 'dipy':
-                self.preprocessing_library = 'dipy'
+        self.preprocessing_channels_order = 'channels_last'
 
         if self.pre_processing_config.has_option('PreProcessing', 'output_spacing'):
             if self.pre_processing_config['PreProcessing']['output_spacing'].split('#')[0].strip() != '':
@@ -218,6 +215,10 @@ class ConfigResources:
         if self.pre_processing_config.has_option('PreProcessing', 'number_inputs'):
             if self.pre_processing_config['PreProcessing']['number_inputs'].split('#')[0].strip() != '':
                 self.preprocessing_number_inputs = int(self.pre_processing_config['PreProcessing']['number_inputs'].split('#')[0].strip())
+
+        if self.pre_processing_config.has_option('PreProcessing', 'channels_order'):
+            if self.pre_processing_config['PreProcessing']['channels_order'].split('#')[0].strip() != '':
+                self.preprocessing_channels_order = self.pre_processing_config['PreProcessing']['channels_order'].split('#')[0].strip()
 
     def __parse_MRI_content(self):
         self.perform_bias_correction = False
