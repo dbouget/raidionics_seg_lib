@@ -179,3 +179,8 @@ def volume_cropping(volume, mask, output_filename):
     :return:
     """
     pass
+
+
+def softmax(x):
+    """Compute softmax values for each sets of scores in x."""
+    return np.exp(x) / np.sum(np.exp(x), axis=-1, keepdims=True)

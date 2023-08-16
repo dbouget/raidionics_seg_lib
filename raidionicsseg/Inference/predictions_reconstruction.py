@@ -111,14 +111,14 @@ def __resample_predictions(predictions, crop_bbox, nib_volume, resampled_volume,
 
             # Undo cropping (which is performed in function crop())
             if reconstruction_method == 'probabilities' or reconstruction_method == 'thresholding':
-                new_data = np.zeros((resampled_volume.get_data().shape) + (nb_classes,), dtype=labels_type)
+                new_data = np.zeros((resampled_volume.get_fdata().shape) + (nb_classes,), dtype=labels_type)
             else:
-                new_data = np.zeros((resampled_volume.get_data().shape), dtype=labels_type)
+                new_data = np.zeros((resampled_volume.get_fdata().shape), dtype=labels_type)
             new_data[crop_bbox[0]:crop_bbox[3], crop_bbox[1]:crop_bbox[4], crop_bbox[2]:crop_bbox[5]] = data
         else:
-            # new_data = resize(data, resampled_volume.get_data().shape, order=order,
+            # new_data = resize(data, resampled_volume.get_fdata().shape, order=order,
             #                   preserve_range=True)
-            resize_ratio = resampled_volume.get_data().shape / np.asarray(data.shape)[0:3]
+            resize_ratio = resampled_volume.get_fdata().shape / np.asarray(data.shape)[0:3]
             if len(data.shape) == 4:
                 resize_ratio = list(resize_ratio) + [1.]
             if list(resize_ratio)[0:3] != [1., 1., 1.]:
@@ -128,16 +128,16 @@ def __resample_predictions(predictions, crop_bbox, nib_volume, resampled_volume,
 
         # Resampling to the size and spacing of the original input volume
         if reconstruction_method == 'probabilities' or reconstruction_method == 'thresholding':
-            resampled_predictions = np.zeros(nib_volume.get_data().shape + (nb_classes,)).astype(labels_type)
+            resampled_predictions = np.zeros(nib_volume.get_fdata().shape + (nb_classes,)).astype(labels_type)
             for c in range(0, nb_classes):
                 img = nib.Nifti1Image(new_data[..., c].astype(labels_type), affine=resampled_volume.affine)
                 resampled_channel = resample_from_to(img, nib_volume, order=order)
-                resampled_predictions[..., c] = resampled_channel.get_data()
+                resampled_predictions[..., c] = resampled_channel.get_fdata()
         else:
-            resampled_predictions = np.zeros(nib_volume.get_data().shape).astype(labels_type)
+            resampled_predictions = np.zeros(nib_volume.get_fdata().shape).astype(labels_type)
             img = nib.Nifti1Image(new_data.astype(labels_type), affine=resampled_volume.affine)
             resampled_channel = resample_from_to(img, nib_volume, order=order)
-            resampled_predictions = resampled_channel.get_data()
+            resampled_predictions = resampled_channel.get_fdata()
 
         # Range has to be set to [0, 1] again after resampling with order 0
         if order == 3:

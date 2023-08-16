@@ -269,11 +269,22 @@ def __run_predictions_patch(data: np.ndarray, model, model_outputs: List[str], p
                     model_input = data[:, patch_boundaries_x[0]:patch_boundaries_x[1],
                             patch_boundaries_y[0]:patch_boundaries_y[1],
                             patch_boundaries_z[0]:patch_boundaries_z[1], :]
+                    if parameters.preprocessing_channels_order == "channels_first":
+                        model_input = np.transpose(model_input, axes=(0, 4, 1, 2, 3))
+                    if parameters.swap_training_input and parameters.preprocessing_channels_order == "channels_first":
+                        model_input = np.transpose(model_input, axes=(0, 1, 4, 2, 3))
+                    elif parameters.swap_training_input and parameters.preprocessing_channels_order == "channels_last":
+                        model_input = np.transpose(model_input, axes=(0, 3, 1, 2, 4))
                     # model_input = np.expand_dims(patch, axis=0)
                     patch_pred = model.run(model_outputs, {"input": model_input})
                     # @TODO. Have to test with a non deep supervision model with ONNX, to do array indexing always
                     if deep_supervision:
                         patch_pred = patch_pred[0]
+
+                    if parameters.preprocessing_channels_order == "channels_first":
+                        patch_pred = np.transpose(patch_pred, axes=(0, 2, 3, 4, 1))
+                    if parameters.swap_training_input:
+                        patch_pred = np.transpose(patch_pred, axes=(0, 2, 3, 1, 4))
 
                     # In case of overlapping inference, taking the maximum probabilities overall.
                     final_result[patch_boundaries_x[0]:patch_boundaries_x[1],
@@ -285,6 +296,11 @@ def __run_predictions_patch(data: np.ndarray, model, model_outputs: List[str], p
         final_result = final_result[extra_dims[0]:final_result.shape[0] - extra_dims[1],
                        extra_dims[2]:final_result.shape[1] - extra_dims[3],
                        extra_dims[4]:final_result.shape[2] - extra_dims[5], :]
+        # # For PyTorch models, the softmax operation is not often included -- should add a specific flag for it.
+        # if np.max(final_result.flatten()) > 1.0:
+        #     from ..Utils.volume_utilities import softmax
+        #     final_result = softmax(final_result)
+
     except Exception as e:
         logging.error(
             "Following error collected during model inference (patch mode): \n {}".format(traceback.format_exc()))
