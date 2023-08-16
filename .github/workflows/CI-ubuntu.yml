@@ -20,6 +20,9 @@ jobs:
         with:
           python-version: '3.8'
 
+      - name: Install pip
+        run: sudo apt install python3-pip
+
       - name: Install dependencies
         run: pip install wheel setuptools
 
