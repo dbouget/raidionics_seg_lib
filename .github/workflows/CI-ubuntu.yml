@@ -54,7 +54,7 @@ jobs:
             name: "Python wheel"
 
         - name: Install pip
-          run: apt update && apt install python3-pip
+          run: apt update && apt install -y python3-pip
 
         - name: Install wheel
           run: pip install --find-links=${{github.workspace}} raidionicsseg
