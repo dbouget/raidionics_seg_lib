@@ -2,7 +2,7 @@ name: CI Ubuntu
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, update ]
   pull_request:
     branches: [ master ]
   workflow_dispatch:
