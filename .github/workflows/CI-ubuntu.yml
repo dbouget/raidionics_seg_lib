@@ -21,7 +21,7 @@ jobs:
           python-version: '3.8'
 
       - name: Install pip
-        run: apt install python3-pip
+        run: apt update && apt install python3-pip
 
       - name: Install dependencies
         run: pip install wheel setuptools
@@ -43,15 +43,18 @@ jobs:
       image: ubuntu:18.04
 
     steps:
-        - name: Set up Python 3.7
+        - name: Set up Python 3.8
           uses: actions/setup-python@v2
           with:
-            python-version: 3.7
+            python-version: 3.8
 
         - name: Download artifact
           uses: actions/download-artifact@master
           with:
             name: "Python wheel"
+
+        - name: Install pip
+          run: apt update && apt install python3-pip
 
         - name: Install wheel
           run: pip install --find-links=${{github.workspace}} raidionicsseg
