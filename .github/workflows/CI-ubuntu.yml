@@ -21,7 +21,7 @@ jobs:
           python-version: '3.8'
 
       - name: Install pip
-        run: apt update && apt install -y sudo && apt install -y python3-pip
+        run: apt update && apt install -y sudo && apt install -y libpython3-dev python3-pip python3-setuptools
 
       - name: Install dependencies
         run: pip3 install wheel setuptools
