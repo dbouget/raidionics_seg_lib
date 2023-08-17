@@ -114,8 +114,8 @@ def mediastinum_clipping_DL(filepath, volume, new_spacing, storage_path, paramet
 
     lungs_mask_ni = load_nifti_volume(lungs_mask_filename)
     resampled_volume = resample_to_output(lungs_mask_ni, new_spacing, order=0)
-    lungs_mask = resampled_volume.get_data().astype('uint8')
-    # lungs_mask = resampled_volume.get_data().astype('float32')
+    lungs_mask = resampled_volume.get_fdata().astype('uint8')
+    # lungs_mask = resampled_volume.get_fdata().astype('float32')
     # lungs_mask[lungs_mask < 0.5] = 0
     # lungs_mask[lungs_mask >= 0.5] = 1
     # lungs_mask = lungs_mask.astype('uint8')

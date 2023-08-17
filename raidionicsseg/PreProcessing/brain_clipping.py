@@ -128,7 +128,7 @@ def skull_stripping_tf(filepath, volume: np.ndarray, new_spacing: Tuple[float], 
 
     brain_mask_ni = load_nifti_volume(brain_mask_filename)
     resampled_volume = resample_to_output(brain_mask_ni, new_spacing, order=0)
-    brain_mask = resampled_volume.get_data().astype('uint8')
+    brain_mask = resampled_volume.get_fdata().astype('uint8')
 
     # In case of noisy segmentation (which should not happen), only the biggest component is kept.
     labels, nb_components = label(brain_mask)
