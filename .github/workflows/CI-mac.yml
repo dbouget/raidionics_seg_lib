@@ -6,9 +6,12 @@ on:
   pull_request:
     branches: [ master ]
 
+env:
+  MACOSX_DEPLOYMENT_TARGET: 10.15
+
 jobs:
   build:
-    runs-on: macos-10.15
+    runs-on: macos-11
 
     steps:
       - uses: actions/checkout@v3
@@ -32,7 +35,7 @@ jobs:
 
   test:
     needs: build
-    runs-on: macos-10.15
+    runs-on: macos-11
 
     steps:
         - name: Set up Python 3.8
