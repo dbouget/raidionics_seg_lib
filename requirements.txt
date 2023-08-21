@@ -3,5 +3,6 @@ h5py==3.9.0
 pandas==2.0.3
 SimpleITK==2.2.1
 aenum==3.1.15
-scikit-image==0.21.0
+scikit-image==0.19.3
 tqdm==4.66.1
+numpy==1.21.6
