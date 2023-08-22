@@ -12,16 +12,16 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             TARGET: ubuntu
             CMD_BUILD: python setup.py bdist_wheel --plat-name manylinux1_x86_64
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - name: Set up Python 3.7
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.7
+          python-version: "3.7"
 
       - name: Install dependencies
         run: pip install wheel setuptools
@@ -40,17 +40,17 @@ jobs:
     needs: build
     strategy:
       matrix:
-        os: [ ubuntu-18.04 ]
+        os: [ ubuntu-20.04 ]
     runs-on: ${{ matrix.os }}
 
     steps:
         - name: Set up Python 3.7
-          uses: actions/setup-python@v2
+          uses: actions/setup-python@v4
           with:
-            python-version: 3.7
+            python-version: "3.7"
 
         - name: Download artifact
-          uses: actions/download-artifact@master
+          uses: actions/download-artifact@v3
           with:
             name: "Python wheel"
 
