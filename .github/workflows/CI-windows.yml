@@ -34,7 +34,7 @@ jobs:
         run: ${{matrix.CMD_BUILD}}
 
       - name: Upload Python wheel
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Python wheel
           path: ${{github.workspace}}/dist/raidionicsseg-*.whl

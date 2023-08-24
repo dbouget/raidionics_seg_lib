@@ -72,7 +72,7 @@ def run_pre_processing(filename: str, pre_processing_parameters: ConfigResources
         new_spacing = [tmp, tmp, tmp]
 
     resampled_volume = resample_to_output(nib_volume, new_spacing, order=processing_order)
-    data = resampled_volume.get_data().astype('float32')
+    data = resampled_volume.get_fdata().astype('float32')
 
     logging.debug("Preprocessing - Background clipping.")
     crop_bbox = None

@@ -35,7 +35,7 @@ jobs:
         run: python setup.py bdist_wheel --plat-name macos_arm
 
       - name: Upload Python wheel
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Python wheel
           path: ${{github.workspace}}/dist/raidionicsseg-*.whl
