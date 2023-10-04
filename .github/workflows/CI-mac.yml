@@ -59,7 +59,8 @@ jobs:
             name: "Python wheel"
 
         - name: Install wheel
-          run: pip install --find-links=${{github.workspace}} raidionicsseg-*
+          run: pip install --upgrade pip
+               pip install --find-links=${{github.workspace}} raidionicsseg-*
           shell: bash
 
         - name: Test CLI
