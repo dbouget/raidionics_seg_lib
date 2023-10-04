@@ -2,29 +2,39 @@ name: CI Windows
 
 on:
   push:
-    branches: [ master, update ]
+    branches: [ master,update ]
   pull_request:
     branches: [ master ]
 
 jobs:
   build:
-    runs-on: windows-2019
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-2019
+            TARGET: windows
+            CMD_BUILD: python setup.py bdist_wheel --plat-name win_amd64
+
+#          - os: windows-2019
+#            TARGET: windows
+#            CMD_BUILD: python setup_sse2.py bdist_wheel --plat-name win_amd64_sse2
 
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python 3.8
+      - name: Set up Python 3.7
         uses: actions/setup-python@v4
         with:
-          python-version: "3.8"
+          python-version: "3.7"
 
       - name: Install dependencies
         run: pip install wheel setuptools
 
-      - name: Built wheel for windows
-        run: python setup.py bdist_wheel --plat-name win_amd64
+      - name: Built wheel for ${{matrix.TARGET}}
+        run: ${{matrix.CMD_BUILD}}
 
       - name: Upload Python wheel
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Python wheel
           path: ${{github.workspace}}/dist/raidionicsseg-*.whl
@@ -32,13 +42,16 @@ jobs:
 
   test:
     needs: build
-    runs-on: windows-2019
+    strategy:
+      matrix:
+        os: [ windows-2019 ]
+    runs-on: ${{ matrix.os }}
 
     steps:
-        - name: Set up Python 3.8
+        - name: Set up Python 3.7
           uses: actions/setup-python@v4
           with:
-            python-version: "3.8"
+            python-version: "3.7"
 
         - name: Download artifact
           uses: actions/download-artifact@v3
@@ -46,7 +59,8 @@ jobs:
             name: "Python wheel"
 
         - name: Install wheel
-          run: pip install --find-links=${{github.workspace}} raidionicsseg
+          run: pip install --find-links=. raidionicsseg-*
+          shell: bash
 
         - name: Test CLI
           run: raidionicsseg --help
