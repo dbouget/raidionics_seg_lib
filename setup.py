@@ -11,7 +11,7 @@ with open('requirements.txt', 'r', encoding='utf-8', errors='ignore') as ff:
 if platform.system() == 'Darwin' and platform.processor() == 'arm':  # Specific for Apple M1 chips
     required.append('onnxruntime-silicon==1.11.1')
 else:
-    required.append('onnxruntime==1.12.1')
+    required.append('onnxruntime>=1.12.1')
 
 
 setup(
