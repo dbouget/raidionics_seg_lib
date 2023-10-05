@@ -1,37 +1,38 @@
-name: CI Windows
+name: Build macOS ARM
 
 on:
-  push:
-    branches: [ master,update ]
-  pull_request:
-    branches: [ master ]
+  # Allows to run the workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: windows-2019
-            TARGET: windows
-            CMD_BUILD: python setup.py bdist_wheel --plat-name win_amd64
-
-#          - os: windows-2019
-#            TARGET: windows
-#            CMD_BUILD: python setup_sse2.py bdist_wheel --plat-name win_amd64_sse2
+    name: Build RADS lib on macOS ARM
+    runs-on: self-hosted
 
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python 3.7
-        uses: actions/setup-python@v4
+      - name: Install dependencies
+        run: |
+          arch -arm64 brew reinstall zlib
+
+      - name: Setup pyenv
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+          MACOSX_DEPLOYMENT_TARGET: 10.15
+          PYTHON_CONFIGURE_OPTS: "--enable-framework"
+          CFLAGS: "-Wno-implicit-function-declaration"
+          LDFLAGS: "-L/usr/local/opt/zlib/lib"
+          CPPFLAGS: "-I/usr/local/opt/zlib/include"
+          PKG_CONFIG_PATH: "/usr/local/opt/zlib/lib/pkgconfig"
+        uses: "gabrielfalcao/pyenv-action@v5"
         with:
-          python-version: "3.7"
+            default: 3.7.5
 
       - name: Install dependencies
         run: pip install wheel setuptools
 
-      - name: Built wheel for ${{matrix.TARGET}}
-        run: ${{matrix.CMD_BUILD}}
+      - name: Built wheel for MacOS ARM
+        run: python setup.py bdist_wheel --plat-name macOS-arm64
 
       - name: Upload Python wheel
         uses: actions/upload-artifact@v3
@@ -44,9 +45,8 @@ jobs:
     needs: build
     strategy:
       matrix:
-        os: [windows-2019, windows-2022]
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
-    runs-on: ${{ matrix.os }}
+        python-version: [ "3.7", "3.8", "3.9", "3.10", "3.11" ]
+    runs-on: self-hosted
 
     steps:
         - name: Set up Python ${{ matrix.python-version }}
@@ -60,8 +60,7 @@ jobs:
             name: "Python wheel"
 
         - name: Install wheel
-          run: pip install --upgrade pip
-               pip install --find-links=. raidionicsseg-*
+          run: pip install --find-links=${{github.workspace}} raidionicsseg-*
           shell: bash
 
         - name: Test CLI

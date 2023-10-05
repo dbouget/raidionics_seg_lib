@@ -1,13 +1,11 @@
-name: CI MacOS
+name: Build Ubuntu
 
 on:
   push:
     branches: [ master,update ]
   pull_request:
     branches: [ master ]
-
-env:
-  MACOSX_DEPLOYMENT_TARGET: 10.15
+  workflow_dispatch:
 
 jobs:
   build:
@@ -15,9 +13,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: macos-11
-            TARGET: macos
-            CMD_BUILD: python setup.py bdist_wheel --plat-name macosx_10_15_x86_64
+          - os: ubuntu-20.04
+            TARGET: ubuntu
+            CMD_BUILD: python setup.py bdist_wheel --plat-name manylinux1_x86_64
 
     steps:
       - uses: actions/checkout@v3
@@ -43,8 +41,8 @@ jobs:
     needs: build
     strategy:
       matrix:
-        os: [macos-11, macos-12]
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        os: [ubuntu-20.04, ubuntu-22.04]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
     runs-on: ${{ matrix.os }}
 
     steps:
