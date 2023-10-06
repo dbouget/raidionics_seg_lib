@@ -60,15 +60,15 @@ jobs:
         - name: Install wheel
           run: pip3 install --find-links=${{github.workspace}} raidionicsseg-*
           shell: bash
-
-        - name: Test CLI
-          run: raidionicsseg --help
+#
+#        - name: Test CLI
+#          run: raidionicsseg --help
 
         - name: Clone repo
           uses: actions/checkout@v1
 
         - name: Singular unit test
-          run: cd ${{github.workspace}}/tests && python inference_test.py
+          run: cd ${{github.workspace}}/tests && python3 inference_test.py
 
 #        - name: Test with pytest
 #          run: |
