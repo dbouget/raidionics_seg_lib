@@ -82,6 +82,10 @@ def inference_test():
                 subprocess.check_call(['raidionicsseg',
                                        '{config}'.format(config=seg_config_filename),
                                        '--verbose', 'debug'], shell=True)
+            elif platform.system() == 'Darwin' and platform.processor() == 'arm':
+                subprocess.check_call(['python3', '-m', 'raidionicsseg',
+                                       '{config}'.format(config=seg_config_filename),
+                                       '--verbose', 'debug'])
             else:
                 subprocess.check_call(['raidionicsseg',
                                        '{config}'.format(config=seg_config_filename),
