@@ -24,9 +24,9 @@ jobs:
           LDFLAGS: "-L/usr/local/opt/zlib/lib"
           CPPFLAGS: "-I/usr/local/opt/zlib/include"
           PKG_CONFIG_PATH: "/usr/local/opt/zlib/lib/pkgconfig"
-        uses: "gabrielfalcao/pyenv-action@v11"
+        uses: "gabrielfalcao/pyenv-action@v13"
         with:
-            default: 3.8.9
+            default: 3.8
 
       - name: Install dependencies
         run: python3 -m ensurepip |
