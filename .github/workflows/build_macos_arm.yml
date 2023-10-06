@@ -24,15 +24,15 @@ jobs:
           LDFLAGS: "-L/usr/local/opt/zlib/lib"
           CPPFLAGS: "-I/usr/local/opt/zlib/include"
           PKG_CONFIG_PATH: "/usr/local/opt/zlib/lib/pkgconfig"
-        uses: "gabrielfalcao/pyenv-action@v5"
+        uses: "gabrielfalcao/pyenv-action@v11"
         with:
-            default: 3.7.5
+            default: 3.7
 
       - name: Install dependencies
         run: pip install wheel setuptools
 
       - name: Built wheel for MacOS ARM
-        run: python setup.py bdist_wheel --plat-name macOS-arm64
+        run: python setup.py bdist_wheel --plat-name macosx_10_15_arm
 
       - name: Upload Python wheel
         uses: actions/upload-artifact@v3
@@ -49,10 +49,10 @@ jobs:
     runs-on: self-hosted
 
     steps:
-        - name: Set up Python ${{ matrix.python-version }}
-          uses: actions/setup-python@v4
+        - name: Setup pyenv for Python ${{ matrix.python-version }}
+          uses: "gabrielfalcao/pyenv-action@v11"
           with:
-            python-version: ${{ matrix.python-version }}
+            default: ${{ matrix.python-version }}
 
         - name: Download artifact
           uses: actions/download-artifact@v3
