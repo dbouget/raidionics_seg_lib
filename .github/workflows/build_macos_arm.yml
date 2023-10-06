@@ -51,7 +51,7 @@ jobs:
 
     steps:
         - name: Setup pyenv for Python ${{ matrix.python-version }}
-          uses: "gabrielfalcao/pyenv-action@v11"
+          uses: "gabrielfalcao/pyenv-action@v13"
           with:
             default: ${{ matrix.python-version }}
 
@@ -61,7 +61,7 @@ jobs:
             name: "Python wheel"
 
         - name: Install wheel
-          run: pip install --find-links=${{github.workspace}} raidionicsseg-*
+          run: pip3 install --find-links=${{github.workspace}} raidionicsseg-*
           shell: bash
 
         - name: Test CLI
