@@ -18,6 +18,7 @@ jobs:
       - name: Setup pyenv
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+          MACOSX_DEPLOYMENT_TARGET: 12.3
           PYTHON_CONFIGURE_OPTS: "--enable-framework"
           CFLAGS: "-Wno-implicit-function-declaration"
           LDFLAGS: "-L/usr/local/opt/zlib/lib"
@@ -25,14 +26,14 @@ jobs:
           PKG_CONFIG_PATH: "/usr/local/opt/zlib/lib/pkgconfig"
         uses: "gabrielfalcao/pyenv-action@v11"
         with:
-            default: 3.7
+            default: 3.8.9
 
       - name: Install dependencies
         run: python3 -m ensurepip |
              pip3 install wheel setuptools
 
       - name: Built wheel for MacOS ARM
-        run: python3 setup.py bdist_wheel --plat-name macOS-arm64
+        run: python3 setup.py bdist_wheel --plat-name macosx_12_3_arm
 
       - name: Upload Python wheel
         uses: actions/upload-artifact@v3
@@ -45,7 +46,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        python-version: [ "3.7", "3.8", "3.9", "3.10", "3.11" ]
+        python-version: ["3.8", "3.9", "3.10", "3.11" ]
     runs-on: self-hosted
 
     steps:
