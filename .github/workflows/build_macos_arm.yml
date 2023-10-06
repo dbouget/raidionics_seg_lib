@@ -18,7 +18,7 @@ jobs:
       - name: Setup pyenv
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-          MACOSX_DEPLOYMENT_TARGET: 12.3
+          MACOSX_DEPLOYMENT_TARGET: 10.14
           PYTHON_CONFIGURE_OPTS: "--enable-framework"
           CFLAGS: "-Wno-implicit-function-declaration"
           LDFLAGS: "-L/usr/local/opt/zlib/lib"
@@ -30,7 +30,7 @@ jobs:
             command: pip3 install -U pip3 wheel setuptools
 
       - name: Built wheel for MacOS ARM
-        run: python3 setup.py bdist_wheel --plat-name macosx_12_3_arm
+        run: python3 setup.py bdist_wheel --plat-name macosx-10.14-arm64
 
       - name: Upload Python wheel
         uses: actions/upload-artifact@v3
