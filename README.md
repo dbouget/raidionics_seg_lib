@@ -15,11 +15,12 @@ pip install git+https://github.com/dbouget/raidionics_seg_lib.git
 
 ## [Continuous integration](https://github.com/dbouget/raidionics_seg_lib/continuous-integration)
 
-| Operating System | Status                                                                                               |
-| - |------------------------------------------------------------------------------------------------------|
-| **Windows** | ![CI](https://github.com/dbouget/raidionics_seg_lib/workflows/Build%20Windows/badge.svg?branch=master) |
-| **Ubuntu** | ![CI](https://github.com/dbouget/raidionics_seg_lib/workflows/Build%20Ubuntu/badge.svg?branch=master) |
-| **macOS** | ![CI](https://github.com/dbouget/raidionics_seg_lib/workflows/Build%20macOS/badge.svg?branch=master) |
+| Operating System | Status                                                                                                     |
+|------------------|------------------------------------------------------------------------------------------------------------|
+| **Windows**      | ![CI](https://github.com/dbouget/raidionics_seg_lib/workflows/Build%20Windows/badge.svg?branch=master)     |
+| **Ubuntu**       | ![CI](https://github.com/dbouget/raidionics_seg_lib/workflows/Build%20Ubuntu/badge.svg?branch=master)      |
+| **macOS**        | ![CI](https://github.com/dbouget/raidionics_seg_lib/workflows/Build%20macOS/badge.svg?branch=master)       |
+| **macOS ARM**    | ![CI](https://github.com/dbouget/raidionics_seg_lib/workflows/Build%20macOS%20ARM/badge.svg?branch=master) |
 
 ## [How to cite](https://github.com/raidionics/Raidionics#how-to-cite)
 If you are using Raidionics in your research, please cite the following references.

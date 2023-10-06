@@ -30,22 +30,28 @@ def inference_test():
     os.makedirs(test_dir)
 
     try:
-        test_image_url = 'https://drive.google.com/uc?id=15AtRvEOYyvOEPMmQJiIXNMOr2njYTLR8'
+        test_image_url = 'https://github.com/raidionics/Raidionics-models/releases/download/1.2.0/Samples-RaidionicsSegLib-UnitTest2.zip'
         test_model_url = 'https://github.com/dbouget/Raidionics-models/releases/download/1.2.0/Raidionics-MRI_Brain-ONNX-v12.zip'
+
         archive_dl_dest = os.path.join(test_dir, 'inference_volume.zip')
-        gdown.cached_download(url=test_image_url, path=archive_dl_dest)
-        gdown.extractall(path=archive_dl_dest, to=test_dir)
+        headers = {}
+        response = requests.get(test_image_url, headers=headers, stream=True)
+        response.raise_for_status()
+        if response.status_code == requests.codes.ok:
+            with open(archive_dl_dest, "wb") as f:
+                for chunk in response.iter_content(chunk_size=1048576):
+                    f.write(chunk)
+        with zipfile.ZipFile(archive_dl_dest, 'r') as zip_ref:
+            zip_ref.extractall(test_dir)
 
         archive_dl_dest = os.path.join(test_dir, 'brain_model.zip')
         headers = {}
         response = requests.get(test_model_url, headers=headers, stream=True)
         response.raise_for_status()
-
         if response.status_code == requests.codes.ok:
             with open(archive_dl_dest, "wb") as f:
                 for chunk in response.iter_content(chunk_size=1048576):
                     f.write(chunk)
-
         with zipfile.ZipFile(archive_dl_dest, 'r') as zip_ref:
             zip_ref.extractall(test_dir)
 
