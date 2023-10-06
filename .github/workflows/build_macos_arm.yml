@@ -27,10 +27,7 @@ jobs:
         uses: "gabrielfalcao/pyenv-action@v13"
         with:
             default: 3.8
-
-      - name: Install dependencies
-        run: python3 -m ensurepip |
-             pip3 install wheel setuptools
+            command: pip3 install -U pip3 wheel setuptools
 
       - name: Built wheel for MacOS ARM
         run: python3 setup.py bdist_wheel --plat-name macosx_12_3_arm
