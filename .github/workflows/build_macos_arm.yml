@@ -26,11 +26,11 @@ jobs:
           PKG_CONFIG_PATH: "/usr/local/opt/zlib/lib/pkgconfig"
         uses: "gabrielfalcao/pyenv-action@v13"
         with:
-            default: 3.8
+            default: 3.7
             command: pip3 install -U pip3 wheel setuptools
 
       - name: Built wheel for MacOS ARM
-        run: python3 setup.py bdist_wheel --plat-name macosx-10.14-arm64
+        run: python3.7 setup.py bdist_wheel --plat-name macosx_10_14_arm64
 
       - name: Upload Python wheel
         uses: actions/upload-artifact@v3
@@ -43,7 +43,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11" ]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11" ]
     runs-on: self-hosted
 
     steps:
