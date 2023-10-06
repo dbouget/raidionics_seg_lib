@@ -60,9 +60,9 @@ jobs:
         - name: Install wheel
           run: pip3 install --find-links=${{github.workspace}} raidionicsseg-*
           shell: bash
-#
-#        - name: Test CLI
-#          run: raidionicsseg --help
+
+        - name: Test CLI
+          run: python3 -m raidionicsseg --help
 
         - name: Clone repo
           uses: actions/checkout@v1
