@@ -22,7 +22,7 @@ pip install git+https://github.com/dbouget/raidionics_seg_lib.git
 | **macOS**        | ![CI](https://github.com/dbouget/raidionics_seg_lib/workflows/Build%20macOS/badge.svg?branch=master)       |
 | **macOS ARM**    | ![CI](https://github.com/dbouget/raidionics_seg_lib/workflows/Build%20macOS%20ARM/badge.svg?branch=master) |
 
-## [How to cite](https://github.com/raidionics/Raidionics#how-to-cite)
+## [How to cite](https://github.com/dbouget/raidionics_seg_lib#how-to-cite)
 If you are using Raidionics in your research, please cite the following references.
 
 The final software including updated performance metrics for preoperative tumors and introducing postoperative tumor segmentation:
