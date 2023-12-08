@@ -36,3 +36,4 @@ quickpkg/
 *.nii
 *.csv
 *.zip
+notebooks/
