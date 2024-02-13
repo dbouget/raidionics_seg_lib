@@ -21,11 +21,11 @@ jobs:
             CMD_BUILD: python setup.py bdist_wheel --plat-name macosx_10_15_x86_64
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python 3.7
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.7"
+          python-version: "3.9"
 
       - name: Install dependencies
         run: pip install wheel setuptools
@@ -34,7 +34,7 @@ jobs:
         run: ${{matrix.CMD_BUILD}}
 
       - name: Upload Python wheel
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Python wheel
           path: ${{github.workspace}}/dist/raidionicsseg-*.whl
@@ -45,17 +45,17 @@ jobs:
     strategy:
       matrix:
         os: [macos-11, macos-12]
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
     runs-on: ${{ matrix.os }}
 
     steps:
         - name: Set up Python ${{ matrix.python-version }}
-          uses: actions/setup-python@v4
+          uses: actions/setup-python@v5
           with:
             python-version: ${{ matrix.python-version }}
 
         - name: Download artifact
-          uses: actions/download-artifact@v3
+          uses: actions/download-artifact@v4
           with:
             name: "Python wheel"
 
@@ -68,7 +68,7 @@ jobs:
           run: raidionicsseg --help
 
         - name: Clone repo
-          uses: actions/checkout@v1
+          uses: actions/checkout@v4
 
         - name: Singular unit test
           run: cd ${{github.workspace}}/tests && python inference_test.py

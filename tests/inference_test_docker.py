@@ -84,7 +84,8 @@ def inference_test_docker():
         try:
             import platform
             cmd_docker = ['docker', 'run', '-v', '{}:/workspace/resources'.format(test_dir),
-                          '--network=host', '--ipc=host', 'dbouget/raidionics-segmenter:v1.2-py38-cpu',
+                          '--network=host', '--ipc=host', '--user', str(os.geteuid()),
+                          'dbouget/raidionics-segmenter:v1.2-py38-cpu',
                           '-c', '/workspace/resources/test_seg_config.ini', '-v', 'debug']
             logging.info("Executing the following Docker call: {}".format(cmd_docker))
             if platform.system() == 'Windows':

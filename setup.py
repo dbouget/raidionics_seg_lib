@@ -9,9 +9,9 @@ with open('requirements.txt', 'r', encoding='utf-8', errors='ignore') as ff:
     required = ff.read().splitlines()
 
 if platform.system() == 'Darwin' and platform.processor() == 'arm':  # Specific for Apple M1 chips
-    required.append('onnxruntime-silicon==1.11.1')
+    required.append('onnxruntime-silicon')
 else:
-    required.append('onnxruntime>=1.12.1')
+    required.append('onnxruntime')
 
 
 setup(
@@ -31,8 +31,8 @@ setup(
         ]
     },
     install_requires=required,
-    python_requires=">=3.7",
-    version='1.2.1',
+    python_requires=">=3.8",
+    version='1.2.2',
     author='David Bouget (david.bouget@sintef.no)',
     license='BSD 2-Clause',
     description='Raidionics segmentation and classification back-end with ONNX runtime',
