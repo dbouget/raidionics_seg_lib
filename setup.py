@@ -31,7 +31,7 @@ setup(
         ]
     },
     install_requires=required,
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     version='1.2.2',
     author='David Bouget (david.bouget@sintef.no)',
     license='BSD 2-Clause',
