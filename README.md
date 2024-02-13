@@ -74,6 +74,10 @@ run_model(config_filename="/path/to/main_config.ini")
 ```
 
 ## [Docker](https://github.com/dbouget/raidionics_seg_lib#docker)
+When calling Docker images, the --user flag must be properly used in order for the folders and files created inside
+the container to inherit the proper read/write permissions. The user ID is retrieved on-the-fly in the following
+examples, but it can be given in a more hard-coded fashion if known by the user.
+
 :warning: The following Docker image can only perform inference using the CPU. Another Docker image has been created, able to leverage
 the GPU (see further down below). If the CUDA version does not match your machine, a new Docker image can be built manually, 
 simply modifying the base torch image to pull from inside Dockerfile_gpu.
@@ -84,7 +88,7 @@ docker pull dbouget/raidionics-segmenter:v1.2-py38-cpu
 
 For opening the Docker image and interacting with it, run:  
 ```
-docker run --entrypoint /bin/bash -v /home/<username>/<resources_path>:/workspace/resources -t -i --network=host --ipc=host dbouget/raidionics-segmenter:v1.2-py38-cpu
+docker run --entrypoint /bin/bash -v /home/<username>/<resources_path>:/workspace/resources -t -i --network=host --ipc=host --user $(id -u) dbouget/raidionics-segmenter:v1.2-py38-cpu
 ```
 
 The `/home/<username>/<resources_path>` before the column sign has to be changed to match a directory on your local 
@@ -94,7 +98,7 @@ be placed.
 
 For launching the Docker image as a CLI, run:  
 ```
-docker run -v /home/<username>/<resources_path>:/workspace/resources -t -i --network=host --ipc=host dbouget/raidionics-segmenter:v1.2-py38-cpu -c /workspace/resources/<path>/<to>/main_config.ini -v <verbose>
+docker run -v /home/<username>/<resources_path>:/workspace/resources -t -i --network=host --ipc=host --user $(id -u) dbouget/raidionics-segmenter:v1.2-py38-cpu -c /workspace/resources/<path>/<to>/main_config.ini -v <verbose>
 ```
 
 The `<path>/<to>/main_config.ini` must point to a valid configuration file on your machine, as a relative path to the `/home/<username>/<resources_path>` described above.
@@ -104,7 +108,7 @@ The `<verbose>` level can be selected from [debug, info, warning, error].
 
 For running models on the GPU inside the Docker image, run the following CLI, with the gpu_id properly filled in the configuration file:
 ```
-docker run -v /home/<username>/<resources_path>:/workspace/resources -t -i --runtime=nvidia --network=host --ipc=host dbouget/raidionics-segmenter:v1.2-py310-cuda11.6 -c /workspace/resources/<path>/<to>/main_config.ini -v <verbose>
+docker run -v /home/<username>/<resources_path>:/workspace/resources -t -i --runtime=nvidia --network=host --ipc=host --user $(id -u) dbouget/raidionics-segmenter:v1.2-py310-cuda11.6 -c /workspace/resources/<path>/<to>/main_config.ini -v <verbose>
 ```
 
 </details>
