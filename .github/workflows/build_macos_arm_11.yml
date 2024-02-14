@@ -8,6 +8,8 @@ jobs:
   build:
     name: Build segmentation lib on macOS ARM (macOS 11)
     runs-on: self-hosted
+    env:
+       SYSTEM_VERSION_COMPAT: 0
 
     steps:
       - uses: actions/checkout@v4
