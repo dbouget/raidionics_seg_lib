@@ -1,4 +1,4 @@
-name: Build macOS ARM
+name: Build macOS ARM (macOS11)
 
 on:
   # Allows to run the workflow manually from the Actions tab
@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: Build segmentation lib on macOS ARM
+    name: Build segmentation lib on macOS ARM (macOS 11)
     runs-on: self-hosted
 
     steps:
