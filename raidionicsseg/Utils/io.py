@@ -53,12 +53,12 @@ def dump_predictions(predictions: np.ndarray, parameters: ConfigResources, nib_v
 
         if len(predictions.shape) == 4:
             for c in range(1, predictions.shape[-1]):
-                img = nib.Nifti1Image(predictions[..., c], affine=nib_volume.affine)
+                img = nib.Nifti1Image(predictions[..., c], affine=nib_volume.affine, header=nib_volume.header)
                 predictions_output_path = os.path.join(storage_path, naming_suffix + '_' + class_names[c] + '.nii.gz')
                 os.makedirs(os.path.dirname(predictions_output_path), exist_ok=True)
                 nib.save(img, predictions_output_path)
         else:
-            img = nib.Nifti1Image(predictions, affine=nib_volume.affine)
+            img = nib.Nifti1Image(predictions, affine=nib_volume.affine, header=nib_volume.header)
             predictions_output_path = os.path.join(storage_path, naming_suffix + '_' + 'argmax' + '.nii.gz')
             os.makedirs(os.path.dirname(predictions_output_path), exist_ok=True)
             nib.save(img, predictions_output_path)
