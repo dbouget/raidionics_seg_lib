@@ -70,7 +70,7 @@ jobs:
             name: "Python wheel"
 
         - name: Install wheel
-          run: pip3 install --default-timeout=100 --find-links=${{github.workspace}} raidionicsseg-*
+          run: pip3 install --default-timeout=100 --find-links=${{github.workspace}} --force-reinstall raidionicsseg-*
           shell: bash
 
         - name: Test CLI
