@@ -10,6 +10,7 @@ class ImagingModalityType(Enum):
 
     CT = 0, 'CT'
     MRI = 1, 'MRI'
+    US = 2, 'US'
 
     def __str__(self):
         return self.string
@@ -112,22 +113,36 @@ class ConfigResources:
                 self.runtime_lungs_mask_filepath = self.config['Mediastinum']['lungs_segmentation_filename'].split('#')[0].strip()
 
     def __parse_content(self):
-        if self.pre_processing_config.has_option('Default', 'imaging_modality'):
-            param = self.pre_processing_config['Default']['imaging_modality'].split('#')[0].strip()
-            modality = get_type_from_string(ImagingModalityType, param)
-            if modality == -1:
-                raise AttributeError('')
-
-            self.imaging_modality = modality
-        else:
-            raise AttributeError('')
-
+        self.__parse_default_content()
         self.__parse_pre_processing_content()
         self.__parse_training_content()
         self.__parse_MRI_content()
         self.__parse_CT_content()
 
-    def __parse_training_content(self):
+    def __parse_default_content(self):
+        self.training_backend = 'TF'
+        if self.pre_processing_config.has_option('Default', 'imaging_modality'):
+            param = self.pre_processing_config['Default']['imaging_modality'].split('#')[0].strip()
+            modality = get_type_from_string(ImagingModalityType, param)
+            if modality == -1:
+                raise AttributeError('')
+            self.imaging_modality = modality
+        else:
+            raise AttributeError('')
+
+        if self.pre_processing_config.has_option('Default', 'training_backend'):
+            if self.pre_processing_config['Default']['training_backend'].split('#')[0].strip() != '':
+                self.training_backend = self.pre_processing_config['Default']['training_backend'].split('#')[0].strip()
+
+    def __parse_training_content(self) -> None:
+        """
+        Configuration parameters specifying the training procedure.
+
+
+        Returns
+        -------
+
+        """
         self.training_nb_classes = None
         self.training_class_names = None
         self.training_slab_size = None
@@ -135,6 +150,7 @@ class ConfigResources:
         self.training_patch_offset = None
         self.training_optimal_thresholds = None
         self.training_deep_supervision = False
+        self.training_softmax_layer_included = True
 
         if self.pre_processing_config.has_option('Training', 'nb_classes'):
             self.training_nb_classes = int(self.pre_processing_config['Training']['nb_classes'].split('#')[0])
@@ -163,7 +179,30 @@ class ConfigResources:
             if self.pre_processing_config['Training']['deep_supervision'].split('#')[0].strip() != '':
                 self.training_deep_supervision = True if self.pre_processing_config['Training']['deep_supervision'].split('#')[0].strip().lower() == 'true' else False
 
-    def __parse_pre_processing_content(self):
+        if self.pre_processing_config.has_option('Training', 'softmax_layer_included'):
+            if self.pre_processing_config['Training']['softmax_layer_included'].split('#')[0].strip() != '':
+                self.training_softmax_layer_included = True if self.pre_processing_config['Training']['softmax_layer_included'].split('#')[0].strip().lower() == 'true' else False
+
+    def __parse_pre_processing_content(self) -> None:
+        """
+        Configuration parameters relating to the data preprocessing. The pre_processing.ini file containing the
+        parameters is filled by hand and placed alongside the model file.
+
+        preprocessing_library: Python package used for resampling/resizing, to sample from [nibabel]
+        output_spacing: Comma-separated list of floats indicating the desired output spacing
+        crop_background: Strategy for removing non-useful background. To sample from: [None, minimum, brain_mask,
+         brain_clip, lungs_mask, lungs_clip]
+        intensity_clipping_values: Intensity range to select by values (CT use-case). E.g., [-1024, 1024]
+        intensity_clipping_range: Intensity range to select by percentage (MRI use-case). E.g., [0, 99.5] to nullify the highest 0.5% of intensity values
+        intensity_target_range: If a specific values range, after normalization/standardization, should be enforced
+        normalization_method: Method to use for intensity normalization, to sample from: [None, default, zeromean]
+        preprocessing_number_inputs: Integer indicating the amount of input channels
+        preprocessing_channels_order: String indicating if channels_first or channels_last
+
+        Returns
+        -------
+
+        """
         self.preprocessing_library = 'nibabel'
         self.output_spacing = None
         self.crop_background = None
@@ -220,14 +259,32 @@ class ConfigResources:
             if self.pre_processing_config['PreProcessing']['channels_order'].split('#')[0].strip() != '':
                 self.preprocessing_channels_order = self.pre_processing_config['PreProcessing']['channels_order'].split('#')[0].strip()
 
-    def __parse_MRI_content(self):
+    def __parse_MRI_content(self) -> None:
+        """
+        Configuration parameters specific to MRI inputs.
+
+        perform_bias_correction: Boolean indicating if the N4 bias correction from ANTs should be used as preprocessing
+
+        Returns
+        -------
+
+        """
         self.perform_bias_correction = False
 
         if self.pre_processing_config.has_option('MRI', 'perform_bias_correction'):
             self.perform_bias_correction = True if self.pre_processing_config['MRI']['perform_bias_correction'].split('#')[0].lower().strip()\
                                                    == 'true' else False
 
-    def __parse_CT_content(self):
+    def __parse_CT_content(self) -> None:
+        """
+        Configuration inputs specific to CT inputs
+
+        fix_orientation: ??
+
+        Returns
+        -------
+
+        """
         self.fix_orientation = False
         if self.pre_processing_config.has_option('CT', 'fix_orientation'):
             self.fix_orientation = True if self.pre_processing_config['CT']['fix_orientation'].split('#')[0].lower().strip()\
