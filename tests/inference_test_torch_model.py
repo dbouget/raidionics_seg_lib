@@ -71,6 +71,9 @@ def inference_test_torch_model():
         seg_config.add_section('Runtime')
         seg_config.set('Runtime', 'reconstruction_method', 'thresholding')
         seg_config.set('Runtime', 'reconstruction_order', 'resample_first')
+        seg_config.add_section('Mediastinum')
+        seg_config.set('Mediastinum', 'lungs_segmentation_filename', os.path.join(test_dir, 'inputs',
+                                                                                  'input0_label_lungs.nii.gz'))
         seg_config_filename = os.path.join(test_dir, 'test_seg_config.ini')
         with open(seg_config_filename, 'w') as outfile:
             seg_config.write(outfile)
