@@ -60,7 +60,7 @@ jobs:
             name: "Python wheel"
 
         - name: Install wheel
-          run: pip3 install --find-links=${{github.workspace}} raidionicsseg-*
+          run: pip3 install --find-links=${{github.workspace}} --force-reinstall raidionicsseg-*
           shell: bash
 
         - name: Test CLI
@@ -69,8 +69,11 @@ jobs:
         - name: Clone repo
           uses: actions/checkout@v4
 
-        - name: Singular unit test
+        - name: Inference unit test with TensorFlow model
           run: cd ${{github.workspace}}/tests && python3 inference_test.py
+
+        - name: Inference unit test with PyTorch model
+          run: cd ${{github.workspace}}/tests && python3 inference_test_torch_model.py
 
 #        - name: Test with pytest
 #          run: |
