@@ -64,21 +64,21 @@ jobs:
             name: "Python wheel"
 
         - name: Install wheel
-          run: pip3 install --upgrade pip
-               pip3 install --default-timeout=100 --find-links=${{github.workspace}} --force-reinstall raidionicsseg-*
+          run: pip install --upgrade pip
+               pip install --default-timeout=100 --find-links=${{github.workspace}} --force-reinstall raidionicsseg-*
           shell: bash
 
         - name: Test CLI
-          run: python3 -m raidionicsseg --help
+          run: python -m raidionicsseg --help
 
         - name: Clone repo
           uses: actions/checkout@v4
 
         - name: Inference unit test with TensorFlow model
-          run: cd ${{github.workspace}}/tests && python3 inference_test.py
+          run: cd ${{github.workspace}}/tests && python inference_test.py
 
         - name: Inference unit test with PyTorch model
-          run: cd ${{github.workspace}}/tests && python3 inference_test_torch_model.py
+          run: cd ${{github.workspace}}/tests && python inference_test_torch_model.py
 
 #        - name: Test with pytest
 #          run: |
