@@ -31,9 +31,11 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Built wheel for ${{matrix.TARGET}}
+      - name: Install Python dependencies
         run: pip3 install -U pip3 wheel setuptools
-             ${{matrix.CMD_BUILD}}
+
+      - name: Built wheel for ${{matrix.TARGET}}
+        run: ${{matrix.CMD_BUILD}}
 
       - name: Upload Python wheel
         uses: actions/upload-artifact@v4
