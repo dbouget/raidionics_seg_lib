@@ -76,6 +76,9 @@ jobs:
         - name: Inference unit test with PyTorch model
           run: cd ${{github.workspace}}/tests && python inference_test_torch_model.py
 
+        - name: Inference unit test with test-time augmentation
+          run: cd ${{github.workspace}}/tests && python inference_test_time_augmentation.py
+
 #        - name: Test with pytest
 #          run: |
 #            pip install pytest

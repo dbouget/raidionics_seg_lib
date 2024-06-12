@@ -48,6 +48,7 @@ class ConfigResources:
         self.predictions_reconstruction_method = None
         self.predictions_reconstruction_order = None
         self.predictions_use_preprocessed_data = False
+        self.predictions_test_time_augmentation = 0
 
         self.runtime_lungs_mask_filepath = ''
         self.runtime_brain_mask_filepath = ''
@@ -103,6 +104,10 @@ class ConfigResources:
         if self.config.has_option('Runtime', 'use_preprocessed_data'):
             if self.config['Runtime']['use_preprocessed_data'].split('#')[0].strip() != '':
                 self.predictions_use_preprocessed_data = True if self.config['Runtime']['use_preprocessed_data'].split('#')[0].strip().lower() == 'true' else False
+
+        if self.config.has_option('Runtime', 'test_time_augmentation'):
+            if self.config['Runtime']['test_time_augmentation'].split('#')[0].strip() != '':
+                self.predictions_test_time_augmentation = int(self.config['Runtime']['test_time_augmentation'].split('#')[0].strip())
 
         if self.config.has_option('Neuro', 'brain_segmentation_filename'):
             if self.config['Neuro']['brain_segmentation_filename'].split('#')[0].strip() != '':
