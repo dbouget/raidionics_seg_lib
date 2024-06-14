@@ -61,8 +61,8 @@ jobs:
             name: "Python wheel"
 
         - name: Install wheel
-          run: pip install --upgrade pip
-               pip install --find-links=. --force-reinstall raidionicsseg-*
+          run: python.exe -m pip install --upgrade pip
+               pip install --find-links=. --no-cache-dir --force-reinstall raidionicsseg-*
           shell: bash
 
         - name: Test CLI
@@ -76,6 +76,9 @@ jobs:
 
         - name: Inference unit test with PyTorch model
           run: cd ${{github.workspace}}/tests && python inference_test_torch_model.py
+
+        - name: Inference unit test with test-time augmentation
+          run: cd ${{github.workspace}}/tests && python inference_test_time_augmentation.py
 
 #        - name: Test with pytest
 #          run: |
