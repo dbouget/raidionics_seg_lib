@@ -71,7 +71,8 @@ def inference_test_time_augmentation():
         seg_config.add_section('Runtime')
         seg_config.set('Runtime', 'reconstruction_method', 'thresholding')
         seg_config.set('Runtime', 'reconstruction_order', 'resample_first')
-        seg_config.set('Runtime', 'test_time_augmentation', '5')
+        seg_config.set('Runtime', 'test_time_augmentation_iteration', '1')
+        seg_config.set('Runtime', 'test_time_augmentation_fusion_mode', 'max')
         seg_config_filename = os.path.join(test_dir, 'test_seg_config.ini')
         with open(seg_config_filename, 'w') as outfile:
             seg_config.write(outfile)

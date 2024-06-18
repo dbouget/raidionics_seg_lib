@@ -49,12 +49,12 @@ def run_predictions(data: np.ndarray, model_path: str, parameters: ConfigResourc
         final_result = __run_predictions_patch(data=data, model=model, parameters=parameters,
                                                deep_supervision=parameters.training_deep_supervision)
 
-    if parameters.predictions_test_time_augmentation > 0:
-        logging.debug("Running {} test time augmentation".format(parameters.predictions_test_time_augmentation))
-        augmented_results = np.zeros(final_result.shape + (parameters.predictions_test_time_augmentation + 1,),
+    if parameters.predictions_test_time_augmentation_iterations > 0:
+        logging.debug("Running {} test time augmentation".format(parameters.predictions_test_time_augmentation_iterations))
+        augmented_results = np.zeros(final_result.shape + (parameters.predictions_test_time_augmentation_iterations + 1,),
                                      dtype=final_result.dtype)
         augmented_results[..., 0] = final_result
-        for i in range(parameters.predictions_test_time_augmentation):
+        for i in range(parameters.predictions_test_time_augmentation_iterations):
             aug_list = generate_augmentations()
             data_aug = run_augmentations(aug_list, data, "forward")
             aug_result = None
@@ -69,8 +69,11 @@ def run_predictions(data: np.ndarray, model_path: str, parameters: ConfigResourc
                 aug_result = __run_predictions_patch(data=data_aug, model=model, parameters=parameters,
                                                        deep_supervision=parameters.training_deep_supervision)
             augmented_results[..., i + 1] = run_augmentations(aug_list, aug_result, "inverse")
-        # Perform argmax on the last channel to fuse all test time augmentation results
-        final_result = np.amax(augmented_results, axis=-1).astype(final_result.dtype)
+        # Fusing all test time augmentation results with the main results
+        if parameters.predictions_test_time_augmentation_fusion_mode == "max":
+            final_result = np.amax(augmented_results, axis=-1).astype(final_result.dtype)
+        elif parameters.predictions_test_time_augmentation_fusion_mode == "mean":
+            final_result = np.average(augmented_results, axis=-1).astype(final_result.dtype)
     return final_result
 
 

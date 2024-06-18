@@ -64,12 +64,13 @@ class Flip(Transform):
             if self.prob_flip3 > 0.5:
                 data_aug = data_aug[:, :, :, ::-1, :]
         else:
-            if self.prob_flip1 > 0.5:
-                data_aug = data_aug[::-1, :, :, :]
-            if self.prob_flip2 > 0.5:
-                data_aug = data_aug[:, ::-1, :, :]
             if self.prob_flip3 > 0.5:
                 data_aug = data_aug[:, :, ::-1, :]
+            if self.prob_flip2 > 0.5:
+                data_aug = data_aug[:, ::-1, :, :]
+            if self.prob_flip1 > 0.5:
+                data_aug = data_aug[::-1, :, :, :]
+
         return data_aug
 
 
@@ -122,12 +123,12 @@ class Rotate(Transform):
             if self.prob_rotate3 > 0.5:
                 data_aug = rotate(data_aug, self.rotation_angle3, axes=(1, 2), reshape=False)
         else:
-            if self.prob_rotate1 > 0.5:
-                data_aug = rotate(data_aug, -self.rotation_angle1, axes=(0, 1), reshape=False)
-            if self.prob_rotate2 > 0.5:
-                data_aug = rotate(data_aug, -self.rotation_angle2, axes=(0, 2), reshape=False)
             if self.prob_rotate3 > 0.5:
                 data_aug = rotate(data_aug, -self.rotation_angle3, axes=(1, 2), reshape=False)
+            if self.prob_rotate2 > 0.5:
+                data_aug = rotate(data_aug, -self.rotation_angle2, axes=(0, 2), reshape=False)
+            if self.prob_rotate1 > 0.5:
+                data_aug = rotate(data_aug, -self.rotation_angle1, axes=(0, 1), reshape=False)
         return data_aug
 
 
@@ -165,7 +166,11 @@ def run_augmentations(aug_list: List[Transform], data: np.ndarray, direction: st
 
     """
     data_aug = deepcopy(data)
-    for l in aug_list:
-        data_aug = l.transform(data, direction)
+    if direction == "forward":
+        for l in aug_list:
+            data_aug = l.transform(data, direction)
+    else:
+        for l in reversed(aug_list):
+            data_aug = l.transform(data, direction)
 
     return data_aug
