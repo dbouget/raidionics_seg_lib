@@ -29,7 +29,7 @@ def input_file_category_disambiguation(input_filename: str) -> str:
     image_type = image.GetPixelIDTypeAsString()
     array = sitk.GetArrayFromImage(image)
 
-    if len(np.unique(array)) > 255 or np.max(array) > 255 or np.min(array) < -1:
+    if len(np.unique(array)) > 25 or np.max(array) > 255 or np.min(array) < -1:
         category = "Volume"
     else:
         category = "Annotation"
@@ -89,6 +89,12 @@ def __intensity_normalization_MRI(volume, parameters):
         var_val = np.std(result)
         tmp = (result - mean_val) / var_val
         result = tmp
+    elif parameters.normalization_method == 'zeromean_nonzero':
+        slices = result != 0
+        masked_img = result[slices]
+        mean_val = np.mean(masked_img)
+        var_val = np.std(masked_img)
+        result[slices] = (masked_img - mean_val) / var_val
     elif parameters.normalization_method == 'default':
         min_val = np.min(result)
         max_val = np.max(result)
@@ -187,6 +193,17 @@ def volume_cropping(volume, mask, output_filename):
     pass
 
 
+def final_activation(x, act_type):
+    if act_type == "sigmoid":
+        return sigmoid(x)
+    else:
+        return softmax(x)
+
+
 def softmax(x):
     """Compute softmax values for each sets of scores in x."""
     return np.exp(x) / np.sum(np.exp(x), axis=-1, keepdims=True)
+
+
+def sigmoid(x):
+    return 1/(1 + np.exp(-x))

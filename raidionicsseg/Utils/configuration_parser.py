@@ -160,7 +160,8 @@ class ConfigResources:
         self.training_patch_offset = None
         self.training_optimal_thresholds = None
         self.training_deep_supervision = False
-        self.training_softmax_layer_included = True
+        self.training_activation_layer_included = True
+        self.training_activation_layer_type = "softmax"
 
         if self.pre_processing_config.has_option('Training', 'nb_classes'):
             self.training_nb_classes = int(self.pre_processing_config['Training']['nb_classes'].split('#')[0])
@@ -189,9 +190,13 @@ class ConfigResources:
             if self.pre_processing_config['Training']['deep_supervision'].split('#')[0].strip() != '':
                 self.training_deep_supervision = True if self.pre_processing_config['Training']['deep_supervision'].split('#')[0].strip().lower() == 'true' else False
 
-        if self.pre_processing_config.has_option('Training', 'softmax_layer_included'):
-            if self.pre_processing_config['Training']['softmax_layer_included'].split('#')[0].strip() != '':
-                self.training_softmax_layer_included = True if self.pre_processing_config['Training']['softmax_layer_included'].split('#')[0].strip().lower() == 'true' else False
+        if self.pre_processing_config.has_option('Training', 'activation_layer_included'):
+            if self.pre_processing_config['Training']['activation_layer_included'].split('#')[0].strip() != '':
+                self.training_activation_layer_included = True if self.pre_processing_config['Training']['activation_layer_included'].split('#')[0].strip().lower() == 'true' else False
+
+        if self.pre_processing_config.has_option('Training', 'activation_layer_type'):
+            if self.pre_processing_config['Training']['activation_layer_type'].split('#')[0].strip() != '':
+                self.training_activation_layer_type = self.pre_processing_config['Training']['activation_layer_type'].split('#')[0].strip()
 
     def __parse_pre_processing_content(self) -> None:
         """

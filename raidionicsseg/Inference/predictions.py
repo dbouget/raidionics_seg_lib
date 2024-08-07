@@ -256,7 +256,7 @@ def __run_predictions_patch(data: np.ndarray, model, parameters: ConfigResources
         data, extra_dims = padding_for_inference_both_ends_patchwise(data, patch_size)
 
         # Placeholder for the final predictions -- the actual probabilities
-        final_result = np.zeros(data.shape[1: -1] + (parameters.training_nb_classes,))
+        final_result = np.full(data.shape[1: -1] + (parameters.training_nb_classes,), -100.0, dtype=np.float32)
 
         for x in range(0, int(np.ceil(data.shape[1] / (patch_size[0] - patch_offset[0])))):
             for y in range(0, int(np.ceil(data.shape[2] / (patch_size[1] - patch_offset[1])))):
@@ -320,10 +320,10 @@ def __run_predictions_patch(data: np.ndarray, model, parameters: ConfigResources
                        extra_dims[2]:final_result.shape[1] - extra_dims[3],
                        extra_dims[4]:final_result.shape[2] - extra_dims[5], :]
 
-        # For PyTorch-trained models, the softmax operation is not often included
-        if not parameters.training_softmax_layer_included:
-            from ..Utils.volume_utilities import softmax
-            final_result = softmax(final_result)
+        # For PyTorch-trained models, the final activation layer is often not bundled with the model
+        if not parameters.training_activation_layer_included:
+            from ..Utils.volume_utilities import final_activation
+            final_result = final_activation(final_result, act_type=parameters.training_activation_layer_type)
 
     except Exception as e:
         logging.error(
