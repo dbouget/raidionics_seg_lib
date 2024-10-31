@@ -26,14 +26,19 @@ def prepare_pre_processing(folder: str, pre_processing_parameters: ConfigResourc
     final_data[..., 0] = data
     for i in range(1, pre_processing_parameters.preprocessing_number_inputs):
         input_file = os.path.join(folder, 'input' + str(i) + '.nii.gz')
-        _, _, data, _ = run_pre_processing(input_file, pre_processing_parameters, storage_path)
+        _, _, data, _ = run_pre_processing(input_file, pre_processing_parameters, storage_path, crop_bbox=crop_bbox)
         final_data[..., i] = data
 
+    if pre_processing_parameters.preprocessing_inputs_sub_indexes is not None:
+        for ip in pre_processing_parameters.preprocessing_inputs_sub_indexes:
+            new_input = abs(final_data[..., ip[0]] - final_data[..., ip[1]])
+            new_input_norm = intensity_normalization(volume=new_input, parameters=pre_processing_parameters)
+            final_data = np.append(final_data, np.expand_dims(new_input_norm, axis=-1), axis=-1)
     return nib_volume, resampled_volume, final_data, crop_bbox
 
 
 def run_pre_processing(filename: str, pre_processing_parameters: ConfigResources,
-                       storage_path: str) -> Tuple[nib.Nifti1Image, nib.Nifti1Image, np.ndarray, List[int]]:
+                       storage_path: str, crop_bbox=None) -> Tuple[nib.Nifti1Image, nib.Nifti1Image, np.ndarray, List[int]]:
     """
 
     Parameters
@@ -75,8 +80,8 @@ def run_pre_processing(filename: str, pre_processing_parameters: ConfigResources
     data = resampled_volume.get_fdata().astype('float32')
 
     logging.debug("Preprocessing - Background clipping.")
-    crop_bbox = None
     if pre_processing_parameters.imaging_modality == ImagingModalityType.CT:
+        # @TODO. Have to include the crop_bbox as input parameter to ensure same cropping to all inputs (if multiple)
         # Exclude background
         if pre_processing_parameters.crop_background is not None and pre_processing_parameters.crop_background != 'false':
                 #data, crop_bbox = mediastinum_clipping(volume=data, parameters=pre_processing_parameters)
@@ -85,7 +90,8 @@ def run_pre_processing(filename: str, pre_processing_parameters: ConfigResources
     else:
         if pre_processing_parameters.crop_background is not None and \
                 not pre_processing_parameters.predictions_use_preprocessed_data:
-            data, crop_bbox = crop_MR_background(filename, data, new_spacing, storage_path, pre_processing_parameters)
+            data, crop_bbox = crop_MR_background(filename, data, new_spacing, storage_path, pre_processing_parameters,
+                                                 crop_bbox)
 
     if pre_processing_parameters.new_axial_size:
         logging.debug("Preprocessing - Volume resizing.")

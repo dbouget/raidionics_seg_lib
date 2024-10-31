@@ -229,6 +229,7 @@ class ConfigResources:
         self.swap_training_input = False
         self.normalization_method = None
         self.preprocessing_number_inputs = None
+        self.preprocessing_inputs_sub_indexes = None
         self.preprocessing_channels_order = 'channels_last'
 
         if self.pre_processing_config.has_option('PreProcessing', 'output_spacing'):
@@ -269,6 +270,10 @@ class ConfigResources:
         if self.pre_processing_config.has_option('PreProcessing', 'number_inputs'):
             if self.pre_processing_config['PreProcessing']['number_inputs'].split('#')[0].strip() != '':
                 self.preprocessing_number_inputs = int(self.pre_processing_config['PreProcessing']['number_inputs'].split('#')[0].strip())
+
+        if self.pre_processing_config.has_option('PreProcessing', 'inputs_sub'):
+            if self.pre_processing_config['PreProcessing']['inputs_sub'].split('#')[0].strip() != '':
+                self.preprocessing_inputs_sub_indexes = [[int(x.split(',')[0]), int(x.split(',')[1])] for x in self.pre_processing_config['PreProcessing']['inputs_sub'].split('#')[0].strip().split(';')]
 
         if self.pre_processing_config.has_option('PreProcessing', 'channels_order'):
             if self.pre_processing_config['PreProcessing']['channels_order'].split('#')[0].strip() != '':
