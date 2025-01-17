@@ -1,6 +1,7 @@
 import configparser
 import os
 import sys
+import logging
 from aenum import Enum, unique
 
 
@@ -45,11 +46,14 @@ class ConfigResources:
         self.model_folder = None
 
         self.predictions_non_overlapping = True
+        self.predictions_folds_ensembling = False
+        self.predictions_ensembling_strategy = "average"
+        self.predictions_overlapping_ratio = None
         self.predictions_reconstruction_method = None
         self.predictions_reconstruction_order = None
         self.predictions_use_preprocessed_data = False
         self.predictions_test_time_augmentation_iterations = 0
-        self.predictions_test_time_augmentation_fusion_mode = "max"
+        self.predictions_test_time_augmentation_fusion_mode = "average"
 
         self.runtime_lungs_mask_filepath = ''
         self.runtime_brain_mask_filepath = ''
@@ -94,6 +98,23 @@ class ConfigResources:
                 self.predictions_non_overlapping = True if self.config['Runtime']['non_overlapping'].split('#')[0].lower().strip()\
                                                        == 'true' else False
 
+        if self.config.has_option('Runtime', 'folds_ensembling'):
+            if self.config['Runtime']['folds_ensembling'].split('#')[0].strip() != '':
+                self.predictions_folds_ensembling = True if self.config['Runtime']['folds_ensembling'].split('#')[0].lower().strip()\
+                                                       == 'true' else False
+
+        if self.config.has_option('Runtime', 'ensembling_strategy'):
+            if self.config['Runtime']['ensembling_strategy'].split('#')[0].strip() != '':
+                self.predictions_ensembling_strategy = self.config['Runtime']['ensembling_strategy'].split('#')[0].lower().strip()
+        if self.predictions_ensembling_strategy not in ["maximum", "average"]:
+            self.predictions_ensembling_strategy = "average"
+            logging.warning("""Value provided in [Runtime][ensembling_strategy] is not recognized.
+             setting to default parameter with value: {}""".format(self.predictions_ensembling_strategy))
+
+        if self.config.has_option('Runtime', 'overlapping_ratio'):
+            if self.config['Runtime']['overlapping_ratio'].split('#')[0].strip() != '':
+                self.predictions_overlapping_ratio = float(self.config['Runtime']['overlapping_ratio'].split('#')[0].lower().strip())
+
         if self.config.has_option('Runtime', 'reconstruction_method'):
             if self.config['Runtime']['reconstruction_method'].split('#')[0].strip() != '':
                 self.predictions_reconstruction_method = self.config['Runtime']['reconstruction_method'].split('#')[0].strip()
@@ -113,6 +134,10 @@ class ConfigResources:
         if self.config.has_option('Runtime', 'test_time_augmentation_fusion_mode'):
             if self.config['Runtime']['test_time_augmentation_fusion_mode'].split('#')[0].strip() != '':
                 self.predictions_test_time_augmentation_fusion_mode = self.config['Runtime']['test_time_augmentation_fusion_mode'].split('#')[0].strip().lower()
+        if self.predictions_test_time_augmentation_fusion_mode not in ["maximum", "average"]:
+            self.predictions_test_time_augmentation_fusion_mode = "average"
+            logging.warning("""Value provided in [Runtime][test_time_augmentation_fusion_mode] is not recognized.
+             setting to default parameter with value: {}""".format(self.predictions_test_time_augmentation_fusion_mode))
 
         if self.config.has_option('Neuro', 'brain_segmentation_filename'):
             if self.config['Neuro']['brain_segmentation_filename'].split('#')[0].strip() != '':

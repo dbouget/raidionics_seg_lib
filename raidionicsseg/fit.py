@@ -1,4 +1,5 @@
 import os
+import glob
 import sys
 import time
 import traceback
@@ -66,16 +67,19 @@ def __segment(pre_processing_parameters: ConfigResources) -> None:
     """
     inputs_folder = pre_processing_parameters.inputs_folder
     output_path = pre_processing_parameters.output_folder
-    selected_model = pre_processing_parameters.model_folder
+    base_model_path = pre_processing_parameters.model_folder
+
+    if not os.path.exists(base_model_path):
+        raise ValueError('Requested model cannot be found on disk at location: \'{}\'.'.format(base_model_path))
 
     logging.info("Starting inference for folder: {}, with model: {}.".format(os.path.basename(inputs_folder),
-                                                                             selected_model))
+                                                                             os.path.basename(base_model_path)))
+    models_path = sorted(glob.glob(os.path.join(base_model_path, "**/*")), key=lambda x: x[-1])
+    if not pre_processing_parameters.predictions_folds_ensembling:
+        models_path = [models_path[0]]
     logging.info('LOG: Segmentation - 4 steps.')
     overall_start = start = time.time()
 
-    model_path = os.path.join(selected_model, 'model.onnx')
-    if not os.path.exists(model_path):
-        raise ValueError('Requested model cannot be found on disk at location: \'{}\'.'.format(model_path))
     try:
         logging.info('LOG: Segmentation - Preprocessing - Begin (1/4)')
         nib_volume, resampled_volume, data, crop_bbox = prepare_pre_processing(folder=inputs_folder,
@@ -86,7 +90,7 @@ def __segment(pre_processing_parameters: ConfigResources) -> None:
 
         logging.info('LOG: Segmentation - Inference - Begin (2/4)')
         start = time.time()
-        predictions = run_predictions(data=data, model_path=model_path, parameters=pre_processing_parameters)
+        predictions = run_predictions(data=data, models_path=models_path, parameters=pre_processing_parameters)
         logging.info('LOG: Segmentation - Runtime: {} seconds.'.format(time.time() - start))
         logging.info('LOG: Segmentation - Inference - End (2/4)')
 
