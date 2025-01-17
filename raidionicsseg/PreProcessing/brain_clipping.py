@@ -16,7 +16,7 @@ from ..Utils.configuration_parser import ConfigResources
 
 
 def crop_MR_background(filepath: str, volume: np.ndarray, new_spacing: Tuple[float], storage_path: str,
-                       parameters: ConfigResources) -> Tuple[np.ndarray, List[int]]:
+                       parameters: ConfigResources, crop_bbox=None) -> Tuple[np.ndarray, List[int]]:
     """
     Performs different background cropping inside an MRI volume, as defined by the 'crop_background' stored in a model
     preprocessing configuration file.
@@ -45,12 +45,12 @@ def crop_MR_background(filepath: str, volume: np.ndarray, new_spacing: Tuple[flo
         The bounding region is expressed as: [minx, miny, minz, maxx, maxy, maxz].
     """
     if parameters.crop_background == 'minimum':
-        return crop_MR(volume, parameters)
+        return crop_MR(volume, parameters, crop_bbox)
     elif parameters.crop_background == 'brain_clip' or parameters.crop_background == 'brain_mask':
         return skull_stripping_tf(filepath, volume, new_spacing, storage_path, parameters)
 
 
-def crop_MR(volume: np.ndarray, parameters) -> Tuple[np.ndarray, List[int]]:
+def crop_MR(volume: np.ndarray, parameters, crop_bbox=None) -> Tuple[np.ndarray, List[int]]:
     """
     Performs background cropping inside an MRI volume in 'minimum' mode whereby the black space around
     the head is removed.
@@ -70,25 +70,30 @@ def crop_MR(volume: np.ndarray, parameters) -> Tuple[np.ndarray, List[int]]:
         The bounding region is expressed as: [minx, miny, minz, maxx, maxy, maxz].
     """
     original_volume = np.copy(volume)
-    limit = int((np.max(volume) - np.min(volume)) * 0.2)
-    volume[original_volume >= limit] = 1
-    volume[original_volume < limit] = 0
-    volume = volume.astype(np.uint8)
-    volume = binary_fill_holes(volume).astype(np.uint8)
-    regions = regionprops(volume)
-    min_row, min_col, min_depth, max_row, max_col, max_depth = regions[0].bbox
-    cropped_volume = original_volume[min_row:max_row, min_col:max_col, min_depth:max_depth]
-    bbox = [min_row, min_col, min_depth, max_row, max_col, max_depth]
+    if crop_bbox is None:
+        limit = int((np.max(volume) - np.min(volume)) * 0.2)
+        volume[original_volume >= limit] = 1
+        volume[original_volume < limit] = 0
+        volume = volume.astype(np.uint8)
+        volume = binary_fill_holes(volume).astype(np.uint8)
+        regions = regionprops(volume)
+        min_row, min_col, min_depth, max_row, max_col, max_depth = regions[0].bbox
+        cropped_volume = original_volume[min_row:max_row, min_col:max_col, min_depth:max_depth]
+        crop_bbox = [min_row, min_col, min_depth, max_row, max_col, max_depth]
+    else:
+        min_row, min_col, min_depth, max_row, max_col, max_depth = (crop_bbox[0], crop_bbox[1], crop_bbox[2],
+                                                                    crop_bbox[3], crop_bbox[4], crop_bbox[5])
+        cropped_volume = original_volume[min_row:max_row, min_col:max_col, min_depth:max_depth]
 
     logging.debug('MRI background cropping with: [{}, {}, {}, {}, {}, {}].\n'.format(min_row, min_col, min_depth,
                                                                                     max_row, max_col, max_depth))
-    return cropped_volume, bbox
+    return cropped_volume, crop_bbox
 
 
 def skull_stripping_tf(filepath, volume: np.ndarray, new_spacing: Tuple[float], storage_path: str,
                        parameters: ConfigResources) -> Tuple[np.ndarray, List[int]]:
     """
-    Generates a brain segmentation mask by running model inference and perfoms skull stripping.
+    Generates a brain segmentation mask by running model inference and performs skull stripping.
 
     Parameters
     ----------

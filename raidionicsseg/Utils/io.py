@@ -52,7 +52,8 @@ def dump_predictions(predictions: np.ndarray, parameters: ConfigResources, nib_v
         class_names = parameters.training_class_names
 
         if len(predictions.shape) == 4:
-            for c in range(1, predictions.shape[-1]):
+            first_class = 0 if parameters.training_activation_layer_type == "sigmoid" else 1
+            for c in range(first_class, predictions.shape[-1]):
                 img = nib.Nifti1Image(predictions[..., c], affine=nib_volume.affine, header=nib_volume.header)
                 predictions_output_path = os.path.join(storage_path, naming_suffix + '_' + class_names[c] + '.nii.gz')
                 os.makedirs(os.path.dirname(predictions_output_path), exist_ok=True)

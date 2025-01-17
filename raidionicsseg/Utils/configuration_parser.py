@@ -185,7 +185,8 @@ class ConfigResources:
         self.training_patch_offset = None
         self.training_optimal_thresholds = None
         self.training_deep_supervision = False
-        self.training_softmax_layer_included = True
+        self.training_activation_layer_included = True
+        self.training_activation_layer_type = "softmax"
 
         if self.pre_processing_config.has_option('Training', 'nb_classes'):
             self.training_nb_classes = int(self.pre_processing_config['Training']['nb_classes'].split('#')[0])
@@ -214,9 +215,13 @@ class ConfigResources:
             if self.pre_processing_config['Training']['deep_supervision'].split('#')[0].strip() != '':
                 self.training_deep_supervision = True if self.pre_processing_config['Training']['deep_supervision'].split('#')[0].strip().lower() == 'true' else False
 
-        if self.pre_processing_config.has_option('Training', 'softmax_layer_included'):
-            if self.pre_processing_config['Training']['softmax_layer_included'].split('#')[0].strip() != '':
-                self.training_softmax_layer_included = True if self.pre_processing_config['Training']['softmax_layer_included'].split('#')[0].strip().lower() == 'true' else False
+        if self.pre_processing_config.has_option('Training', 'activation_layer_included'):
+            if self.pre_processing_config['Training']['activation_layer_included'].split('#')[0].strip() != '':
+                self.training_activation_layer_included = True if self.pre_processing_config['Training']['activation_layer_included'].split('#')[0].strip().lower() == 'true' else False
+
+        if self.pre_processing_config.has_option('Training', 'activation_layer_type'):
+            if self.pre_processing_config['Training']['activation_layer_type'].split('#')[0].strip() != '':
+                self.training_activation_layer_type = self.pre_processing_config['Training']['activation_layer_type'].split('#')[0].strip()
 
     def __parse_pre_processing_content(self) -> None:
         """
@@ -249,6 +254,7 @@ class ConfigResources:
         self.swap_training_input = False
         self.normalization_method = None
         self.preprocessing_number_inputs = None
+        self.preprocessing_inputs_sub_indexes = None
         self.preprocessing_channels_order = 'channels_last'
 
         if self.pre_processing_config.has_option('PreProcessing', 'output_spacing'):
@@ -289,6 +295,10 @@ class ConfigResources:
         if self.pre_processing_config.has_option('PreProcessing', 'number_inputs'):
             if self.pre_processing_config['PreProcessing']['number_inputs'].split('#')[0].strip() != '':
                 self.preprocessing_number_inputs = int(self.pre_processing_config['PreProcessing']['number_inputs'].split('#')[0].strip())
+
+        if self.pre_processing_config.has_option('PreProcessing', 'inputs_sub'):
+            if self.pre_processing_config['PreProcessing']['inputs_sub'].split('#')[0].strip() != '':
+                self.preprocessing_inputs_sub_indexes = [[int(x.split(',')[0]), int(x.split(',')[1])] for x in self.pre_processing_config['PreProcessing']['inputs_sub'].split('#')[0].strip().split(';')]
 
         if self.pre_processing_config.has_option('PreProcessing', 'channels_order'):
             if self.pre_processing_config['PreProcessing']['channels_order'].split('#')[0].strip() != '':
