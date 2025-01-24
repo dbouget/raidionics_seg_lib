@@ -10,6 +10,7 @@ import multiprocessing as mp
 from .Utils.configuration_parser import *
 from .PreProcessing.pre_processing import prepare_pre_processing
 from .Inference.predictions import run_predictions
+from .Inference.predictions_classification import run_predictions_classification
 from .Inference.predictions_reconstruction import reconstruct_post_predictions
 from .Utils.io import dump_predictions, dump_classification_predictions
 from .Utils.configuration_parser import ConfigResources
@@ -55,7 +56,7 @@ def run_model(config_filename: str, logging_filename: str = None) -> None:
     config_parameters = ConfigResources()
     config_parameters.init_environment(config_filename)
     # @TODO. Maybe should store the segmentation/classification flag inside the model .ini
-    if 'classifier' in os.path.basename(config_parameters.model_folder).lower():
+    if config_parameters.task == "classification":
         __classify(config_parameters)
     else:
         __segment(config_parameters)
@@ -74,7 +75,7 @@ def __segment(pre_processing_parameters: ConfigResources) -> None:
 
     logging.info("Starting inference for folder: {}, with model: {}.".format(os.path.basename(inputs_folder),
                                                                              os.path.basename(base_model_path)))
-    models_path = sorted(glob.glob(os.path.join(base_model_path, "**/*")), key=lambda x: x[-1])
+    models_path = sorted(glob.glob(os.path.join(base_model_path, "**/*")), key=lambda x: x.split('/')[-2][0])
     if not pre_processing_parameters.predictions_folds_ensembling:
         models_path = [models_path[0]]
     logging.info('LOG: Segmentation - 4 steps.')
@@ -121,16 +122,19 @@ def __classify(pre_processing_parameters: ConfigResources):
     """
     inputs_folder = pre_processing_parameters.inputs_folder
     output_path = pre_processing_parameters.output_folder
-    selected_model = pre_processing_parameters.model_folder
+    base_model_path = pre_processing_parameters.model_folder
+
+    if not os.path.exists(base_model_path):
+        raise ValueError('Requested model cannot be found on disk at location: \'{}\'.'.format(base_model_path))
 
     logging.info("Starting inference for folder: {}, with model: {}.".format(os.path.basename(inputs_folder),
-                                                                             selected_model))
+                                                                             base_model_path))
     logging.info('LOG: Classification - 3 steps.')
     overall_start = start = time.time()
 
-    model_path = os.path.join(selected_model, 'model.onnx')
-    if not os.path.exists(model_path):
-        raise ValueError('Requested model cannot be found on disk at location: \'{}\'.'.format(model_path))
+    models_path = sorted(glob.glob(os.path.join(base_model_path, "**/*")), key=lambda x: x.split('/')[-2][0])
+    if not pre_processing_parameters.predictions_folds_ensembling:
+        models_path = [models_path[0]]
 
     try:
         logging.info('LOG: Classification - Preprocessing - Begin (1/3)')
@@ -142,7 +146,7 @@ def __classify(pre_processing_parameters: ConfigResources):
 
         logging.info('LOG: Classification - Inference - Begin (2/3)')
         start = time.time()
-        predictions = run_predictions(data=data, model_path=model_path, parameters=pre_processing_parameters)
+        predictions = run_predictions_classification(data=data, models_path=models_path, parameters=pre_processing_parameters)
         logging.info('LOG: Classification - Runtime: {} seconds.'.format(time.time() - start))
         logging.info('LOG: Classification - Inference - End (2/3)')
 

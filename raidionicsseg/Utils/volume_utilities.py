@@ -59,8 +59,8 @@ def resize_volume(volume, new_slice_size, slicing_plane, order=1):
 def __intensity_normalization_CT(volume, parameters):
     result = np.copy(volume)
 
-    result[volume < parameters.intensity_clipping_values[0]] = parameters.intensity_clipping_values[0]
-    result[volume > parameters.intensity_clipping_values[1]] = parameters.intensity_clipping_values[1]
+    # result[volume < parameters.intensity_clipping_values[0]] = parameters.intensity_clipping_values[0]
+    # result[volume > parameters.intensity_clipping_values[1]] = parameters.intensity_clipping_values[1]
 
     if parameters.normalization_method == 'zeromean':
         mean_val = np.mean(result)
@@ -78,11 +78,12 @@ def __intensity_normalization_CT(volume, parameters):
 
 def __intensity_normalization_MRI(volume, parameters):
     result = deepcopy(volume).astype('float32')
-    result[result < 0] = 0  # Soft clipping at 0 for MRI
-    if parameters.intensity_clipping_range[1] - parameters.intensity_clipping_range[0] != 100:
-        limits = np.percentile(volume, q=parameters.intensity_clipping_range)
-        result[volume < limits[0]] = limits[0]
-        result[volume > limits[1]] = limits[1]
+    # result[result < 0] = 0  # Soft clipping at 0 for MRI
+    # if parameters.intensity_clipping_range[1] - parameters.intensity_clipping_range[0] != 100:
+    #     limits = np.percentile(volume, q=parameters.intensity_clipping_range)
+    #     result = np.clip(volume, limits[0], limits[1])
+    #     # result[volume < limits[0]] = limits[0]
+    #     # result[volume > limits[1]] = limits[1]
 
     if parameters.normalization_method == 'zeromean':
         mean_val = np.mean(result)
@@ -93,7 +94,7 @@ def __intensity_normalization_MRI(volume, parameters):
         slices = result != 0
         masked_img = result[slices]
         mean_val = np.mean(masked_img)
-        var_val = np.std(masked_img)
+        var_val = np.std(masked_img, ddof=1)
         result[slices] = (masked_img - mean_val) / var_val
     elif parameters.normalization_method == 'default':
         min_val = np.min(result)
@@ -104,8 +105,7 @@ def __intensity_normalization_MRI(volume, parameters):
     # else:
     #     result = (volume - np.min(volume)) / (np.max(volume) - np.min(volume))
 
-    return result
-
+    return result.astype('float32')
 
 def intensity_normalization(volume, parameters):
     if parameters.imaging_modality == ImagingModalityType.CT:
@@ -113,6 +113,19 @@ def intensity_normalization(volume, parameters):
     elif parameters.imaging_modality == ImagingModalityType.MRI:
         return __intensity_normalization_MRI(volume, parameters)
 
+
+def intensity_clipping(volume, parameters):
+    result = deepcopy(volume)
+    if parameters.imaging_modality == ImagingModalityType.MRI:
+            result[result < 0] = 0  # Soft clipping at 0 for MRI
+
+    if parameters.intensity_clipping_range[1] - parameters.intensity_clipping_range[0] != 100:
+        limits = np.percentile(volume, q=parameters.intensity_clipping_range)
+        result = np.clip(volume, limits[0], limits[1])
+    else:
+        result[volume < parameters.intensity_clipping_values[0]] = parameters.intensity_clipping_values[0]
+        result[volume > parameters.intensity_clipping_values[1]] = parameters.intensity_clipping_values[1]
+    return result
 
 def padding_for_inference(data, slab_size, slicing_plane):
     new_data = deepcopy(data)

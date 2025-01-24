@@ -156,6 +156,9 @@ class ConfigResources:
 
     def __parse_default_content(self):
         self.training_backend = 'TF'
+        self.imaging_modality = "MRI"
+        self.task = "segmentation"
+
         if self.pre_processing_config.has_option('Default', 'imaging_modality'):
             param = self.pre_processing_config['Default']['imaging_modality'].split('#')[0].strip()
             modality = get_type_from_string(ImagingModalityType, param)
@@ -168,6 +171,10 @@ class ConfigResources:
         if self.pre_processing_config.has_option('Default', 'training_backend'):
             if self.pre_processing_config['Default']['training_backend'].split('#')[0].strip() != '':
                 self.training_backend = self.pre_processing_config['Default']['training_backend'].split('#')[0].strip()
+
+        if self.pre_processing_config.has_option('Default', 'task'):
+            if self.pre_processing_config['Default']['task'].split('#')[0].strip() != '':
+                self.task = self.pre_processing_config['Default']['task'].split('#')[0].strip()
 
     def __parse_training_content(self) -> None:
         """
@@ -296,9 +303,9 @@ class ConfigResources:
             if self.pre_processing_config['PreProcessing']['number_inputs'].split('#')[0].strip() != '':
                 self.preprocessing_number_inputs = int(self.pre_processing_config['PreProcessing']['number_inputs'].split('#')[0].strip())
 
-        if self.pre_processing_config.has_option('PreProcessing', 'inputs_sub'):
-            if self.pre_processing_config['PreProcessing']['inputs_sub'].split('#')[0].strip() != '':
-                self.preprocessing_inputs_sub_indexes = [[int(x.split(',')[0]), int(x.split(',')[1])] for x in self.pre_processing_config['PreProcessing']['inputs_sub'].split('#')[0].strip().split(';')]
+        if self.pre_processing_config.has_option('PreProcessing', 'diffloader_pairs'):
+            if self.pre_processing_config['PreProcessing']['diffloader_pairs'].split('#')[0].strip() != '':
+                self.preprocessing_inputs_sub_indexes = [[int(x.split(',')[0]), int(x.split(',')[1])] for x in self.pre_processing_config['PreProcessing']['diffloader_pairs'].split('#')[0].strip().split(';')]
 
         if self.pre_processing_config.has_option('PreProcessing', 'channels_order'):
             if self.pre_processing_config['PreProcessing']['channels_order'].split('#')[0].strip() != '':

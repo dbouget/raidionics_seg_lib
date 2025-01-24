@@ -88,8 +88,9 @@ class Zoom(Transform):
     def transform(self, data, direction):
         data_aug = deepcopy(data)
         if direction == "forward":
+            zoom_ratio_axis = [self.zoom_ratio] * (len(data.shape) - 2) + [1.]
             if self.prob_zoom > 0.:
-                data_aug = zoom(data_aug[0, ...], self.zoom_ratio)
+                data_aug = zoom(data_aug[0, ...], zoom_ratio_axis)
                 data_aug = np.expand_dims(data_aug, axis=0)
                 if self.zoom_ratio > 1.:
                     crop_data_aug = np.zeros(data.shape, dtype=np.float32)
@@ -119,7 +120,8 @@ class Zoom(Transform):
                     data_aug = pad_data_aug
         else:
             if self.prob_zoom > 0.:
-                data_aug = zoom(data_aug, 1 / self.zoom_ratio)
+                zoom_ratio_axis = [1/self.zoom_ratio] * (len(data.shape) - 1) + [1.]
+                data_aug = zoom(data_aug, zoom_ratio_axis)
                 if self.zoom_ratio < 1.:
                     crop_data_aug = np.zeros(data.shape, dtype=np.float32)
                     crop_limits = [int((data_aug.shape[0] - data.shape[0])/2),
