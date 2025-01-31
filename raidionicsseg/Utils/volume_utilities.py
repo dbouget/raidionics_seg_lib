@@ -122,7 +122,8 @@ def intensity_clipping(volume, parameters):
     if parameters.intensity_clipping_range[1] - parameters.intensity_clipping_range[0] != 100:
         limits = np.percentile(volume, q=parameters.intensity_clipping_range)
         result = np.clip(volume, limits[0], limits[1])
-    else:
+    elif (parameters.intensity_clipping_values is not None and len (parameters.intensity_clipping_values) == 0
+          and parameters.intensity_clipping_values[1] > parameters.intensity_clipping_values[0]):
         result[volume < parameters.intensity_clipping_values[0]] = parameters.intensity_clipping_values[0]
         result[volume > parameters.intensity_clipping_values[1]] = parameters.intensity_clipping_values[1]
     return result
