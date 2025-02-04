@@ -71,6 +71,8 @@ def dump_predictions(predictions: np.ndarray, parameters: ConfigResources, nib_v
 def dump_classification_predictions(predictions: np.ndarray, parameters: ConfigResources, storage_path: str) -> None:
     """
     Saves the classification predictions on disk.
+    @TODO. Should have some kind of name for the classification target, to append to the file name, so that if multiple
+    it won't be an issue for the RADS lib or Raidionics.
 
     Parameters
     ----------
@@ -86,16 +88,17 @@ def dump_classification_predictions(predictions: np.ndarray, parameters: ConfigR
     """
     logging.debug("Writing predictions to files...")
     reconstruction_method = parameters.predictions_reconstruction_method
+    classification_task = parameters.training_class_names[0]
     try:
         class_names = parameters.training_class_names
         if reconstruction_method == "probabilities":
-            prediction_filename = os.path.join(storage_path, 'classification-results.csv')
+            prediction_filename = os.path.join(storage_path, classification_task + '_classification-results.csv')
             with open(prediction_filename, 'w') as file:
                 file.write("Class, Prediction\n")
                 for c, cla in enumerate(class_names):
                     file.write("{}, {}\n".format(cla, predictions[c]))
         elif reconstruction_method == "argmax":
-            prediction_filename = os.path.join(storage_path, 'classification-label.csv')
+            prediction_filename = os.path.join(storage_path, classification_task + '_classification-label.csv')
             with open(prediction_filename, 'w') as file:
                 file.write("Class: {}\n".format(class_names[np.argmax(predictions)]))
         else:
