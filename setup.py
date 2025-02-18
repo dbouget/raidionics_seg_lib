@@ -32,7 +32,7 @@ setup(
     },
     install_requires=required,
     python_requires=">=3.8",
-    version='1.3.1',
+    version='1.4.0',
     author='David Bouget (david.bouget@sintef.no)',
     license='BSD 2-Clause',
     description='Raidionics segmentation and classification back-end with ONNX runtime',
