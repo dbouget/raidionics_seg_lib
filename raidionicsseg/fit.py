@@ -75,7 +75,7 @@ def __segment(pre_processing_parameters: ConfigResources) -> None:
 
     logging.info("Starting inference for folder: {}, with model: {}.".format(os.path.basename(inputs_folder),
                                                                              os.path.basename(base_model_path)))
-    models_path = sorted(glob.glob(os.path.join(base_model_path, "**/*")), key=lambda x: x.split('/')[-2][0])
+    models_path = sorted(glob.glob(os.path.join(base_model_path, "**", "*")), key=lambda x: x.split('/')[-2][0])
     if not pre_processing_parameters.predictions_folds_ensembling:
         models_path = [models_path[0]]
     logging.info('LOG: Segmentation - 4 steps.')
@@ -132,7 +132,7 @@ def __classify(pre_processing_parameters: ConfigResources):
     logging.info('LOG: Classification - 3 steps.')
     overall_start = start = time.time()
 
-    models_path = sorted(glob.glob(os.path.join(base_model_path, "**/*")), key=lambda x: x.split('/')[-2][0])
+    models_path = sorted(glob.glob(os.path.join(base_model_path, "**", "*")), key=lambda x: x.split('/')[-2][0])
     if not pre_processing_parameters.predictions_folds_ensembling:
         models_path = [models_path[0]]
 
