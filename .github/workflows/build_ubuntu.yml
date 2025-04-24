@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             TARGET: ubuntu
             CMD_BUILD: python setup.py bdist_wheel --plat-name manylinux1_x86_64
 
@@ -41,8 +41,8 @@ jobs:
     needs: build
     strategy:
       matrix:
-        os: [ubuntu-20.04, ubuntu-22.04]
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        os: [ubuntu-22.04, ubuntu-24.04]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     runs-on: ${{ matrix.os }}
 
     steps:
