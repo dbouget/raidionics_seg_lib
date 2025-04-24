@@ -71,13 +71,13 @@ jobs:
           uses: actions/checkout@v4
 
         - name: Inference unit test with TensorFlow model
-          run: cd ${{github.workspace}}/tests && python inference_test.py
+          run: cd ${{github.workspace}}/tests && python test_inference_segmentation_simple.py
 
         - name: Inference unit test with PyTorch model
-          run: cd ${{github.workspace}}/tests && python inference_test_torch_model.py
+          run: cd ${{github.workspace}}/tests && python test_inference_segmentation_mediastinum.py
 
         - name: Inference unit test with test-time augmentation
-          run: cd ${{github.workspace}}/tests && python inference_test_time_augmentation.py
+          run: cd ${{github.workspace}}/tests && python test_inference_segmentation_test_time_augmentation.py
 
 #        - name: Test with pytest
 #          run: |

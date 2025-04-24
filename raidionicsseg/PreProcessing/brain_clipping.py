@@ -5,7 +5,7 @@ import numpy as np
 from copy import deepcopy
 from scipy.ndimage import binary_fill_holes
 from nibabel.processing import resample_to_output
-from scipy.ndimage.measurements import label
+from scipy.ndimage import label
 from skimage.measure import regionprops
 import subprocess
 import os

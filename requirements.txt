@@ -5,4 +5,4 @@ SimpleITK
 aenum
 scikit-image
 tqdm
-numpy>=1.21.6,<=1.26.4
+numpy

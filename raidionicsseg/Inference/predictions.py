@@ -62,7 +62,7 @@ def run_predictions(data: np.ndarray, models_path: List[str], parameters: Config
                 data_aug = run_augmentations(aug_list, data, "forward")
                 aug_result = None
                 if parameters.new_axial_size and len(parameters.new_axial_size) == 3:
-                    aug_result = __run_predictions_whole(data=data_aug, model=model, model_outputs=model_outputs,
+                    aug_result = __run_predictions_whole(data=data_aug, model=model, parameters=parameters,
                                                            deep_supervision=parameters.training_deep_supervision)
                 elif parameters.new_axial_size and len(parameters.new_axial_size) == 2:
                     aug_result = __run_predictions_slabbed(data=data_aug, model=model, model_outputs=model_outputs,
