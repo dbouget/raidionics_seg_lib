@@ -49,7 +49,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-14]
-        python-version: ["3.10", "3.11"]
+        python-version: ["3.10", "3.11", "3.12"]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -74,16 +74,7 @@ jobs:
         - name: Clone repo
           uses: actions/checkout@v4
 
-        - name: Inference unit test with TensorFlow model
-          run: cd ${{github.workspace}}/tests && python test_inference_segmentation_simple.py
-
-        - name: Inference unit test with PyTorch model
-          run: cd ${{github.workspace}}/tests && python test_inference_segmentation_mediastinum.py
-
-        - name: Inference unit test with test-time augmentation
-          run: cd ${{github.workspace}}/tests && python test_inference_segmentation_test_time_augmentation.py
-
-#        - name: Test with pytest
-#          run: |
-#            pip install pytest
-#            pytest --verbose tests/
+        - name: Integration tests
+          run: |
+              pip install pytest pytest-cov pytest-timeout requests
+              pytest -vvv --cov=raidionicsseg ${{github.workspace}}/tests/generic_tests --cov-report=xml --timeout=300 --log-cli-level=DEBUG
