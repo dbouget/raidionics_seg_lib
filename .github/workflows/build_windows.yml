@@ -61,8 +61,9 @@ jobs:
             name: "Python wheel"
 
         - name: Install wheel
-          run: python.exe -m pip install --upgrade pip
-               pip install --find-links=. --no-cache-dir --force-reinstall raidionicsseg-*
+          run: |
+              python.exe -m pip install --upgrade pip
+              pip install --find-links=. --no-cache-dir --force-reinstall raidionicsseg-*
           shell: bash
 
         - name: Test CLI
