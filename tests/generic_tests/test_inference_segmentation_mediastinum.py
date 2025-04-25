@@ -58,8 +58,8 @@ def test_inference_cli(data_test3):
                     text=True
                 )
 
-                logging.info("STDOUT:", result.stdout)
-                logging.error("STDERR:", result.stderr)
+                logging.info(f"STDOUT: {result.stdout}")
+                logging.error(f"STDERR: {result.stderr}")
                 result.check_returncode()
             else:
                 subprocess.check_call(['raidionicsseg',
