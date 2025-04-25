@@ -37,9 +37,8 @@ jobs:
 
       - name: Extract package version from pyproject.toml
         run: |
-          version=$(python -c "import toml; print(toml.load('pyproject.toml')['tool']['poetry']['version'])")
+          version=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
           echo "VERSION=$version" >> $GITHUB_ENV  # Save version to GITHUB_ENV to use in next steps
-
 
       - name: Rename the wheel file
         run: |
