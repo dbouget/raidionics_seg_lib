@@ -38,9 +38,9 @@ jobs:
       - name: Rename the wheel file
         run: |
           wheel_file=$(ls ${{github.workspace}}/dist/*.whl)      
-          new_wheel_name="raidionicsseg-${GITHUB_SHA}-macosx_10_15_x86_64.whl"
+          new_wheel_name="raidionicsseg-1.4.0-py3-macosx_10_15_x86_64.whl"
           mv "$wheel_file" "${{github.workspace}}/dist/$new_wheel_name"
-          
+
       - name: Upload Python wheel
         uses: actions/upload-artifact@v4
         with:
