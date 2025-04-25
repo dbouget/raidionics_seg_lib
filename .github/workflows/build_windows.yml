@@ -38,12 +38,12 @@ jobs:
           echo "VERSION=$version" >> $GITHUB_ENV  # Save version to GITHUB_ENV to use in next steps
         shell: bash
 
-      - name: Rename the wheel file
+      - name: Rename wheel file (cross-platform)
         run: |
-          wheel_file=$(ls ${{github.workspace}}\dist\*.whl)      
-          new_wheel_name="raidionicsseg-${{ env.VERSION }}-py3-none-win_amd64.whl"
-          mv "$wheel_file" "${{github.workspace}}\dist\$new_wheel_name"
-        shell: bash
+          python -c "import os, glob, shutil
+          wheel_file = glob.glob(os.path.join('${{ github.workspace }}', 'dist', '*.whl'))[0]
+          new_name = f'raidionicsseg-${{ env.VERSION }}-py3-none-win_amd64.whl'
+          shutil.move(wheel_file, os.path.join('${{ github.workspace }}', 'dist', new_name))"
 
       - name: Upload Python wheel
         uses: actions/upload-artifact@v4
