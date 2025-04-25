@@ -3,6 +3,7 @@
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause)
 [![](https://img.shields.io/badge/python-3.8|3.9|3.10|3.11-blue.svg)](https://www.python.org/downloads/)
 [![Paper](https://zenodo.org/badge/DOI/10.3389/fneur.2022.932219.svg)](https://www.frontiersin.org/articles/10.3389/fneur.2022.932219/full)
+[![codecov](https://codecov.io/gh/dbouget/raidionics_seg_lib/branch/master/graph/badge.svg?token=ZSPQVR7RKX)](https://codecov.io/gh/dbouget/raidionics_seg_lib)
 
 The code corresponds to the segmentation or classification backend of MRI/CT volumes, using ONNX runtime for inference.  
 The module can either be used as a Python library, as CLI, or as Docker container. By default, inference is performed on CPU only.
