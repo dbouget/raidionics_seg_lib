@@ -38,6 +38,3 @@ include = [
   "raidionicsseg.Inference",
   "tests",
 ]
-
-[tool.setuptools.bdist_wheel]
-universal = false  # Marks the wheel as platform-specific

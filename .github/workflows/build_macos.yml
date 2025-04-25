@@ -30,10 +30,21 @@ jobs:
       - name: Install dependencies
         run: |
             pip install --upgrade pip
-            pip install build
+            pip install build toml
 
       - name: Built wheel for ${{matrix.TARGET}}
         run: ${{matrix.CMD_BUILD}}
+
+      - name: Extract package version from pyproject.toml
+        run: |
+          version=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
+          echo "VERSION=$version" >> $GITHUB_ENV  # Save version to GITHUB_ENV to use in next steps
+
+      - name: Rename the wheel file
+        run: |
+          wheel_file=$(ls ${{github.workspace}}/dist/*.whl)      
+          new_wheel_name="raidionicsseg-${{ env.VERSION }}-py3-none-macosx_10_15_x86_64.whl"
+          mv "$wheel_file" "${{github.workspace}}/dist/$new_wheel_name"
 
       - name: Upload Python wheel
         uses: actions/upload-artifact@v4

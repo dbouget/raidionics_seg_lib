@@ -17,10 +17,6 @@ jobs:
             TARGET: windows
             CMD_BUILD: python -m build --wheel
 
-#          - os: windows-2019
-#            TARGET: windows
-#            CMD_BUILD: python setup_sse2.py bdist_wheel --plat-name win_amd64_sse2
-
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python 3.9
@@ -31,10 +27,22 @@ jobs:
       - name: Install dependencies
         run: |
             pip install --upgrade pip
-            pip install build
+            pip install build toml
 
       - name: Built wheel for ${{matrix.TARGET}}
         run: ${{matrix.CMD_BUILD}}
+
+      - name: Extract package version from pyproject.toml
+        run: |
+          version=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
+          echo "VERSION=$version" >> $GITHUB_ENV  # Save version to GITHUB_ENV to use in next steps
+        shell: bash
+
+      - name: Rename wheel file
+        run: |
+            $wheelFile = Get-ChildItem -Path "${{ github.workspace }}\dist\*.whl" | Select-Object -ExpandProperty FullName
+            $newWheelName = "raidionicsseg-${{ env.VERSION }}-py3-none-win_amd64.whl"
+            Rename-Item -Path $wheelFile -NewName $newWheelName
 
       - name: Upload Python wheel
         uses: actions/upload-artifact@v4
