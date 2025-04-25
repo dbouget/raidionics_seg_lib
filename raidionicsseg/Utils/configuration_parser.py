@@ -1,6 +1,7 @@
 import configparser
 import os
 import sys
+import logging
 from aenum import Enum, unique
 
 
@@ -45,11 +46,14 @@ class ConfigResources:
         self.model_folder = None
 
         self.predictions_non_overlapping = True
+        self.predictions_folds_ensembling = False
+        self.predictions_ensembling_strategy = "average"
+        self.predictions_overlapping_ratio = None
         self.predictions_reconstruction_method = None
         self.predictions_reconstruction_order = None
         self.predictions_use_preprocessed_data = False
         self.predictions_test_time_augmentation_iterations = 0
-        self.predictions_test_time_augmentation_fusion_mode = "max"
+        self.predictions_test_time_augmentation_fusion_mode = "average"
 
         self.runtime_lungs_mask_filepath = ''
         self.runtime_brain_mask_filepath = ''
@@ -94,6 +98,23 @@ class ConfigResources:
                 self.predictions_non_overlapping = True if self.config['Runtime']['non_overlapping'].split('#')[0].lower().strip()\
                                                        == 'true' else False
 
+        if self.config.has_option('Runtime', 'folds_ensembling'):
+            if self.config['Runtime']['folds_ensembling'].split('#')[0].strip() != '':
+                self.predictions_folds_ensembling = True if self.config['Runtime']['folds_ensembling'].split('#')[0].lower().strip()\
+                                                       == 'true' else False
+
+        if self.config.has_option('Runtime', 'ensembling_strategy'):
+            if self.config['Runtime']['ensembling_strategy'].split('#')[0].strip() != '':
+                self.predictions_ensembling_strategy = self.config['Runtime']['ensembling_strategy'].split('#')[0].lower().strip()
+        if self.predictions_ensembling_strategy not in ["maximum", "average"]:
+            self.predictions_ensembling_strategy = "average"
+            logging.warning("""Value provided in [Runtime][ensembling_strategy] is not recognized.
+             setting to default parameter with value: {}""".format(self.predictions_ensembling_strategy))
+
+        if self.config.has_option('Runtime', 'overlapping_ratio'):
+            if self.config['Runtime']['overlapping_ratio'].split('#')[0].strip() != '':
+                self.predictions_overlapping_ratio = float(self.config['Runtime']['overlapping_ratio'].split('#')[0].lower().strip())
+
         if self.config.has_option('Runtime', 'reconstruction_method'):
             if self.config['Runtime']['reconstruction_method'].split('#')[0].strip() != '':
                 self.predictions_reconstruction_method = self.config['Runtime']['reconstruction_method'].split('#')[0].strip()
@@ -113,6 +134,10 @@ class ConfigResources:
         if self.config.has_option('Runtime', 'test_time_augmentation_fusion_mode'):
             if self.config['Runtime']['test_time_augmentation_fusion_mode'].split('#')[0].strip() != '':
                 self.predictions_test_time_augmentation_fusion_mode = self.config['Runtime']['test_time_augmentation_fusion_mode'].split('#')[0].strip().lower()
+        if self.predictions_test_time_augmentation_fusion_mode not in ["maximum", "average"]:
+            self.predictions_test_time_augmentation_fusion_mode = "average"
+            logging.warning("""Value provided in [Runtime][test_time_augmentation_fusion_mode] is not recognized.
+             setting to default parameter with value: {}""".format(self.predictions_test_time_augmentation_fusion_mode))
 
         if self.config.has_option('Neuro', 'brain_segmentation_filename'):
             if self.config['Neuro']['brain_segmentation_filename'].split('#')[0].strip() != '':
@@ -131,6 +156,9 @@ class ConfigResources:
 
     def __parse_default_content(self):
         self.training_backend = 'TF'
+        self.imaging_modality = "MRI"
+        self.task = "segmentation"
+
         if self.pre_processing_config.has_option('Default', 'imaging_modality'):
             param = self.pre_processing_config['Default']['imaging_modality'].split('#')[0].strip()
             modality = get_type_from_string(ImagingModalityType, param)
@@ -143,6 +171,10 @@ class ConfigResources:
         if self.pre_processing_config.has_option('Default', 'training_backend'):
             if self.pre_processing_config['Default']['training_backend'].split('#')[0].strip() != '':
                 self.training_backend = self.pre_processing_config['Default']['training_backend'].split('#')[0].strip()
+
+        if self.pre_processing_config.has_option('Default', 'task'):
+            if self.pre_processing_config['Default']['task'].split('#')[0].strip() != '':
+                self.task = self.pre_processing_config['Default']['task'].split('#')[0].strip()
 
     def __parse_training_content(self) -> None:
         """
@@ -160,7 +192,8 @@ class ConfigResources:
         self.training_patch_offset = None
         self.training_optimal_thresholds = None
         self.training_deep_supervision = False
-        self.training_softmax_layer_included = True
+        self.training_activation_layer_included = True
+        self.training_activation_layer_type = "softmax"
 
         if self.pre_processing_config.has_option('Training', 'nb_classes'):
             self.training_nb_classes = int(self.pre_processing_config['Training']['nb_classes'].split('#')[0])
@@ -189,9 +222,13 @@ class ConfigResources:
             if self.pre_processing_config['Training']['deep_supervision'].split('#')[0].strip() != '':
                 self.training_deep_supervision = True if self.pre_processing_config['Training']['deep_supervision'].split('#')[0].strip().lower() == 'true' else False
 
-        if self.pre_processing_config.has_option('Training', 'softmax_layer_included'):
-            if self.pre_processing_config['Training']['softmax_layer_included'].split('#')[0].strip() != '':
-                self.training_softmax_layer_included = True if self.pre_processing_config['Training']['softmax_layer_included'].split('#')[0].strip().lower() == 'true' else False
+        if self.pre_processing_config.has_option('Training', 'activation_layer_included'):
+            if self.pre_processing_config['Training']['activation_layer_included'].split('#')[0].strip() != '':
+                self.training_activation_layer_included = True if self.pre_processing_config['Training']['activation_layer_included'].split('#')[0].strip().lower() == 'true' else False
+
+        if self.pre_processing_config.has_option('Training', 'activation_layer_type'):
+            if self.pre_processing_config['Training']['activation_layer_type'].split('#')[0].strip() != '':
+                self.training_activation_layer_type = self.pre_processing_config['Training']['activation_layer_type'].split('#')[0].strip()
 
     def __parse_pre_processing_content(self) -> None:
         """
@@ -224,6 +261,7 @@ class ConfigResources:
         self.swap_training_input = False
         self.normalization_method = None
         self.preprocessing_number_inputs = None
+        self.preprocessing_inputs_sub_indexes = None
         self.preprocessing_channels_order = 'channels_last'
 
         if self.pre_processing_config.has_option('PreProcessing', 'output_spacing'):
@@ -264,6 +302,10 @@ class ConfigResources:
         if self.pre_processing_config.has_option('PreProcessing', 'number_inputs'):
             if self.pre_processing_config['PreProcessing']['number_inputs'].split('#')[0].strip() != '':
                 self.preprocessing_number_inputs = int(self.pre_processing_config['PreProcessing']['number_inputs'].split('#')[0].strip())
+
+        if self.pre_processing_config.has_option('PreProcessing', 'diffloader_pairs'):
+            if self.pre_processing_config['PreProcessing']['diffloader_pairs'].split('#')[0].strip() != '':
+                self.preprocessing_inputs_sub_indexes = [[int(x.split(',')[0]), int(x.split(',')[1])] for x in self.pre_processing_config['PreProcessing']['diffloader_pairs'].split('#')[0].strip().split(';')]
 
         if self.pre_processing_config.has_option('PreProcessing', 'channels_order'):
             if self.pre_processing_config['PreProcessing']['channels_order'].split('#')[0].strip() != '':

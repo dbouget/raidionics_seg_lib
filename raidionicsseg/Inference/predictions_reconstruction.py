@@ -35,31 +35,40 @@ def reconstruct_post_predictions(predictions: np.ndarray, parameters: ConfigReso
 .       Predictions expressed in the original patient space.
     """
     logging.debug("Reconstructing predictions.")
+    nb_classes = parameters.training_nb_classes
+    final_activation_type = parameters.training_activation_layer_type
+    reconstruction_order = parameters.predictions_reconstruction_order
     reconstruction_method = parameters.predictions_reconstruction_method
     probability_thresholds = parameters.training_optimal_thresholds
     swap_input = parameters.swap_training_input
 
-    if parameters.predictions_reconstruction_order == 'resample_first':
-        resampled_predictions = __resample_predictions(predictions=predictions, crop_bbox=crop_bbox, nib_volume=nib_volume,
+    if reconstruction_order == 'resample_first':
+        resampled_predictions = __resample_predictions(predictions=predictions, nb_classes=nb_classes,
+                                                       crop_bbox=crop_bbox, nib_volume=nib_volume,
                                                        resampled_volume=resampled_volume,
                                                        reconstruction_method=reconstruction_method,
+                                                       reconstruction_order=reconstruction_order,
                                                        swap_input=swap_input)
 
-        final_predictions = __cut_predictions(predictions=resampled_predictions, reconstruction_method=reconstruction_method,
-                                              probability_threshold=probability_thresholds)
+        final_predictions = __cut_predictions(predictions=resampled_predictions,
+                                              reconstruction_method=reconstruction_method,
+                                              probability_threshold=probability_thresholds,
+                                              final_activation_type=final_activation_type)
     else:
         thresh_predictions = __cut_predictions(predictions=predictions, reconstruction_method=reconstruction_method,
-                                              probability_threshold=probability_thresholds)
-        final_predictions = __resample_predictions(predictions=thresh_predictions, crop_bbox=crop_bbox,
-                                                   nib_volume=nib_volume,
+                                               probability_threshold=probability_thresholds,
+                                               final_activation_type=final_activation_type)
+        final_predictions = __resample_predictions(predictions=thresh_predictions, nb_classes=nb_classes,
+                                                   crop_bbox=crop_bbox, nib_volume=nib_volume,
                                                    resampled_volume=resampled_volume,
                                                    reconstruction_method=reconstruction_method,
+                                                   reconstruction_order=reconstruction_order,
                                                    swap_input=swap_input)
 
     return final_predictions
 
 
-def __cut_predictions(predictions, probability_threshold, reconstruction_method):
+def __cut_predictions(predictions, probability_threshold, reconstruction_method, final_activation_type="softmax"):
     try:
         logging.debug("Clipping predictions with {}.".format(reconstruction_method))
         if reconstruction_method == 'probabilities':
@@ -75,7 +84,13 @@ def __cut_predictions(predictions, probability_threshold, reconstruction_method)
                 channel[channel >= probability_threshold[c]] = 1
                 final_predictions[:, :, :, c] = channel.astype('uint8')
         elif reconstruction_method == 'argmax':
-            final_predictions = np.argmax(predictions, axis=-1).astype('uint8')
+            if final_activation_type == "sigmoid":
+                new_predictions = np.zeros(predictions.shape[:-1] + (predictions.shape[-1] + 1,))
+                new_predictions[..., 0][np.max(predictions, axis=-1) <= 0.5] = 1
+                new_predictions[..., 1:] = predictions
+                final_predictions = np.argmax(new_predictions, axis=-1).astype('uint8')
+            else:
+                final_predictions = np.argmax(predictions, axis=-1).astype('uint8')
         else:
             raise ValueError('Unknown reconstruction_method with {}!'.format(reconstruction_method))
     except Exception as e:
@@ -85,13 +100,13 @@ def __cut_predictions(predictions, probability_threshold, reconstruction_method)
     return final_predictions
 
 
-def __resample_predictions(predictions, crop_bbox, nib_volume, resampled_volume, reconstruction_method, swap_input):
+def __resample_predictions(predictions, nb_classes, crop_bbox, nib_volume, resampled_volume, reconstruction_method,
+                           reconstruction_order, swap_input):
     try:
         logging.debug("Resampling predictions with {}.".format(reconstruction_method))
         labels_type = predictions.dtype
         order = 0 if labels_type == np.uint8 else 1
         data = deepcopy(predictions).astype(labels_type)
-        nb_classes = predictions.shape[-1]
 
         if swap_input:
             if len(data.shape) == 4:
@@ -127,7 +142,7 @@ def __resample_predictions(predictions, crop_bbox, nib_volume, resampled_volume,
                 new_data = data
 
         # Resampling to the size and spacing of the original input volume
-        if reconstruction_method == 'probabilities' or reconstruction_method == 'thresholding':
+        if reconstruction_method == 'probabilities' or reconstruction_method == 'thresholding' or (reconstruction_method == "argmax" and reconstruction_order == "resample_first"):
             resampled_predictions = np.zeros(nib_volume.get_fdata().shape + (nb_classes,)).astype(labels_type)
             for c in range(0, nb_classes):
                 img = nib.Nifti1Image(new_data[..., c].astype(labels_type), affine=resampled_volume.affine)

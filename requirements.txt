@@ -1,8 +1,0 @@
-nibabel
-h5py
-pandas
-SimpleITK
-aenum
-scikit-image
-tqdm
-numpy>=1.21.6,<=1.26.4

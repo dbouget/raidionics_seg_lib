@@ -5,6 +5,7 @@ from typing import List
 from copy import deepcopy
 from abc import ABC, abstractmethod
 from scipy.ndimage import zoom, rotate
+from ..Utils.configuration_parser import ImagingModalityType
 
 
 class Transform(ABC):
@@ -87,11 +88,66 @@ class Zoom(Transform):
     def transform(self, data, direction):
         data_aug = deepcopy(data)
         if direction == "forward":
-            if self.prob_zoom > 0.5:
-                data_aug = zoom(data_aug, self.zoom_ratio)
+            zoom_ratio_axis = [self.zoom_ratio] * (len(data.shape) - 2) + [1.]
+            if self.prob_zoom > 0.:
+                data_aug = zoom(data_aug[0, ...], zoom_ratio_axis)
+                data_aug = np.expand_dims(data_aug, axis=0)
+                if self.zoom_ratio > 1.:
+                    crop_data_aug = np.zeros(data.shape, dtype=np.float32)
+                    crop_limits = [int((data_aug.shape[1] - data.shape[1])/2),
+                                   (data_aug.shape[1] - data.shape[1]) - int((data_aug.shape[1] - data.shape[1])/2),
+                                   int((data_aug.shape[2] - data.shape[2]) / 2),
+                                   (data_aug.shape[2] - data.shape[2]) - int((data_aug.shape[2] - data.shape[2]) / 2),
+                                   int((data_aug.shape[3] - data.shape[3]) / 2),
+                                   (data_aug.shape[3] - data.shape[3]) - int((data_aug.shape[3] - data.shape[3]) / 2)
+                                   ]
+                    crop_data_aug[:] = data_aug[:, crop_limits[0]:data_aug.shape[1] - crop_limits[1],
+                                       crop_limits[2]:data_aug.shape[2] - crop_limits[3],
+                                       crop_limits[4]:data_aug.shape[3] - crop_limits[5], :]
+                    data_aug = crop_data_aug
+                elif self.zoom_ratio < 1.:
+                    pad_data_aug = np.zeros(data.shape, dtype=np.float32)
+                    pad_limits = [int((data.shape[1] - data_aug.shape[1]) / 2),
+                                   (data.shape[1] - data_aug.shape[1]) - int((data.shape[1] - data_aug.shape[1]) / 2),
+                                   int((data.shape[2] - data_aug.shape[2]) / 2),
+                                   (data.shape[2] - data_aug.shape[2]) - int((data.shape[2] - data_aug.shape[2]) / 2),
+                                   int((data.shape[3] - data_aug.shape[3]) / 2),
+                                   (data.shape[3] - data_aug.shape[3]) - int((data.shape[3] - data_aug.shape[3]) / 2)
+                                   ]
+                    pad_data_aug[:, pad_limits[0]:data.shape[1] - pad_limits[1],
+                                       pad_limits[2]:data.shape[2] - pad_limits[3],
+                                       pad_limits[4]:data.shape[3] - pad_limits[5], :] = data_aug[:]
+                    data_aug = pad_data_aug
         else:
-            if self.prob_zoom > 0.5:
-                data_aug = zoom(data_aug, 1 / self.zoom_ratio)
+            if self.prob_zoom > 0.:
+                zoom_ratio_axis = [1/self.zoom_ratio] * (len(data.shape) - 1) + [1.]
+                data_aug = zoom(data_aug, zoom_ratio_axis)
+                if self.zoom_ratio < 1.:
+                    crop_data_aug = np.zeros(data.shape, dtype=np.float32)
+                    crop_limits = [int((data_aug.shape[0] - data.shape[0])/2),
+                                   (data_aug.shape[0] - data.shape[0]) - int((data_aug.shape[0] - data.shape[0])/2),
+                                   int((data_aug.shape[1] - data.shape[1]) / 2),
+                                   (data_aug.shape[1] - data.shape[1]) - int((data_aug.shape[1] - data.shape[1]) / 2),
+                                   int((data_aug.shape[2] - data.shape[2]) / 2),
+                                   (data_aug.shape[2] - data.shape[2]) - int((data_aug.shape[2] - data.shape[2]) / 2)
+                                   ]
+                    crop_data_aug[:] = data_aug[crop_limits[0]:data_aug.shape[0] - crop_limits[1],
+                                       crop_limits[2]:data_aug.shape[1] - crop_limits[3],
+                                       crop_limits[4]:data_aug.shape[2] - crop_limits[5], :]
+                    data_aug = crop_data_aug
+                elif self.zoom_ratio > 1.:
+                    pad_data_aug = np.zeros(data.shape, dtype=np.float32)
+                    pad_limits = [int((data.shape[0] - data_aug.shape[0]) / 2),
+                                   (data.shape[0] - data_aug.shape[0]) - int((data.shape[0] - data_aug.shape[0]) / 2),
+                                   int((data.shape[1] - data_aug.shape[1]) / 2),
+                                   (data.shape[1] - data_aug.shape[1]) - int((data.shape[1] - data_aug.shape[1]) / 2),
+                                   int((data.shape[2] - data_aug.shape[2]) / 2),
+                                   (data.shape[2] - data_aug.shape[2]) - int((data.shape[2] - data_aug.shape[2]) / 2)
+                                   ]
+                    pad_data_aug[pad_limits[0]:data.shape[0] - pad_limits[1],
+                                       pad_limits[2]:data.shape[1] - pad_limits[3],
+                                       pad_limits[4]:data.shape[2] - pad_limits[5], :] = data_aug[:]
+                    data_aug = pad_data_aug
         return data_aug
 
 
@@ -117,11 +173,11 @@ class Rotate(Transform):
         data_aug = deepcopy(data)
         if direction == "forward":
             if self.prob_rotate1 > 0.5:
-                data_aug = rotate(data_aug, self.rotation_angle1, axes=(0, 1), reshape=False)
+                data_aug = rotate(data_aug, self.rotation_angle1, axes=(1, 2), reshape=False)
             if self.prob_rotate2 > 0.5:
-                data_aug = rotate(data_aug, self.rotation_angle2, axes=(0, 2), reshape=False)
+                data_aug = rotate(data_aug, self.rotation_angle2, axes=(1, 3), reshape=False)
             if self.prob_rotate3 > 0.5:
-                data_aug = rotate(data_aug, self.rotation_angle3, axes=(1, 2), reshape=False)
+                data_aug = rotate(data_aug, self.rotation_angle3, axes=(2, 3), reshape=False)
         else:
             if self.prob_rotate3 > 0.5:
                 data_aug = rotate(data_aug, -self.rotation_angle3, axes=(1, 2), reshape=False)
@@ -132,7 +188,27 @@ class Rotate(Transform):
         return data_aug
 
 
-def generate_augmentations() -> List[Transform]:
+class GammaContrast(Transform):
+    def __init__(self):
+        self.prob = 0
+        self.gamma = 0
+        self.randomize()
+
+    def randomize(self):
+        self.prob= random.uniform(0, 1)
+        self.gamma = random.uniform(0.25, 1.75)
+
+    def transform(self, data, direction):
+        data_aug = deepcopy(data)
+        if direction == "forward":
+            if self.prob > 0.5:
+                data_aug = np.power(data_aug, self.gamma)
+        else:
+            pass
+
+        return data_aug
+
+def generate_augmentations(modality: ImagingModalityType = ImagingModalityType.MRI) -> List[Transform]:
     """
     Creates and randomizes a list of transforms.
 
@@ -147,6 +223,11 @@ def generate_augmentations() -> List[Transform]:
     aug_list.append(zo)
     ro = Rotate()
     aug_list.append(ro)
+
+    ## @TODO. Intensity-based augmentation cannot be performed here (i.e., after intensity normalization).
+    # if modality == ImagingModalityType.MRI:
+    #     gam = GammaContrast()
+    #     aug_list.append(gam)
 
     return aug_list
 
@@ -168,9 +249,9 @@ def run_augmentations(aug_list: List[Transform], data: np.ndarray, direction: st
     data_aug = deepcopy(data)
     if direction == "forward":
         for l in aug_list:
-            data_aug = l.transform(data, direction)
+            data_aug = l.transform(data_aug, direction)
     else:
         for l in reversed(aug_list):
-            data_aug = l.transform(data, direction)
+            data_aug = l.transform(data_aug, direction)
 
     return data_aug

@@ -1,0 +1,64 @@
+name: Build & Publish Wheels
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24-04, windows-2019, windows-2022, macos-13, macos-14, macos-15]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install cibuildwheel
+        run: pip install cibuildwheel
+
+      - name: Build wheels
+        run: cibuildwheel --output-dir dist
+        env:
+          # Platform-specific Python versions
+          CIBW_BUILD: >-
+            ${{ 
+              startsWith(matrix.os, 'windows-') && 'cp38-* cp39-* cp310-* cp311-* cp312-*' ||
+              startsWith(matrix.os, 'ubuntu-') && 'cp38-* cp39-* cp310-* cp311-* cp312-*' ||
+              matrix.os == 'macos-13' && 'cp38-* cp39-* cp310-* cp311-* cp312-*' ||
+              matrix.os == 'macos-14' && 'cp310-* cp311-*' ||
+              matrix.os == 'macos-15' && 'cp310-* cp311-*' ||
+            }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.os }}
+          path: dist/
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Merge all wheels
+        run: |
+          mkdir -p final_dist
+          find dist -name "*.whl" -exec cp {} final_dist/ \;
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          packages-dir: final_dist

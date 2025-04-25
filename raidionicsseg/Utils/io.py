@@ -52,7 +52,8 @@ def dump_predictions(predictions: np.ndarray, parameters: ConfigResources, nib_v
         class_names = parameters.training_class_names
 
         if len(predictions.shape) == 4:
-            for c in range(1, predictions.shape[-1]):
+            first_class = 0 if parameters.training_activation_layer_type == "sigmoid" else 1
+            for c in range(first_class, predictions.shape[-1]):
                 img = nib.Nifti1Image(predictions[..., c], affine=nib_volume.affine, header=nib_volume.header)
                 predictions_output_path = os.path.join(storage_path, naming_suffix + '_' + class_names[c] + '.nii.gz')
                 os.makedirs(os.path.dirname(predictions_output_path), exist_ok=True)
@@ -70,6 +71,8 @@ def dump_predictions(predictions: np.ndarray, parameters: ConfigResources, nib_v
 def dump_classification_predictions(predictions: np.ndarray, parameters: ConfigResources, storage_path: str) -> None:
     """
     Saves the classification predictions on disk.
+    @TODO. Should have some kind of name for the classification target, to append to the file name, so that if multiple
+    it won't be an issue for the RADS lib or Raidionics.
 
     Parameters
     ----------
@@ -84,14 +87,23 @@ def dump_classification_predictions(predictions: np.ndarray, parameters: ConfigR
 
     """
     logging.debug("Writing predictions to files...")
+    reconstruction_method = parameters.predictions_reconstruction_method
+    classification_task = parameters.training_class_names[0]
     try:
         class_names = parameters.training_class_names
-        prediction_filename = os.path.join(storage_path, 'classification-results.csv')
-        with open(prediction_filename, 'w') as file:
-            file.write("Class, Prediction\n")
-            for c, cla in enumerate(class_names):
-                file.write("{}, {}\n".format(cla, predictions[c]))
-
+        if reconstruction_method == "probabilities":
+            prediction_filename = os.path.join(storage_path, 'classification-results.csv')
+            with open(prediction_filename, 'w') as file:
+                file.write("Class, Prediction\n")
+                for c, cla in enumerate(class_names):
+                    file.write("{}, {}\n".format(cla, predictions[c]))
+        elif reconstruction_method == "argmax":
+            prediction_filename = os.path.join(storage_path, 'classification-label.csv')
+            with open(prediction_filename, 'w') as file:
+                file.write("Class: {}\n".format(class_names[np.argmax(predictions)]))
+        else:
+            raise ValueError("No classification reconstruction method for {}. \n "
+                             "Please select a valid method.".format(reconstruction_method))
         file.close()
     except Exception as e:
         logging.error("Following error collected during model predictions dump on disk: \n {}".format(traceback.format_exc()))

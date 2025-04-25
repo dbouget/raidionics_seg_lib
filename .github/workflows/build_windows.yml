@@ -15,7 +15,7 @@ jobs:
         include:
           - os: windows-2019
             TARGET: windows
-            CMD_BUILD: python setup.py bdist_wheel --plat-name win_amd64
+            CMD_BUILD: python -m build --wheel
 
 #          - os: windows-2019
 #            TARGET: windows
@@ -29,7 +29,9 @@ jobs:
           python-version: "3.9"
 
       - name: Install dependencies
-        run: pip install wheel setuptools
+        run: |
+            pip install --upgrade pip
+            pip install build
 
       - name: Built wheel for ${{matrix.TARGET}}
         run: ${{matrix.CMD_BUILD}}
@@ -46,7 +48,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-2019, windows-2022]
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -61,8 +63,9 @@ jobs:
             name: "Python wheel"
 
         - name: Install wheel
-          run: python.exe -m pip install --upgrade pip
-               pip install --find-links=. --no-cache-dir --force-reinstall raidionicsseg-*
+          run: |
+              python.exe -m pip install --upgrade pip
+              pip install --find-links=. --no-cache-dir --force-reinstall raidionicsseg-*
           shell: bash
 
         - name: Test CLI
@@ -71,16 +74,7 @@ jobs:
         - name: Clone repo
           uses: actions/checkout@v4
 
-        - name: Inference unit test with TensorFlow model
-          run: cd ${{github.workspace}}/tests && python inference_test.py
-
-        - name: Inference unit test with PyTorch model
-          run: cd ${{github.workspace}}/tests && python inference_test_torch_model.py
-
-        - name: Inference unit test with test-time augmentation
-          run: cd ${{github.workspace}}/tests && python inference_test_time_augmentation.py
-
-#        - name: Test with pytest
-#          run: |
-#            pip install pytest
-#            pytest --verbose tests/
+        - name: Integration tests
+          run: |
+              pip install pytest pytest-cov pytest-timeout requests
+              pytest -vvv --cov=raidionicsseg ${{github.workspace}}/tests/generic_tests --cov-report=xml --timeout=1000 --log-cli-level=DEBUG

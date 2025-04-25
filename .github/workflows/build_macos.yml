@@ -16,9 +16,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: macos-11
+          - os: macos-13
             TARGET: macos
-            CMD_BUILD: python setup.py bdist_wheel --plat-name macosx_10_15_x86_64
+            CMD_BUILD: python -m build --wheel
 
     steps:
       - uses: actions/checkout@v4
@@ -28,7 +28,9 @@ jobs:
           python-version: "3.9"
 
       - name: Install dependencies
-        run: pip install wheel setuptools
+        run: |
+            pip install --upgrade pip
+            pip install build
 
       - name: Built wheel for ${{matrix.TARGET}}
         run: ${{matrix.CMD_BUILD}}
@@ -44,8 +46,8 @@ jobs:
     needs: build
     strategy:
       matrix:
-        os: [macos-11, macos-12]
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        os: [macos-13]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -60,8 +62,9 @@ jobs:
             name: "Python wheel"
 
         - name: Install wheel
-          run: pip install --upgrade pip
-               pip install --find-links=${{github.workspace}} --no-cache-dir --force-reinstall raidionicsseg-*
+          run: |
+              pip install --upgrade pip
+              pip install --find-links=${{github.workspace}} --no-cache-dir --force-reinstall raidionicsseg-*
           shell: bash
 
         - name: Test CLI
@@ -70,16 +73,7 @@ jobs:
         - name: Clone repo
           uses: actions/checkout@v4
 
-        - name: Inference unit test with TensorFlow model
-          run: cd ${{github.workspace}}/tests && python inference_test.py
-
-        - name: Inference unit test with PyTorch model
-          run: cd ${{github.workspace}}/tests && python inference_test_torch_model.py
-
-        - name: Inference unit test with test-time augmentation
-          run: cd ${{github.workspace}}/tests && python inference_test_time_augmentation.py
-
-#        - name: Test with pytest
-#          run: |
-#            pip install pytest
-#            pytest --verbose tests/
+        - name: Integration tests
+          run: |
+              pip install pytest pytest-cov pytest-timeout requests
+              pytest -vvv --cov=raidionicsseg ${{github.workspace}}/tests/generic_tests --cov-report=xml --timeout=1000 --log-cli-level=DEBUG

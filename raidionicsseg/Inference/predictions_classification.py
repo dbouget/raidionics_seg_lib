@@ -12,7 +12,7 @@ from ..Utils.volume_utilities import padding_for_inference, padding_for_inferenc
 from ..Utils.configuration_parser import ConfigResources
 
 
-def run_predictions(data: np.ndarray, models_path: List[str], parameters: ConfigResources) -> np.ndarray:
+def run_predictions_classification(data: np.ndarray, models_path: List[str], parameters: ConfigResources) -> np.ndarray:
     """
     Performs inference using the specified model and TensorFlow as inference engine.
 
@@ -62,7 +62,7 @@ def run_predictions(data: np.ndarray, models_path: List[str], parameters: Config
                 data_aug = run_augmentations(aug_list, data, "forward")
                 aug_result = None
                 if parameters.new_axial_size and len(parameters.new_axial_size) == 3:
-                    aug_result = __run_predictions_whole(data=data_aug, model=model, parameters=parameters,
+                    aug_result = __run_predictions_whole(data=data_aug, model=model, model_outputs=model_outputs,
                                                            deep_supervision=parameters.training_deep_supervision)
                 elif parameters.new_axial_size and len(parameters.new_axial_size) == 2:
                     aug_result = __run_predictions_slabbed(data=data_aug, model=model, model_outputs=model_outputs,
@@ -91,7 +91,7 @@ def run_predictions(data: np.ndarray, models_path: List[str], parameters: Config
         return ens_result
 
 
-def __run_predictions_whole(data: np.ndarray, model, parameters: ConfigResources,
+def __run_predictions_whole(data: np.ndarray, model, parameters,
                             deep_supervision: bool = False) -> np.ndarray:
     """
     Performs inference using the specified model using the whole input at once.
@@ -102,8 +102,8 @@ def __run_predictions_whole(data: np.ndarray, model, parameters: ConfigResources
         Pre-processed patient MRI, ready to be used by the inference engine.
     model : obj
         Loaded ONNX model.
-    parameters: ConfigResources
-        Configuration parameters regarding model training or user choices.
+    parameters:
+
     deep_supervision : bool
         Boolean flag to indicate if deep supervision is used in the model.
     Returns
@@ -114,38 +114,31 @@ def __run_predictions_whole(data: np.ndarray, model, parameters: ConfigResources
     try:
         logging.debug("Starting inference in full volume mode.")
         if parameters.preprocessing_channels_order == "channels_first":
-            data = np.transpose(data, axes=(0, 4, 1, 2, 3))
+            model_input = np.transpose(data, axes=(0, 4, 1, 2, 3))
         if parameters.swap_training_input and parameters.preprocessing_channels_order == "channels_first":
-            data = np.transpose(data, axes=(0, 1, 4, 2, 3))
+            model_input = np.transpose(data, axes=(0, 1, 4, 2, 3))
         elif parameters.swap_training_input and parameters.preprocessing_channels_order == "channels_last":
-            data = np.transpose(data, axes=(0, 3, 1, 2, 4))
-
-        predictions = model.run(None, {"input": data})
+            model_input = np.transpose(data, axes=(0, 3, 1, 2, 4))
+        # model_input = np.expand_dims(patch, axis=0)
+        predictions = model.run(None, {"input": model_input})
+        # @TODO. Have to test with a non deep supervision model with ONNX, to do array indexing always
         if deep_supervision or parameters.training_backend == "Torch":
             predictions = predictions[0]
-
-        if parameters.preprocessing_channels_order == "channels_first":
-            predictions = np.transpose(predictions, axes=(0, 2, 3, 4, 1))
-        if parameters.swap_training_input:
-            predictions = np.transpose(predictions, axes=(0, 2, 3, 1, 4))
 
         # For PyTorch-trained models, the final activation layer is often not bundled with the model
         if not parameters.training_activation_layer_included:
             from ..Utils.volume_utilities import final_activation
             predictions = final_activation(predictions, act_type=parameters.training_activation_layer_type)
-
     except Exception as e:
         logging.error("Following error collected during model inference (whole mode): \n {}".format(traceback.format_exc()))
         raise ValueError("Segmentation inference (whole mode) could not fully proceed.")
 
-    # The batch size dimension can be removed at this point.
     return predictions[0]
 
 def __run_predictions_slabbed(data: np.ndarray, model, model_outputs: List[str], parameters: ConfigResources,
                               deep_supervision: bool = False) -> np.ndarray:
     """
     @TODO. Slab-wise inference working for axial-based slabbing, not tested for the other use-cases.
-    @TODO. Also not tested for PyTorch but will most likely never be a use-case now that the patch-wise method is stable.
     """
     try:
         logging.debug("Starting inference in slab-wise mode.")
@@ -292,7 +285,7 @@ def __run_predictions_patch(data: np.ndarray, model, parameters: ConfigResources
         data, extra_dims = padding_for_inference_both_ends_patchwise(data, patch_size)
 
         # Placeholder for the final predictions -- the actual probabilities
-        final_result = np.full(data.shape[1: -1] + (parameters.training_nb_classes,), -100.0, dtype=np.float32)
+        final_result = []
 
         all_patch_boundaries = []
         for x in range(0, int(np.ceil(data.shape[1] / (patch_size[0] - patch_offset[0])))):
@@ -342,26 +335,12 @@ def __run_predictions_patch(data: np.ndarray, model, parameters: ConfigResources
             if deep_supervision or parameters.training_backend == "Torch":
                 patch_pred = patch_pred[0]
 
-            if parameters.preprocessing_channels_order == "channels_first":
-                patch_pred = np.transpose(patch_pred, axes=(0, 2, 3, 4, 1))
-            if parameters.swap_training_input:
-                patch_pred = np.transpose(patch_pred, axes=(0, 2, 3, 1, 4))
-
-            # In case of overlapping inference, taking the maximum probabilities overall.
-            final_result[patch_boundaries_x[0]:patch_boundaries_x[1],
-            patch_boundaries_y[0]:patch_boundaries_y[1],
-            patch_boundaries_z[0]:patch_boundaries_z[1], :] = np.maximum(np.squeeze(patch_pred, axis=0),
-                                                                         final_result[patch_boundaries_x[0]:patch_boundaries_x[1],
-                                                                         patch_boundaries_y[0]:patch_boundaries_y[1],
-                                                                         patch_boundaries_z[0]:patch_boundaries_z[1], :])
-        final_result = final_result[extra_dims[0]:final_result.shape[0] - extra_dims[1],
-                       extra_dims[2]:final_result.shape[1] - extra_dims[3],
-                       extra_dims[4]:final_result.shape[2] - extra_dims[5], :]
-
-        # For PyTorch-trained models, the final activation layer is often not bundled with the model
-        if not parameters.training_activation_layer_included:
-            from ..Utils.volume_utilities import final_activation
-            final_result = final_activation(final_result, act_type=parameters.training_activation_layer_type)
+            # For PyTorch-trained models, the final activation layer is often not bundled with the model
+            if not parameters.training_activation_layer_included:
+                from ..Utils.volume_utilities import final_activation
+                patch_pred = final_activation(patch_pred, act_type=parameters.training_activation_layer_type)
+            final_result.append(patch_pred)
+        final_result = np.mean(final_result, axis=0)
 
     except Exception as e:
         logging.error(
