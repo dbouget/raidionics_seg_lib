@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel", "cibuildwheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "raidionicsseg"
+version = "1.4.0"
+description = "Raidionics segmentation and classification back-end with ONNX runtime"
+readme = "README.md"
+license = { text = "BSD-2-Clause" }
+requires-python = ">=3.8"
+authors = [
+  { name = "David Bouget", email = "david.bouget@sintef.no" }
+]
+
+dependencies = [
+  "nibabel",
+  "h5py",
+  "pandas",
+  "SimpleITK",
+  "aenum",
+  "scikit-image",
+  "tqdm",
+  "numpy",
+  "onnxruntime",
+  "numpy>=1.21.6,<2.0; platform_system=='Darwin' and platform_machine=='arm64'",
+  "onnxruntime-silicon; platform_system=='Darwin' and platform_machine=='arm64'",
+]
+
+[project.scripts]
+raidionicsseg = "raidionicsseg.__main__:main"
+
+[tool.setuptools.packages.find]
+include = [
+  "raidionicsseg",
+  "raidionicsseg.Utils",
+  "raidionicsseg.PreProcessing",
+  "raidionicsseg.Inference",
+  "tests",
+]

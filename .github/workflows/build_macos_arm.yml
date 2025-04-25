@@ -18,7 +18,7 @@ jobs:
         include:
           - os: macos-14
             TARGET: macos
-            CMD_BUILD: python setup.py bdist_wheel --plat-name macosx_11_0_arm64
+            CMD_BUILD: python -m build --wheel
 
     steps:
       - uses: actions/checkout@v4

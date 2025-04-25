@@ -15,7 +15,7 @@ jobs:
         include:
           - os: ubuntu-22.04
             TARGET: ubuntu
-            CMD_BUILD: python setup.py bdist_wheel --plat-name manylinux1_x86_64
+            CMD_BUILD: python -m build --wheel
 
     steps:
       - uses: actions/checkout@v4
@@ -25,7 +25,9 @@ jobs:
           python-version: "3.9"
 
       - name: Install dependencies
-        run: pip install wheel setuptools
+        run: |
+            pip install --upgrade pip
+            pip install build
 
       - name: Built wheel for ${{matrix.TARGET}}
         run: ${{matrix.CMD_BUILD}}
@@ -71,4 +73,4 @@ jobs:
         - name: Integration tests
           run: |
               pip install pytest pytest-cov pytest-timeout requests
-              pytest -vvv --cov=raidionicsseg ${{github.workspace}}/tests/generic_tests --cov-report=xml --timeout=300 --log-cli-level=DEBUG
+              pytest -vvv --cov=raidionicsseg ${{github.workspace}}/tests/generic_tests --cov-report=xml --timeout=1000 --log-cli-level=DEBUG

@@ -15,7 +15,7 @@ jobs:
         include:
           - os: windows-2019
             TARGET: windows
-            CMD_BUILD: python setup.py bdist_wheel --plat-name win_amd64
+            CMD_BUILD: python -m build --wheel
 
 #          - os: windows-2019
 #            TARGET: windows
