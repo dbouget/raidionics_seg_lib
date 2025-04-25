@@ -49,7 +49,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-14, macos-15]
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.10", "3.11"]
     runs-on: ${{ matrix.os }}
 
     steps:
