@@ -47,9 +47,20 @@ def test_inference_cli(data_test3):
                                        '{config}'.format(config=seg_config_filename),
                                        '--verbose', 'debug'], shell=True)
             elif platform.system() == 'Darwin' and platform.processor() == 'arm':
-                subprocess.check_call(['python3', '-m', 'raidionicsseg',
-                                       '{config}'.format(config=seg_config_filename),
-                                       '--verbose', 'debug'])
+                # subprocess.check_call(['python3', '-m', 'raidionicsseg',
+                #                        '{config}'.format(config=seg_config_filename),
+                #                        '--verbose', 'debug'])
+                result = subprocess.run(['python3', '-m', 'raidionicsseg',
+                     '{config}'.format(config=seg_config_filename),
+                     '--verbose', 'debug'],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+
+                logging.info("STDOUT:", result.stdout)
+                logging.error("STDERR:", result.stderr)
+                result.check_returncode()
             else:
                 subprocess.check_call(['raidionicsseg',
                                        '{config}'.format(config=seg_config_filename),
