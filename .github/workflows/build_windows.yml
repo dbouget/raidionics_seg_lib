@@ -15,11 +15,7 @@ jobs:
         include:
           - os: windows-2019
             TARGET: windows
-            CMD_BUILD: python -m build --wheel --plat-name win_amd64
-
-#          - os: windows-2019
-#            TARGET: windows
-#            CMD_BUILD: python setup_sse2.py bdist_wheel --plat-name win_amd64_sse2
+            CMD_BUILD: python -m build --wheel --no-isolation
 
     steps:
       - uses: actions/checkout@v4

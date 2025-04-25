@@ -15,7 +15,7 @@ jobs:
         include:
           - os: ubuntu-22.04
             TARGET: ubuntu
-            CMD_BUILD: python -m build --wheel --plat-name manylinux1_x86_64
+            CMD_BUILD: python -m build --wheel --no-isolation
 
     steps:
       - uses: actions/checkout@v4
