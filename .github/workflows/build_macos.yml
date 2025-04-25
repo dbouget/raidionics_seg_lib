@@ -30,16 +30,21 @@ jobs:
       - name: Install dependencies
         run: |
             pip install --upgrade pip
-            pip install build
+            pip install build delocate
 
       - name: Built wheel for ${{matrix.TARGET}}
         run: ${{matrix.CMD_BUILD}}
 
-      - name: Upload Python wheel
+      - name: Fix wheel with delocate
+        run: |
+          mkdir -p wheelhouse
+          delocate-wheel -w wheelhouse dist/*.whl
+
+      - name: Upload platform-specific wheel
         uses: actions/upload-artifact@v4
         with:
           name: Python wheel
-          path: ${{github.workspace}}/dist/raidionicsseg-*.whl
+          path: wheelhouse/*.whl
           if-no-files-found: error
 
   test:
