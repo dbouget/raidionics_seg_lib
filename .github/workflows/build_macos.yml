@@ -35,7 +35,7 @@ jobs:
       - name: Built wheel for ${{matrix.TARGET}}
         run: |
             ${{matrix.CMD_BUILD}}
-            python -m wheel tags --platform-tag macosx_10_15_x86_64 *-none-any.whl
+            python -m wheel tags --platform-tag macosx_10_15_x86_64 raidionicsseg-1.4.0-py3-none-any.whl
 
       - name: Upload Python wheel
         uses: actions/upload-artifact@v4
