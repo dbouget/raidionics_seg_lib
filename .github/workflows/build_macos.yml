@@ -28,7 +28,9 @@ jobs:
           python-version: "3.9"
 
       - name: Install dependencies
-        run: pip install wheel setuptools
+        run: |
+            pip install --upgrade pip
+            pip install build
 
       - name: Built wheel for ${{matrix.TARGET}}
         run: ${{matrix.CMD_BUILD}}
