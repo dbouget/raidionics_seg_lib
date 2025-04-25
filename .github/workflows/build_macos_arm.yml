@@ -18,7 +18,7 @@ jobs:
         include:
           - os: macos-14
             TARGET: macos
-            CMD_BUILD: python3 -m build --wheel
+            CMD_BUILD: python3 -m build --wheel --plat-name macosx_11_0_arm64
 
     steps:
       - uses: actions/checkout@v4

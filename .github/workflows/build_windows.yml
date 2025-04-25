@@ -15,7 +15,7 @@ jobs:
         include:
           - os: windows-2019
             TARGET: windows
-            CMD_BUILD: python -m build --wheel
+            CMD_BUILD: python -m build --wheel --plat-name win_amd64
 
 #          - os: windows-2019
 #            TARGET: windows

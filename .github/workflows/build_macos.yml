@@ -18,7 +18,7 @@ jobs:
         include:
           - os: macos-13
             TARGET: macos
-            CMD_BUILD: python -m build --wheel
+            CMD_BUILD: python -m build --wheel --plat-name macosx_10_15_x86_64
 
     steps:
       - uses: actions/checkout@v4
@@ -30,21 +30,16 @@ jobs:
       - name: Install dependencies
         run: |
             pip install --upgrade pip
-            pip install build delocate
+            pip install build
 
       - name: Built wheel for ${{matrix.TARGET}}
         run: ${{matrix.CMD_BUILD}}
 
-      - name: Fix wheel with delocate
-        run: |
-          mkdir -p wheelhouse
-          delocate-wheel -w wheelhouse dist/*.whl
-
-      - name: Upload platform-specific wheel
+      - name: Upload Python wheel
         uses: actions/upload-artifact@v4
         with:
           name: Python wheel
-          path: wheelhouse/*.whl
+          path: ${{github.workspace}}/dist/raidionicsseg-*.whl
           if-no-files-found: error
 
   test:
