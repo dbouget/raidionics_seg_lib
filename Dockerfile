@@ -1,5 +1,5 @@
 # creates virtual ubuntu in docker image
-FROM python:3.8-slim
+FROM python:3.9-slim
 
 # maintainer of docker file
 MAINTAINER David Bouget <david.bouget@sintef.no>
@@ -25,7 +25,3 @@ RUN mkdir /workspace/resources
 
 # CMD ["/bin/bash"]
 ENTRYPOINT ["python3", "/workspace/raidionics_seg_lib/main.py"]
-
-
-
-
