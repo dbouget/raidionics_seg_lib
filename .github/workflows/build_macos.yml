@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: |
             pip install --upgrade pip
-            pip install build
+            pip install build wheel
 
       - name: Built wheel for ${{matrix.TARGET}}
         run: |
