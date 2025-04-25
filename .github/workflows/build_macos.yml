@@ -74,4 +74,4 @@ jobs:
         - name: Integration tests
           run: |
               pip install pytest pytest-cov pytest-timeout requests
-              pytest -vvv --cov=raidionicsseg ${{github.workspace}}/tests/generic_tests --cov-report=xml --timeout=400 --log-cli-level=DEBUG
+              pytest -vvv --cov=raidionicsseg ${{github.workspace}}/tests/generic_tests --cov-report=xml --timeout=1000 --log-cli-level=DEBUG

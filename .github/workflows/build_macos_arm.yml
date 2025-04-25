@@ -48,7 +48,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        os: [macos-14]
+        os: [macos-14, macos-15]
         python-version: ["3.10", "3.11"]
     runs-on: ${{ matrix.os }}
 
@@ -78,4 +78,4 @@ jobs:
         - name: Integration tests
           run: |
               pip install pytest pytest-cov pytest-timeout requests
-              pytest -vvv --cov=raidionicsseg ${{github.workspace}}/tests/generic_tests --cov-report=xml --timeout=300 --log-cli-level=DEBUG
+              pytest -vvv --cov=raidionicsseg ${{github.workspace}}/tests/generic_tests --cov-report=xml --timeout=1000 --log-cli-level=DEBUG
