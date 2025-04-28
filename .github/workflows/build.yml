@@ -132,14 +132,10 @@ jobs:
               pip install pytest pytest-cov pytest-timeout requests
               pytest -vvv --cov=raidionicsseg ${{github.workspace}}/tests/generic_tests --cov-report=xml --timeout=1000 --log-cli-level=DEBUG
 
-  upload-coverage:
-    needs: test
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN  }}
-          slug: dbouget/raidionics_seg_lib
-          verbose: true
+        - name: Upload coverage to Codecov
+          if: ${{ matrix.os == 'ubuntu-22.04' && matrix.python-version == '3.9' }}
+          uses: codecov/codecov-action@v4
+          with:
+            token: ${{ secrets.CODECOV_TOKEN  }}
+            slug: dbouget/raidionics_seg_lib
+            verbose: true

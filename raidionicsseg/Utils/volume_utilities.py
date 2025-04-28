@@ -1,8 +1,10 @@
-import numpy as np
 from copy import deepcopy
+
+import numpy as np
 import SimpleITK as sitk
-from skimage.transform import resize
 from skimage.measure import regionprops
+from skimage.transform import resize
+
 from .configuration_parser import *
 
 
@@ -26,7 +28,7 @@ def input_file_category_disambiguation(input_filename: str) -> str:
     reader = sitk.ImageFileReader()
     reader.SetFileName(input_filename)
     image = reader.Execute()
-    image_type = image.GetPixelIDTypeAsString()
+    # image_type = image.GetPixelIDTypeAsString()
     array = sitk.GetArrayFromImage(image)
 
     if len(np.unique(array)) > 25 or np.max(array) > 255 or np.min(array) < -1:
@@ -42,13 +44,13 @@ def resize_volume(volume, new_slice_size, slicing_plane, order=1):
         return volume
 
     if len(new_slice_size) == 2:
-        if slicing_plane == 'axial':
+        if slicing_plane == "axial":
             new_val = int(volume.shape[2] * (new_slice_size[1] / volume.shape[1]))
             new_volume = resize(volume, (new_slice_size[0], new_slice_size[1], new_val), order=order)
-        elif slicing_plane == 'sagittal':
+        elif slicing_plane == "sagittal":
             new_val = new_slice_size[0]
             new_volume = resize(volume, (new_val, new_slice_size[0], new_slice_size[1]), order=order)
-        elif slicing_plane == 'coronal':
+        elif slicing_plane == "coronal":
             new_val = new_slice_size[0]
             new_volume = resize(volume, (new_slice_size[0], new_val, new_slice_size[1]), order=order)
     elif len(new_slice_size) == 3:
@@ -62,12 +64,12 @@ def __intensity_normalization_CT(volume, parameters):
     # result[volume < parameters.intensity_clipping_values[0]] = parameters.intensity_clipping_values[0]
     # result[volume > parameters.intensity_clipping_values[1]] = parameters.intensity_clipping_values[1]
 
-    if parameters.normalization_method == 'zeromean':
+    if parameters.normalization_method == "zeromean":
         mean_val = np.mean(result)
         var_val = np.std(result)
         tmp = (result - mean_val) / var_val
         result = tmp
-    elif parameters.normalization_method == 'default':
+    elif parameters.normalization_method == "default":
         min_val = np.min(result)
         max_val = np.max(result)
         if (max_val - min_val) != 0:
@@ -77,7 +79,7 @@ def __intensity_normalization_CT(volume, parameters):
 
 
 def __intensity_normalization_MRI(volume, parameters):
-    result = deepcopy(volume).astype('float32')
+    result = deepcopy(volume).astype("float32")
     # result[result < 0] = 0  # Soft clipping at 0 for MRI
     # if parameters.intensity_clipping_range[1] - parameters.intensity_clipping_range[0] != 100:
     #     limits = np.percentile(volume, q=parameters.intensity_clipping_range)
@@ -85,18 +87,18 @@ def __intensity_normalization_MRI(volume, parameters):
     #     # result[volume < limits[0]] = limits[0]
     #     # result[volume > limits[1]] = limits[1]
 
-    if parameters.normalization_method == 'zeromean':
+    if parameters.normalization_method == "zeromean":
         mean_val = np.mean(result)
         var_val = np.std(result)
         tmp = (result - mean_val) / var_val
         result = tmp
-    elif parameters.normalization_method == 'zeromean_nonzero':
+    elif parameters.normalization_method == "zeromean_nonzero":
         slices = result != 0
         masked_img = result[slices]
         mean_val = np.mean(masked_img)
         var_val = np.std(masked_img, ddof=1)
         result[slices] = (masked_img - mean_val) / var_val
-    elif parameters.normalization_method == 'default':
+    elif parameters.normalization_method == "default":
         min_val = np.min(result)
         max_val = np.max(result)
         if (max_val - min_val) != 0:
@@ -105,7 +107,8 @@ def __intensity_normalization_MRI(volume, parameters):
     # else:
     #     result = (volume - np.min(volume)) / (np.max(volume) - np.min(volume))
 
-    return result.astype('float32')
+    return result.astype("float32")
+
 
 def intensity_normalization(volume, parameters):
     if parameters.imaging_modality == ImagingModalityType.CT:
@@ -117,31 +120,35 @@ def intensity_normalization(volume, parameters):
 def intensity_clipping(volume, parameters):
     result = deepcopy(volume)
     if parameters.imaging_modality == ImagingModalityType.MRI:
-            result[result < 0] = 0  # Soft clipping at 0 for MRI
+        result[result < 0] = 0  # Soft clipping at 0 for MRI
 
     if parameters.intensity_clipping_range[1] - parameters.intensity_clipping_range[0] != 100:
         limits = np.percentile(volume, q=parameters.intensity_clipping_range)
         result = np.clip(volume, limits[0], limits[1])
-    elif (parameters.intensity_clipping_values is not None and len (parameters.intensity_clipping_values) == 0
-          and parameters.intensity_clipping_values[1] > parameters.intensity_clipping_values[0]):
+    elif (
+        parameters.intensity_clipping_values is not None
+        and len(parameters.intensity_clipping_values) == 0
+        and parameters.intensity_clipping_values[1] > parameters.intensity_clipping_values[0]
+    ):
         result[volume < parameters.intensity_clipping_values[0]] = parameters.intensity_clipping_values[0]
         result[volume > parameters.intensity_clipping_values[1]] = parameters.intensity_clipping_values[1]
     return result
 
+
 def padding_for_inference(data, slab_size, slicing_plane):
     new_data = deepcopy(data)
-    if slicing_plane == 'axial':
+    if slicing_plane == "axial":
         missing_dimension = (slab_size - (data.shape[3] % slab_size)) % slab_size
         if missing_dimension != 0:
-            new_data = np.pad(data, ((0, 0), (0, 0), (0, 0), (0, missing_dimension), (0, 0)), mode='edge')
-    elif slicing_plane == 'sagittal':
+            new_data = np.pad(data, ((0, 0), (0, 0), (0, 0), (0, missing_dimension), (0, 0)), mode="edge")
+    elif slicing_plane == "sagittal":
         missing_dimension = (slab_size - (data.shape[1] % slab_size)) % slab_size
         if missing_dimension != 0:
-            new_data = np.pad(data, ((0, 0), (0, missing_dimension), (0, 0), (0, 0), (0, 0)), mode='edge')
-    elif slicing_plane == 'coronal':
+            new_data = np.pad(data, ((0, 0), (0, missing_dimension), (0, 0), (0, 0), (0, 0)), mode="edge")
+    elif slicing_plane == "coronal":
         missing_dimension = (slab_size - (data.shape[2] % slab_size)) % slab_size
         if missing_dimension != 0:
-            new_data = np.pad(data, ((0, 0), (0, 0), (0, missing_dimension), (0, 0), (0, 0)), mode='edge')
+            new_data = np.pad(data, ((0, 0), (0, 0), (0, missing_dimension), (0, 0), (0, 0)), mode="edge")
 
     return new_data, missing_dimension
 
@@ -149,12 +156,12 @@ def padding_for_inference(data, slab_size, slicing_plane):
 def padding_for_inference_both_ends(data, slab_size, slicing_plane):
     new_data = data
     padding_val = int(slab_size / 2)
-    if slicing_plane == 'axial':
-        new_data = np.pad(data, ((0, 0), (0, 0), (0, 0), (padding_val, padding_val), (0, 0)), mode='edge')
-    elif slicing_plane == 'sagittal':
-        new_data = np.pad(data, ((0, 0), (padding_val, padding_val), (0, 0), (0, 0), (0, 0)), mode='edge')
-    elif slicing_plane == 'coronal':
-        new_data = np.pad(data, ((0, 0), (0, 0), (padding_val, padding_val), (0, 0), (0, 0)), mode='edge')
+    if slicing_plane == "axial":
+        new_data = np.pad(data, ((0, 0), (0, 0), (0, 0), (padding_val, padding_val), (0, 0)), mode="edge")
+    elif slicing_plane == "sagittal":
+        new_data = np.pad(data, ((0, 0), (padding_val, padding_val), (0, 0), (0, 0), (0, 0)), mode="edge")
+    elif slicing_plane == "coronal":
+        new_data = np.pad(data, ((0, 0), (0, 0), (padding_val, padding_val), (0, 0), (0, 0)), mode="edge")
 
     return new_data
 
@@ -168,17 +175,17 @@ def padding_for_inference_both_ends_patchwise(data, patch_size):
     extra_dims = [0] * 6
     if data.shape[1] <= patch_size[0]:
         padding_val = int(np.ceil(abs(data.shape[1] - patch_size[0]) / 2))
-        new_data = np.pad(new_data, ((0, 0), (padding_val, padding_val), (0, 0), (0, 0), (0, 0)), mode='edge')
+        new_data = np.pad(new_data, ((0, 0), (padding_val, padding_val), (0, 0), (0, 0), (0, 0)), mode="edge")
         extra_dims[0] = padding_val
         extra_dims[1] = padding_val
     if data.shape[2] <= patch_size[1]:
         padding_val = int(np.ceil(abs(data.shape[2] - patch_size[1]) / 2))
-        new_data = np.pad(new_data, ((0, 0), (0, 0), (padding_val, padding_val), (0, 0), (0, 0)), mode='edge')
+        new_data = np.pad(new_data, ((0, 0), (0, 0), (padding_val, padding_val), (0, 0), (0, 0)), mode="edge")
         extra_dims[2] = padding_val
         extra_dims[3] = padding_val
     if data.shape[3] <= patch_size[2]:
         padding_val = int(np.ceil(abs(data.shape[3] - patch_size[2]) / 2))
-        new_data = np.pad(new_data, ((0, 0), (0, 0), (0, 0), (padding_val, padding_val), (0, 0)), mode='edge')
+        new_data = np.pad(new_data, ((0, 0), (0, 0), (0, 0), (padding_val, padding_val), (0, 0)), mode="edge")
         extra_dims[4] = padding_val
         extra_dims[5] = padding_val
 
@@ -220,4 +227,4 @@ def softmax(x):
 
 
 def sigmoid(x):
-    return 1/(1 + np.exp(-x))
+    return 1 / (1 + np.exp(-x))

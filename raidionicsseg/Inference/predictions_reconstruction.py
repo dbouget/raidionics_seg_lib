@@ -1,38 +1,45 @@
 import logging
-from typing import List
-from nibabel.processing import resample_from_to
-from scipy.ndimage import zoom
-import nibabel as nib
-import numpy as np
 import traceback
 from copy import deepcopy
+from typing import List
+
+import nibabel as nib
+import numpy as np
+from nibabel.processing import resample_from_to
+from scipy.ndimage import zoom
+
 from ..Utils.configuration_parser import ConfigResources
 
 
-def reconstruct_post_predictions(predictions: np.ndarray, parameters: ConfigResources, crop_bbox: List[int],
-                                 nib_volume: nib.Nifti1Image, resampled_volume: nib.Nifti1Image) -> np.ndarray:
+def reconstruct_post_predictions(
+    predictions: np.ndarray,
+    parameters: ConfigResources,
+    crop_bbox: List[int],
+    nib_volume: nib.Nifti1Image,
+    resampled_volume: nib.Nifti1Image,
+) -> np.ndarray:
     """
-    Reconstructing the inference predictions back into the original patient space.
+        Reconstructing the inference predictions back into the original patient space.
 
-    Parameters
-    ----------
-    predictions : np.ndarray
-        Results from the inference process.
-    parameters : :obj:`ConfigResources`
-        Loaded configuration specifying runtime parameters.
-    crop_bbox : List[int]
-        Indices of a bounding region within the preprocessed volume for additional cropping
-        (e.g. coordinates around the brain or lungs).
-        The bounding region is expressed as: [minx, miny, minz, maxx, maxy, maxz].
-    nib_volume : nib.Nifti1Image
-        Original MRI volume, in the patient space, as Nifti format.
-    resampled_volume : nib.Nifti1Image
-        Processed MRI volume, resampled to output, as Nifti format.
+        Parameters
+        ----------
+        predictions : np.ndarray
+            Results from the inference process.
+        parameters : :obj:`ConfigResources`
+            Loaded configuration specifying runtime parameters.
+        crop_bbox : List[int]
+            Indices of a bounding region within the preprocessed volume for additional cropping
+            (e.g. coordinates around the brain or lungs).
+            The bounding region is expressed as: [minx, miny, minz, maxx, maxy, maxz].
+        nib_volume : nib.Nifti1Image
+            Original MRI volume, in the patient space, as Nifti format.
+        resampled_volume : nib.Nifti1Image
+            Processed MRI volume, resampled to output, as Nifti format.
 
-    Returns
-    -------
-    np.ndarray
-.       Predictions expressed in the original patient space.
+        Returns
+        -------
+        np.ndarray
+    .       Predictions expressed in the original patient space.
     """
     logging.debug("Reconstructing predictions.")
     nb_classes = parameters.training_nb_classes
@@ -42,28 +49,41 @@ def reconstruct_post_predictions(predictions: np.ndarray, parameters: ConfigReso
     probability_thresholds = parameters.training_optimal_thresholds
     swap_input = parameters.swap_training_input
 
-    if reconstruction_order == 'resample_first':
-        resampled_predictions = __resample_predictions(predictions=predictions, nb_classes=nb_classes,
-                                                       crop_bbox=crop_bbox, nib_volume=nib_volume,
-                                                       resampled_volume=resampled_volume,
-                                                       reconstruction_method=reconstruction_method,
-                                                       reconstruction_order=reconstruction_order,
-                                                       swap_input=swap_input)
+    if reconstruction_order == "resample_first":
+        resampled_predictions = __resample_predictions(
+            predictions=predictions,
+            nb_classes=nb_classes,
+            crop_bbox=crop_bbox,
+            nib_volume=nib_volume,
+            resampled_volume=resampled_volume,
+            reconstruction_method=reconstruction_method,
+            reconstruction_order=reconstruction_order,
+            swap_input=swap_input,
+        )
 
-        final_predictions = __cut_predictions(predictions=resampled_predictions,
-                                              reconstruction_method=reconstruction_method,
-                                              probability_threshold=probability_thresholds,
-                                              final_activation_type=final_activation_type)
+        final_predictions = __cut_predictions(
+            predictions=resampled_predictions,
+            reconstruction_method=reconstruction_method,
+            probability_threshold=probability_thresholds,
+            final_activation_type=final_activation_type,
+        )
     else:
-        thresh_predictions = __cut_predictions(predictions=predictions, reconstruction_method=reconstruction_method,
-                                               probability_threshold=probability_thresholds,
-                                               final_activation_type=final_activation_type)
-        final_predictions = __resample_predictions(predictions=thresh_predictions, nb_classes=nb_classes,
-                                                   crop_bbox=crop_bbox, nib_volume=nib_volume,
-                                                   resampled_volume=resampled_volume,
-                                                   reconstruction_method=reconstruction_method,
-                                                   reconstruction_order=reconstruction_order,
-                                                   swap_input=swap_input)
+        thresh_predictions = __cut_predictions(
+            predictions=predictions,
+            reconstruction_method=reconstruction_method,
+            probability_threshold=probability_thresholds,
+            final_activation_type=final_activation_type,
+        )
+        final_predictions = __resample_predictions(
+            predictions=thresh_predictions,
+            nb_classes=nb_classes,
+            crop_bbox=crop_bbox,
+            nib_volume=nib_volume,
+            resampled_volume=resampled_volume,
+            reconstruction_method=reconstruction_method,
+            reconstruction_order=reconstruction_order,
+            swap_input=swap_input,
+        )
 
     return final_predictions
 
@@ -71,10 +91,10 @@ def reconstruct_post_predictions(predictions: np.ndarray, parameters: ConfigReso
 def __cut_predictions(predictions, probability_threshold, reconstruction_method, final_activation_type="softmax"):
     try:
         logging.debug("Clipping predictions with {}.".format(reconstruction_method))
-        if reconstruction_method == 'probabilities':
+        if reconstruction_method == "probabilities":
             return predictions
-        elif reconstruction_method == 'thresholding':
-            final_predictions = np.zeros(predictions.shape).astype('uint8')
+        elif reconstruction_method == "thresholding":
+            final_predictions = np.zeros(predictions.shape).astype("uint8")
             if len(probability_threshold) != predictions.shape[-1]:
                 probability_threshold = np.full(shape=(predictions.shape[-1]), fill_value=probability_threshold[0])
 
@@ -82,26 +102,34 @@ def __cut_predictions(predictions, probability_threshold, reconstruction_method,
                 channel = deepcopy(predictions[:, :, :, c])
                 channel[channel < probability_threshold[c]] = 0
                 channel[channel >= probability_threshold[c]] = 1
-                final_predictions[:, :, :, c] = channel.astype('uint8')
-        elif reconstruction_method == 'argmax':
+                final_predictions[:, :, :, c] = channel.astype("uint8")
+        elif reconstruction_method == "argmax":
             if final_activation_type == "sigmoid":
                 new_predictions = np.zeros(predictions.shape[:-1] + (predictions.shape[-1] + 1,))
                 new_predictions[..., 0][np.max(predictions, axis=-1) <= 0.5] = 1
                 new_predictions[..., 1:] = predictions
-                final_predictions = np.argmax(new_predictions, axis=-1).astype('uint8')
+                final_predictions = np.argmax(new_predictions, axis=-1).astype("uint8")
             else:
-                final_predictions = np.argmax(predictions, axis=-1).astype('uint8')
+                final_predictions = np.argmax(predictions, axis=-1).astype("uint8")
         else:
-            raise ValueError('Unknown reconstruction_method with {}!'.format(reconstruction_method))
+            raise ValueError("Unknown reconstruction_method with {}!".format(reconstruction_method))
     except Exception as e:
-        logging.error("Following error collected during predictions clipping: \n {}".format(traceback.format_exc()))
+        logging.error(f"Following error collected during predictions clipping: \n {e}\n{traceback.format_exc()}")
         raise ValueError("Predictions clipping process could not fully proceed.")
 
     return final_predictions
 
 
-def __resample_predictions(predictions, nb_classes, crop_bbox, nib_volume, resampled_volume, reconstruction_method,
-                           reconstruction_order, swap_input):
+def __resample_predictions(
+    predictions,
+    nb_classes,
+    crop_bbox,
+    nib_volume,
+    resampled_volume,
+    reconstruction_method,
+    reconstruction_order,
+    swap_input,
+):
     try:
         logging.debug("Resampling predictions with {}.".format(reconstruction_method))
         labels_type = predictions.dtype
@@ -118,31 +146,39 @@ def __resample_predictions(predictions, nb_classes, crop_bbox, nib_volume, resam
         if crop_bbox is not None:
             # data = resize(data, (crop_bbox[3] - crop_bbox[0], crop_bbox[4] - crop_bbox[1], crop_bbox[5] - crop_bbox[2]),
             #               order=order, preserve_range=True)
-            resize_ratio = (crop_bbox[3] - crop_bbox[0], crop_bbox[4] - crop_bbox[1], crop_bbox[5] - crop_bbox[2]) / np.asarray(data.shape[0:3])
+            resize_ratio = (
+                crop_bbox[3] - crop_bbox[0],
+                crop_bbox[4] - crop_bbox[1],
+                crop_bbox[5] - crop_bbox[2],
+            ) / np.asarray(data.shape[0:3])
             if len(data.shape) == 4:
-                resize_ratio = list(resize_ratio) + [1.]
-            if list(resize_ratio)[0:3] != [1., 1., 1.]:
+                resize_ratio = list(resize_ratio) + [1.0]
+            if list(resize_ratio)[0:3] != [1.0, 1.0, 1.0]:
                 data = zoom(data, resize_ratio, order=order)
 
             # Undo cropping (which is performed in function crop())
-            if reconstruction_method == 'probabilities' or reconstruction_method == 'thresholding':
+            if reconstruction_method == "probabilities" or reconstruction_method == "thresholding":
                 new_data = np.zeros((resampled_volume.get_fdata().shape) + (nb_classes,), dtype=labels_type)
             else:
                 new_data = np.zeros((resampled_volume.get_fdata().shape), dtype=labels_type)
-            new_data[crop_bbox[0]:crop_bbox[3], crop_bbox[1]:crop_bbox[4], crop_bbox[2]:crop_bbox[5]] = data
+            new_data[crop_bbox[0] : crop_bbox[3], crop_bbox[1] : crop_bbox[4], crop_bbox[2] : crop_bbox[5]] = data
         else:
             # new_data = resize(data, resampled_volume.get_fdata().shape, order=order,
             #                   preserve_range=True)
             resize_ratio = resampled_volume.get_fdata().shape / np.asarray(data.shape)[0:3]
             if len(data.shape) == 4:
-                resize_ratio = list(resize_ratio) + [1.]
-            if list(resize_ratio)[0:3] != [1., 1., 1.]:
+                resize_ratio = list(resize_ratio) + [1.0]
+            if list(resize_ratio)[0:3] != [1.0, 1.0, 1.0]:
                 new_data = zoom(data, resize_ratio, order=order)
             else:
                 new_data = data
 
         # Resampling to the size and spacing of the original input volume
-        if reconstruction_method == 'probabilities' or reconstruction_method == 'thresholding' or (reconstruction_method == "argmax" and reconstruction_order == "resample_first"):
+        if (
+            reconstruction_method == "probabilities"
+            or reconstruction_method == "thresholding"
+            or (reconstruction_method == "argmax" and reconstruction_order == "resample_first")
+        ):
             resampled_predictions = np.zeros(nib_volume.get_fdata().shape + (nb_classes,)).astype(labels_type)
             for c in range(0, nb_classes):
                 img = nib.Nifti1Image(new_data[..., c].astype(labels_type), affine=resampled_volume.affine)
@@ -163,7 +199,7 @@ def __resample_predictions(predictions, nb_classes, crop_bbox, nib_volume, resam
                 if (max_val - min_val) != 0:
                     resampled_predictions[..., c] = (resampled_predictions[..., c] - min_val) / (max_val - min_val)
     except Exception as e:
-        logging.error("Following error collected during predictions resampling: \n {}".format(traceback.format_exc()))
+        logging.error(f"Following error collected during predictions resampling: \n {e}\n{traceback.format_exc()}")
         raise ValueError("Predictions resampling process could not fully proceed.")
 
     return resampled_predictions
