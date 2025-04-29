@@ -1,5 +1,5 @@
 # Has to match the cuda version from your machine
-FROM pytorch/pytorch:1.13.1-cuda11.6-cudnn8-runtime
+FROM pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime
 
 # maintainer of docker file
 MAINTAINER David Bouget <david.bouget@sintef.no>
@@ -15,12 +15,12 @@ RUN apt-get update && apt-get install -y git
 WORKDIR /workspace
 
 # downloading source code (not necessary, mostly to run the test scripts)
-RUN git clone --branch torch_support https://github.com/dbouget/raidionics_seg_lib.git
+RUN git clone https://github.com/dbouget/raidionics_seg_lib.git
 
 # Python packages
 RUN pip3 install --upgrade pip
 RUN pip3 install -e raidionics_seg_lib/
-RUN pip3 install onnxruntime-gpu==1.14.0
+RUN pip3 install onnxruntime-gpu
 
 RUN mkdir /workspace/resources
 
