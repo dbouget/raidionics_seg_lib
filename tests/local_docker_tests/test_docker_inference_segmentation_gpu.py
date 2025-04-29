@@ -12,7 +12,7 @@ import zipfile
 def test_docker_inference_segmentation_simple(data_test2):
     """
     Testing the CLI within a Docker container for a simple segmentation inference unit test, running on GPU.
-    The latest Docker image is being hosted at: dbouget/raidionics-segmenter:v1.4-py39-gpu
+    The latest Docker image is being hosted at: dbouget/raidionics-segmenter:v1.4-py39-cuda12.4
 
     Returns
     -------
@@ -48,7 +48,7 @@ def test_docker_inference_segmentation_simple(data_test2):
             import platform
             cmd_docker = ['docker', 'run', '-v', '{}:/workspace/resources'.format(data_test2),
                           '--network=host', '--ipc=host', '--gpus=all', '--user', str(os.geteuid()),
-                          'dbouget/raidionics-segmenter:v1.4-py39-gpu',
+                          'dbouget/raidionics-segmenter:v1.4-py39-cuda12.4',
                           '-c', '/workspace/resources/test_seg_config.ini', '-v', 'debug']
             logging.info("Executing the following Docker call: {}".format(cmd_docker))
             if platform.system() == 'Windows':

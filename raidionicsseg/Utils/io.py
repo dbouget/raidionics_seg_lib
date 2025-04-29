@@ -99,7 +99,7 @@ def dump_classification_predictions(predictions: np.ndarray, parameters: ConfigR
         if reconstruction_method == "probabilities":
             prediction_filename = os.path.join(storage_path, "classification-results.csv")
             with open(prediction_filename, "w") as file:
-                file.write("Class, Prediction\n")
+                file.write("Class,Prediction\n")
                 for c, cla in enumerate(class_names):
                     file.write("{}, {}\n".format(cla, predictions[c]))
         elif reconstruction_method == "argmax":
