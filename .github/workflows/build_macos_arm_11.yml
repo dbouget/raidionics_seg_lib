@@ -76,7 +76,7 @@ jobs:
           run: cd ${{github.workspace}}/tests && python3 test_inference_segmentation_mediastinum.py
 
         - name: Inference unit test with test-time augmentation
-          run: cd ${{github.workspace}}/tests && python3 test_inference_segmentation_test_time_augmentation.py
+          run: cd ${{github.workspace}}/tests && python3 test_inference_segmentation_advanced.py
 
 #        - name: Test with pytest
 #          run: |

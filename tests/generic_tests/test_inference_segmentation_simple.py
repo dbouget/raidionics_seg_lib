@@ -5,25 +5,38 @@ import logging
 import sys
 import subprocess
 import traceback
+import nibabel as nib
+import numpy as np
 
 
-def test_inference_cli(data_test2):
+def test_inference_cli(input_data_dir, input_models_dir):
+    """
+    Executing the module as a command line argument
+    Parameters
+    ----------
+    input_data_dir
+    input_models_dir
+
+    Returns
+    -------
+
+    """
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
     logging.info("Running standard inference using the CLI.\n")
 
     logging.info("Preparing configuration file.\n")
     try:
-        output_folder = os.path.join(data_test2, "output_cli")
+        output_folder = os.path.join(os.path.dirname(input_data_dir), "output_cli")
         if os.path.exists(output_folder):
             shutil.rmtree(output_folder)
         os.makedirs(output_folder)
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "-1")
-        seg_config.set('System', 'inputs_folder', os.path.join(data_test2, 'inputs'))
+        seg_config.set('System', 'inputs_folder', os.path.join(input_data_dir, 'PreopNeuro', 'inputs'))
         seg_config.set('System', 'output_folder', output_folder)
-        seg_config.set('System', 'model_folder', os.path.join(data_test2, 'MRI_Brain'))
+        seg_config.set('System', 'model_folder', os.path.join(input_models_dir, 'MRI_Brain'))
         seg_config.add_section('Runtime')
         seg_config.set('Runtime', 'folds_ensembling', 'False')
         seg_config.set('Runtime', 'ensembling_strategy', 'average')
@@ -52,29 +65,45 @@ def test_inference_cli(data_test2):
                                        '{config}'.format(config=seg_config_filename),
                                        '--verbose', 'debug'])
         except Exception as e:
-            logging.error(f"Error during inference CLI test with: \n {traceback.format_exc()}.\n")
+            logging.error(f"Error during inference CLI test with: {e}\n {traceback.format_exc()}.\n")
             if os.path.exists(output_folder):
                 shutil.rmtree(output_folder)
             raise ValueError("Error during inference CLI test.\n")
 
         logging.info("Collecting and comparing results.\n")
-        brain_segmentation_filename = os.path.join(output_folder, 'labels_Brain.nii.gz')
-        assert os.path.exists(brain_segmentation_filename), "Inference CLI test failed, no brain mask was generated.\n"
+        segmentation_pred_filename = os.path.join(output_folder, 'labels_Brain.nii.gz')
+        assert os.path.exists(segmentation_pred_filename), "No brain mask was generated.\n"
+        segmentation_gt_filename = os.path.join(input_data_dir, 'PreopNeuro', 'inputs', 'input0_label_Brain.nii.gz')
+        segmentation_pred = nib.load(segmentation_pred_filename).get_fdata()[:]
+        segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
+        assert np.array_equal(segmentation_pred,
+                              segmentation_gt), "Ground truth and prediction arrays are not identical"
     except Exception as e:
-        logging.error(f"Error during inference CLI test with: \n {traceback.format_exc()}.\n")
+        logging.error(f"Error during inference CLI test with: {e}\n {traceback.format_exc()}.\n")
         raise ValueError("Error during inference CLI test.\n")
     if os.path.exists(output_folder):
         shutil.rmtree(output_folder)
 
 
-def test_inference_package(data_test2):
+def test_inference_package(input_data_dir, input_models_dir):
+    """
+    Executing the module as a Python package
+    Parameters
+    ----------
+    input_data_dir
+    input_models_dir
+
+    Returns
+    -------
+
+    """
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
     logging.info("Running standard inference test as a Python package.\n")
 
     logging.info("Preparing configuration file.\n")
     try:
-        output_folder = os.path.join(data_test2, "output_package")
+        output_folder = os.path.join(os.path.dirname(input_data_dir), "output_package")
         if os.path.exists(output_folder):
             shutil.rmtree(output_folder)
         os.makedirs(output_folder)
@@ -82,9 +111,9 @@ def test_inference_package(data_test2):
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "-1")
-        seg_config.set('System', 'inputs_folder', os.path.join(data_test2, 'inputs'))
+        seg_config.set('System', 'inputs_folder', os.path.join(input_data_dir, 'PreopNeuro', 'inputs'))
         seg_config.set('System', 'output_folder', output_folder)
-        seg_config.set('System', 'model_folder', os.path.join(data_test2, 'MRI_Brain'))
+        seg_config.set('System', 'model_folder', os.path.join(input_models_dir, 'MRI_Brain'))
         seg_config.add_section('Runtime')
         seg_config.set('Runtime', 'folds_ensembling', 'False')
         seg_config.set('Runtime', 'ensembling_strategy', 'average')
@@ -103,15 +132,19 @@ def test_inference_package(data_test2):
             run_model(seg_config_filename)
 
             logging.info("Collecting and comparing results.\n")
-            brain_segmentation_filename = os.path.join(output_folder, 'labels_Brain.nii.gz')
-            assert os.path.exists(brain_segmentation_filename), "Inference CLI test failed, no brain mask was generated.\n"
+            segmentation_pred_filename = os.path.join(output_folder, 'labels_Brain.nii.gz')
+            assert os.path.exists(segmentation_pred_filename), "Inference CLI test failed, no brain mask was generated.\n"
+            segmentation_gt_filename = os.path.join(input_data_dir, 'PreopNeuro', 'inputs', 'input0_label_Brain.nii.gz')
+            segmentation_pred = nib.load(segmentation_pred_filename).get_fdata()[:]
+            segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
+            assert np.array_equal(segmentation_pred, segmentation_gt), "Ground truth and prediction arrays are not identical"
         except Exception as e:
-            logging.error(f"Error during inference Python package test with: \n {traceback.format_exc()}.\n")
+            logging.error(f"Error during inference Python package test with: {e} \n {traceback.format_exc()}.\n")
             if os.path.exists(output_folder):
                 shutil.rmtree(output_folder)
             raise ValueError("Error during inference Python package test.\n")
     except Exception as e:
-        logging.error(f"Error during inference Python package test with: \n {traceback.format_exc()}.\n")
+        logging.error(f"Error during inference Python package test with: {e}\n {traceback.format_exc()}.\n")
         raise ValueError("Error during inference Python package test.\n")
 
     if os.path.exists(output_folder):

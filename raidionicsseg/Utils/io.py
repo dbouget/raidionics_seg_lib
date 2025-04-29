@@ -105,7 +105,8 @@ def dump_classification_predictions(predictions: np.ndarray, parameters: ConfigR
         elif reconstruction_method == "argmax":
             prediction_filename = os.path.join(storage_path, "classification-label.csv")
             with open(prediction_filename, "w") as file:
-                file.write("Class: {}\n".format(class_names[np.argmax(predictions)]))
+                file.write("Class\n")
+                file.write("{}\n".format(class_names[np.argmax(predictions)]))
         else:
             raise ValueError(
                 "No classification reconstruction method for {}. \n "
