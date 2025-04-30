@@ -1,11 +1,10 @@
-import configparser
 import logging
 import os
-import subprocess
 from copy import deepcopy
 from pathlib import PurePath
 from typing import List
 from typing import Tuple
+from typing import Union
 
 import numpy as np
 from nibabel.processing import resample_to_output
@@ -18,12 +17,10 @@ from ..Utils.io import load_nifti_volume
 
 
 def crop_MR_background(
-    filepath: str,
     volume: np.ndarray,
     new_spacing: Tuple[float],
-    storage_path: str,
     parameters: ConfigResources,
-    crop_bbox=None,
+    crop_bbox: List[int] = None,
 ) -> Tuple[np.ndarray, List[int]]:
     """
     Performs different background cropping inside an MRI volume, as defined by the 'crop_background' stored in a model
@@ -53,12 +50,14 @@ def crop_MR_background(
         The bounding region is expressed as: [minx, miny, minz, maxx, maxy, maxz].
     """
     if parameters.crop_background == "minimum":
-        return crop_MR(volume, parameters, crop_bbox)
+        return crop_background_minimum(volume=volume, crop_bbox=crop_bbox)
     elif parameters.crop_background == "brain_clip" or parameters.crop_background == "brain_mask":
-        return skull_stripping_tf(filepath, volume, new_spacing, storage_path, parameters)
+        return skull_stripping(volume=volume, new_spacing=new_spacing, parameters=parameters)
 
 
-def crop_MR(volume: np.ndarray, parameters, crop_bbox=None) -> Tuple[np.ndarray, List[int]]:
+def crop_background_minimum(
+    volume: np.ndarray, crop_bbox: Union[None, List[int]] = None
+) -> Tuple[np.ndarray, List[int]]:
     """
     Performs background cropping inside an MRI volume in 'minimum' mode whereby the black space around
     the head is removed.
@@ -67,8 +66,7 @@ def crop_MR(volume: np.ndarray, parameters, crop_bbox=None) -> Tuple[np.ndarray,
     ----------
     volume : np.ndarray
         Patient MRI volume to crop.
-    parameters : :obj:`ConfigResources`
-        UNUSED, to remove.
+    crop_bbox:
     Returns
     -------
     np.ndarray
@@ -107,11 +105,11 @@ def crop_MR(volume: np.ndarray, parameters, crop_bbox=None) -> Tuple[np.ndarray,
     return cropped_volume, crop_bbox
 
 
-def skull_stripping_tf(
-    filepath, volume: np.ndarray, new_spacing: Tuple[float], storage_path: str, parameters: ConfigResources
+def skull_stripping(
+    volume: np.ndarray, new_spacing: Tuple[float], parameters: ConfigResources
 ) -> Tuple[np.ndarray, List[int]]:
     """
-    Generates a brain segmentation mask by running model inference and performs skull stripping.
+    Performs skull stripping over the provided input volume using the brain mask manually provided.
 
     Parameters
     ----------
@@ -119,8 +117,6 @@ def skull_stripping_tf(
         Patient MRI volume to skull strip.
     new_spacing : Tuple[float]
         .
-    storage_path : str
-        Destination folder where the results will be stored.
     parameters :  :obj:`ConfigResources`
         Loaded configuration specifying runtime parameters.
     Returns
@@ -132,23 +128,7 @@ def skull_stripping_tf(
         The bounding region is expressed as: [minx, miny, minz, maxx, maxy, maxz].
     """
     if not os.path.exists(parameters.runtime_brain_mask_filepath):
-        brain_config_filename = os.path.join(os.path.dirname(parameters.config_filename), "brain_main_config.ini")
-        new_parameters = configparser.ConfigParser()
-        new_parameters.read(parameters.config_filename)
-        new_parameters.set(
-            "System", "model_folder", os.path.join(os.path.dirname(parameters.model_folder), "MRI_Brain")
-        )
-        new_parameters.set("Runtime", "reconstruction_method", "thresholding")
-        new_parameters.set("Runtime", "reconstruction_order", "resample_first")
-        with open(brain_config_filename, "w") as cf:
-            new_parameters.write(cf)
-        old_parameters = deepcopy(parameters)
-        from raidionicsseg.fit import run_model
-
-        run_model(brain_config_filename)
-        brain_mask_filename = os.path.join(storage_path, "labels_Brain.nii.gz")
-        os.remove(brain_config_filename)
-        parameters = old_parameters
+        raise ValueError("A brain segmentation mask must be provided inside ['Neuro']['brain_segmentation_filename']")
     else:
         brain_mask_filename = parameters.runtime_brain_mask_filepath
 
@@ -176,7 +156,7 @@ def advanced_crop_exclude_background(
     volume: np.ndarray, crop_mode: str, brain_mask: np.ndarray
 ) -> Tuple[np.ndarray, List[int]]:
     """
-    Perfoms skull stripping either in mode 'brain_clip' or mode 'brain_mask'.
+    Performs skull stripping either in mode 'brain_clip' or mode 'brain_mask'.
 
     Parameters
     ----------

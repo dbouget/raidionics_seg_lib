@@ -46,7 +46,7 @@ def main():
     try:
         run_model(config_filename=config_filename)
     except Exception as e:
-        print("{}".format(traceback.format_exc()))
+        print(f"{e}\n{traceback.format_exc()}")
 
 
 if __name__ == "__main__":

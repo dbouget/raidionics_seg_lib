@@ -1,7 +1,6 @@
 import logging
 import os
 from copy import deepcopy
-from typing import Any
 from typing import List
 from typing import Tuple
 
@@ -17,8 +16,7 @@ from ..Utils.volume_utilities import intensity_clipping
 from ..Utils.volume_utilities import intensity_normalization
 from ..Utils.volume_utilities import resize_volume
 from .brain_clipping import crop_MR_background
-from .mediastinum_clipping import mediastinum_clipping
-from .mediastinum_clipping import mediastinum_clipping_DL
+from .mediastinum_clipping import crop_mediastinum_volume
 
 
 def prepare_pre_processing(
@@ -49,9 +47,6 @@ def prepare_pre_processing(
 
     if pre_processing_parameters.preprocessing_inputs_sub_indexes is not None:
         for ip in pre_processing_parameters.preprocessing_inputs_sub_indexes:
-            # input0_fn = os.path.join(folder, 'input' + str(ip[0]) + '.nii.gz')
-            # input1_fn = os.path.join(folder, 'input' + str(ip[1]) + '.nii.gz')
-            # new_input = abs(nib.load(input0_fn).get_fdata()[:] - nib.load(input1_fn).get_fdata()[:])
             new_input = abs(non_norm_inputs[ip[0]] - non_norm_inputs[ip[1]])
             data = run_pre_processing_diffloader(
                 new_input,
@@ -102,7 +97,7 @@ def run_pre_processing(
 
     logging.debug("Preprocessing - Resampling.")
     new_spacing = pre_processing_parameters.output_spacing
-    if pre_processing_parameters.output_spacing == None:
+    if pre_processing_parameters.output_spacing is None:
         tmp = np.min(nib_volume.header.get_zooms())
         new_spacing = [tmp, tmp, tmp]
 
@@ -117,9 +112,8 @@ def run_pre_processing(
             pre_processing_parameters.crop_background is not None
             and pre_processing_parameters.crop_background != "false"
         ):
-            # data, crop_bbox = mediastinum_clipping(volume=data, parameters=pre_processing_parameters)
-            data, crop_bbox = mediastinum_clipping_DL(
-                filename, data, new_spacing, storage_path, pre_processing_parameters
+            data, crop_bbox = crop_mediastinum_volume(
+                volume=data, new_spacing=new_spacing, parameters=pre_processing_parameters, crop_bbox=crop_bbox
             )
     else:
         if (
@@ -127,7 +121,7 @@ def run_pre_processing(
             and not pre_processing_parameters.predictions_use_preprocessed_data
         ):
             data, crop_bbox = crop_MR_background(
-                filename, data, new_spacing, storage_path, pre_processing_parameters, crop_bbox
+                volume=data, new_spacing=new_spacing, parameters=pre_processing_parameters, crop_bbox=crop_bbox
             )
 
     if pre_processing_parameters.new_axial_size:

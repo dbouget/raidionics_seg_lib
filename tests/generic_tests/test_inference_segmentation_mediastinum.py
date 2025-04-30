@@ -80,7 +80,7 @@ def test_inference_cli(test_dir):
         assert np.array_equal(segmentation_pred,
                               segmentation_gt), "Ground truth and prediction arrays are not identical"
     except Exception as e:
-        logging.error(f"Error during test with: \n {traceback.format_exc()}.\n")
+        logging.error(f"Error during test with: {e} \n {traceback.format_exc()}.\n")
         raise ValueError("Error during test.\n")
     if os.path.exists(output_folder):
         shutil.rmtree(output_folder)

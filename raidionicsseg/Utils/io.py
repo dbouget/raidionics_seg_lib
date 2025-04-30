@@ -68,7 +68,7 @@ def dump_predictions(
             nib.save(img, predictions_output_path)
     except Exception as e:
         logging.error(
-            "Following error collected during model predictions dump on disk: \n {}".format(traceback.format_exc())
+            f"Following error collected during model predictions dump on disk: {e} \n {traceback.format_exc()}"
         )
         raise ValueError("Predictions dump on disk could not fully proceed.")
 
