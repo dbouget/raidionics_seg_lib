@@ -131,15 +131,6 @@ jobs:
           with:
             python-version: ${{ matrix.python-version }}
 
-        - name: Clone repo
-          uses: actions/checkout@v4
-
-        - name: Download test resources
-          uses: actions/download-artifact@v4
-          with:
-            name: test-resources
-            path: ./tests/unit_tests_results_dir
-
         - name: Download artifact
           uses: actions/download-artifact@v4
           with:
@@ -153,6 +144,15 @@ jobs:
 
         - name: Test CLI
           run: raidionicsseg --help
+
+        - name: Clone repo
+          uses: actions/checkout@v4
+
+        - name: Download test resources
+          uses: actions/download-artifact@v4
+          with:
+            name: test-resources
+            path: ./tests/unit_tests_results_dir
 
         - name: Integration tests
           run: |
