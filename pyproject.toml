@@ -15,7 +15,7 @@ dependencies = [
   "nibabel",
   "h5py",
   "pandas",
-  "SimpleITK",
+  "SimpleITK<=2.4.1",
   "aenum",
   "scikit-image",
   "tqdm",
