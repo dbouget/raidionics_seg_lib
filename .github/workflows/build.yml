@@ -51,7 +51,9 @@ jobs:
 
       - name: Download test resources
         working-directory: tests
-        run: python -c "from download_resources import download_resources; download_resources('./test_data')"
+        run: |
+            pip install requests
+            python -c "from download_resources import download_resources; download_resources('./test_data')"
 
       - name: Upload test resources
         uses: actions/upload-artifact@v4
@@ -129,7 +131,8 @@ jobs:
           with:
             python-version: ${{ matrix.python-version }}
 
-        - uses: actions/checkout@v4
+        - name: Clone repo
+          uses: actions/checkout@v4
 
         - name: Download test resources
           uses: actions/download-artifact@v4
@@ -150,9 +153,6 @@ jobs:
 
         - name: Test CLI
           run: raidionicsseg --help
-
-        - name: Clone repo
-          uses: actions/checkout@v4
 
         - name: Integration tests
           run: |
