@@ -6,10 +6,11 @@ import logging
 import sys
 import subprocess
 import traceback
-import zipfile
+import nibabel as nib
+import numpy as np
 
 
-def test_docker_inference_segmentation_simple(data_test2):
+def test_docker_inference_segmentation_simple(test_dir):
     """
     Testing the CLI within a Docker container for a simple segmentation inference unit test, running on GPU.
     The latest Docker image is being hosted at: dbouget/raidionics-segmenter:v1.4-py39-cuda12.4
@@ -39,14 +40,14 @@ def test_docker_inference_segmentation_simple(data_test2):
         seg_config.set('Runtime', 'test_time_augmentation_iteration', '0')
         seg_config.set('Runtime', 'test_time_augmentation_fusion_mode', 'average')
         seg_config.set('Runtime', 'use_preprocessed_data', 'False')
-        seg_config_filename = os.path.join(data_test2, 'test_seg_config.ini')
+        seg_config_filename = os.path.join(test_dir, 'test_seg_config.ini')
         with open(seg_config_filename, 'w') as outfile:
             seg_config.write(outfile)
 
         logging.info("Running inference unit test in Docker container.\n")
         try:
             import platform
-            cmd_docker = ['docker', 'run', '-v', '{}:/workspace/resources'.format(data_test2),
+            cmd_docker = ['docker', 'run', '-v', '{}:/workspace/resources'.format(test_dir),
                           '--network=host', '--ipc=host', '--gpus=all', '--user', str(os.geteuid()),
                           'dbouget/raidionics-segmenter:v1.4-py39-cuda12.4',
                           '-c', '/workspace/resources/test_seg_config.ini', '-v', 'debug']
@@ -59,9 +60,13 @@ def test_docker_inference_segmentation_simple(data_test2):
             raise ValueError("Error during inference test in Docker container.\n")
 
         logging.info("Collecting and comparing results.\n")
-        brain_segmentation_filename = os.path.join(data_test2, "outputs", 'labels_Brain.nii.gz')
-        assert os.path.exists(
-            brain_segmentation_filename), "Inference Docker test failed, no brain mask was generated.\n"
+        segmentation_pred_filename = os.path.join(test_dir, "outputs", 'labels_Brain.nii.gz')
+        assert os.path.exists(segmentation_pred_filename), "No brain mask was generated.\n"
+        segmentation_gt_filename = os.path.join(test_dir, 'Inputs', 'PreopNeuro', 'inputs', 'input0_label_Brain.nii.gz')
+        segmentation_pred = nib.load(segmentation_pred_filename).get_fdata()[:]
+        segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
+        assert np.array_equal(segmentation_pred,
+                              segmentation_gt), "Ground truth and prediction arrays are not identical"
     except Exception as e:
         logging.error(f"Error during inference Docker test with: \n {traceback.format_exc()}.\n")
         raise ValueError("Error during inference Docker test.\n")

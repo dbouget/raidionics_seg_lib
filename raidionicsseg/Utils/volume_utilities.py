@@ -2,10 +2,10 @@ from copy import deepcopy
 
 import numpy as np
 import SimpleITK as sitk
-from skimage.measure import regionprops
 from skimage.transform import resize
 
-from .configuration_parser import *
+from .configuration_parser import ConfigResources
+from .configuration_parser import ImagingModalityType
 
 
 def input_file_category_disambiguation(input_filename: str) -> str:
@@ -58,11 +58,8 @@ def resize_volume(volume, new_slice_size, slicing_plane, order=1):
     return new_volume
 
 
-def __intensity_normalization_CT(volume, parameters):
+def __intensity_normalization_CT(volume: np.ndarray, parameters: ConfigResources) -> np.ndarray:
     result = np.copy(volume)
-
-    # result[volume < parameters.intensity_clipping_values[0]] = parameters.intensity_clipping_values[0]
-    # result[volume > parameters.intensity_clipping_values[1]] = parameters.intensity_clipping_values[1]
 
     if parameters.normalization_method == "zeromean":
         mean_val = np.mean(result)
@@ -78,14 +75,19 @@ def __intensity_normalization_CT(volume, parameters):
     return result
 
 
-def __intensity_normalization_MRI(volume, parameters):
+def __intensity_normalization_MRI(volume: np.ndarray, parameters: ConfigResources) -> np.ndarray:
+    """
+
+    Parameters
+    ----------
+    volume
+    parameters
+
+    Returns
+    -------
+
+    """
     result = deepcopy(volume).astype("float32")
-    # result[result < 0] = 0  # Soft clipping at 0 for MRI
-    # if parameters.intensity_clipping_range[1] - parameters.intensity_clipping_range[0] != 100:
-    #     limits = np.percentile(volume, q=parameters.intensity_clipping_range)
-    #     result = np.clip(volume, limits[0], limits[1])
-    #     # result[volume < limits[0]] = limits[0]
-    #     # result[volume > limits[1]] = limits[1]
 
     if parameters.normalization_method == "zeromean":
         mean_val = np.mean(result)
@@ -110,14 +112,14 @@ def __intensity_normalization_MRI(volume, parameters):
     return result.astype("float32")
 
 
-def intensity_normalization(volume, parameters):
+def intensity_normalization(volume: np.ndarray, parameters: ConfigResources) -> np.ndarray:
     if parameters.imaging_modality == ImagingModalityType.CT:
         return __intensity_normalization_CT(volume, parameters)
     elif parameters.imaging_modality == ImagingModalityType.MRI:
         return __intensity_normalization_MRI(volume, parameters)
 
 
-def intensity_clipping(volume, parameters):
+def intensity_clipping(volume: np.ndarray, parameters: ConfigResources) -> np.ndarray:
     result = deepcopy(volume)
     if parameters.imaging_modality == ImagingModalityType.MRI:
         result[result < 0] = 0  # Soft clipping at 0 for MRI

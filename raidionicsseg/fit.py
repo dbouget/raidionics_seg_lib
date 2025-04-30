@@ -3,7 +3,6 @@ import logging
 import multiprocessing as mp
 import os
 import platform
-import threading
 import time
 import traceback
 
@@ -12,7 +11,6 @@ from .Inference.predictions_classification import run_predictions_classification
 from .Inference.predictions_reconstruction import reconstruct_post_predictions
 from .PreProcessing.pre_processing import prepare_pre_processing
 from .Utils.configuration_parser import ConfigResources
-from .Utils.configuration_parser import *
 from .Utils.io import dump_classification_predictions
 from .Utils.io import dump_predictions
 
@@ -79,7 +77,6 @@ def __segment(pre_processing_parameters: ConfigResources) -> None:
             os.path.basename(inputs_folder), os.path.basename(base_model_path)
         )
     )
-    # models_path = sorted(glob.glob(os.path.join(base_model_path, "**", "*")), key=lambda x: x.split('/')[-2][0])
     models_path = sorted(
         glob.glob(os.path.join(base_model_path, "**", "*")), key=lambda x: os.path.basename(os.path.dirname(x))
     )
@@ -146,7 +143,6 @@ def __classify(pre_processing_parameters: ConfigResources):
     logging.info("LOG: Classification - 3 steps.")
     overall_start = start = time.time()
 
-    # models_path = sorted(glob.glob(os.path.join(base_model_path, "**", "*")), key=lambda x: x.split('/')[-2][0])
     models_path = sorted(
         glob.glob(os.path.join(base_model_path, "**", "*")), key=lambda x: os.path.basename(os.path.dirname(x))
     )
