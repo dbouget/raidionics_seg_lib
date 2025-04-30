@@ -7,14 +7,14 @@ import subprocess
 import traceback
 
 
-def test_inference_segmentation_tta_single_input(input_data_dir, input_models_dir):
+def test_inference_segmentation_tta_single_input(test_dir):
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
     logging.info("Running inference with test-time augmentation.\n")
 
     logging.info("Preparing configuration file.\n")
     try:
-        output_folder = os.path.join(os.path.dirname(input_data_dir), "output_package_tta")
+        output_folder = os.path.join(test_dir, "output_package_tta")
         if os.path.exists(output_folder):
             shutil.rmtree(output_folder)
         os.makedirs(output_folder)
@@ -22,9 +22,9 @@ def test_inference_segmentation_tta_single_input(input_data_dir, input_models_di
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "-1")
-        seg_config.set('System', 'inputs_folder', os.path.join(input_data_dir, 'PreopNeuro', 'inputs'))
+        seg_config.set('System', 'inputs_folder', os.path.join(test_dir, 'Inputs', 'PreopNeuro', 'inputs'))
         seg_config.set('System', 'output_folder', output_folder)
-        seg_config.set('System', 'model_folder', os.path.join(input_models_dir, 'MRI_Brain'))
+        seg_config.set('System', 'model_folder', os.path.join(test_dir, 'Models', 'MRI_Brain'))
         seg_config.add_section('Runtime')
         seg_config.set('Runtime', 'folds_ensembling', 'False')
         seg_config.set('Runtime', 'ensembling_strategy', 'average')
@@ -57,14 +57,14 @@ def test_inference_segmentation_tta_single_input(input_data_dir, input_models_di
     if os.path.exists(output_folder):
         shutil.rmtree(output_folder)
 
-def test_inference_segmentation_model_ensembling(input_data_dir, input_models_dir):
+def test_inference_segmentation_model_ensembling(test_dir):
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
     logging.info("Running inference with model ensembling.\n")
 
     logging.info("Preparing configuration file.\n")
     try:
-        output_folder = os.path.join(os.path.dirname(input_data_dir), "output_package_me")
+        output_folder = os.path.join(test_dir, "output_package_me")
         if os.path.exists(output_folder):
             shutil.rmtree(output_folder)
         os.makedirs(output_folder)
@@ -72,9 +72,9 @@ def test_inference_segmentation_model_ensembling(input_data_dir, input_models_di
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "-1")
-        seg_config.set('System', 'inputs_folder', os.path.join(input_data_dir, 'DiffLoader', 'inputs'))
+        seg_config.set('System', 'inputs_folder', os.path.join(test_dir, 'Inputs', 'DiffLoader', 'inputs'))
         seg_config.set('System', 'output_folder', output_folder)
-        seg_config.set('System', 'model_folder', os.path.join(input_models_dir, 'MRI_TumorCE_Postop/t1c_t1w_t1d'))
+        seg_config.set('System', 'model_folder', os.path.join(test_dir, 'Models', 'MRI_TumorCE_Postop/t1c_t1w_t1d'))
         seg_config.add_section('Runtime')
         seg_config.set('Runtime', 'folds_ensembling', '3')
         seg_config.set('Runtime', 'ensembling_strategy', 'average')

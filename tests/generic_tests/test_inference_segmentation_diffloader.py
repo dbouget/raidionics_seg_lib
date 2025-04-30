@@ -7,7 +7,7 @@ import nibabel as nib
 import numpy as np
 
 
-def test_inference_diffloader_neuro(input_data_dir, input_models_dir):
+def test_inference_diffloader_neuro(test_dir):
     """
     Testing the input difference loader between T1-CE and T1w inputs.
 
@@ -26,7 +26,7 @@ def test_inference_diffloader_neuro(input_data_dir, input_models_dir):
 
     logging.info("Preparing configuration file.\n")
     try:
-        output_folder = os.path.join(os.path.dirname(input_data_dir), "output_diffloader")
+        output_folder = os.path.join(test_dir, "output_diffloader")
         if os.path.exists(output_folder):
             shutil.rmtree(output_folder)
         os.makedirs(output_folder)
@@ -34,9 +34,9 @@ def test_inference_diffloader_neuro(input_data_dir, input_models_dir):
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "-1")
-        seg_config.set('System', 'inputs_folder', os.path.join(input_data_dir, 'DiffLoader', 'inputs'))
+        seg_config.set('System', 'inputs_folder', os.path.join(test_dir, 'Inputs', 'DiffLoader', 'inputs'))
         seg_config.set('System', 'output_folder', output_folder)
-        seg_config.set('System', 'model_folder', os.path.join(input_models_dir, 'MRI_TumorCE_Postop/t1c_t1w_t1d'))
+        seg_config.set('System', 'model_folder', os.path.join(test_dir, 'Models', 'MRI_TumorCE_Postop/t1c_t1w_t1d'))
         seg_config.add_section('Runtime')
         seg_config.set('Runtime', 'folds_ensembling', 'False')
         seg_config.set('Runtime', 'ensembling_strategy', 'average')
@@ -57,7 +57,7 @@ def test_inference_diffloader_neuro(input_data_dir, input_models_dir):
             logging.info("Collecting and comparing results.\n")
             segmentation_pred_filename = os.path.join(output_folder, 'labels_TumorCE.nii.gz')
             assert os.path.exists(segmentation_pred_filename), "No tumorCE mask was generated.\n"
-            segmentation_gt_filename = os.path.join(input_data_dir, 'DiffLoader', 'verif', 'input0_label-TumorCE.nii.gz')
+            segmentation_gt_filename = os.path.join(test_dir, 'Inputs', 'DiffLoader', 'verif', 'input0_label-TumorCE.nii.gz')
             segmentation_pred = nib.load(segmentation_pred_filename).get_fdata()[:]
             segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
             # assert np.array_equal(segmentation_pred, segmentation_gt), "Ground truth and prediction arrays are not identical"

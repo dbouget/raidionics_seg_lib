@@ -39,6 +39,25 @@ jobs:
           path: ${{github.workspace}}/dist/raidionicsseg-*.whl
           if-no-files-found: error
 
+  setup-test-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.9
+
+      - name: Download test resources
+        working-directory: tests
+        run: python -c "from download_resources import download_resources; download_resources('./test_data')"
+
+      - name: Upload test resources
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-resources
+          path: ./test_data
   test:
     needs: build
     runs-on: ${{ matrix.os }}
@@ -109,6 +128,14 @@ jobs:
           uses: actions/setup-python@v5
           with:
             python-version: ${{ matrix.python-version }}
+
+        - uses: actions/checkout@v4
+
+        - name: Download test resources
+          uses: actions/download-artifact@v4
+          with:
+            name: test-resources
+            path: ./tests/unit_tests_results_dir
 
         - name: Download artifact
           uses: actions/download-artifact@v4

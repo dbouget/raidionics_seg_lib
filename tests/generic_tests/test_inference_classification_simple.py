@@ -7,14 +7,14 @@ import pandas as pd
 import numpy as np
 
 
-def test_inference_classification_prob(input_data_dir, input_models_dir):
+def test_inference_classification_prob(test_dir):
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
     logging.info("Running standard inference test as a Python package.\n")
 
     logging.info("Preparing configuration file.\n")
     try:
-        output_folder = os.path.join(os.path.dirname(input_data_dir), "output_package")
+        output_folder = os.path.join(test_dir, "output_package")
         if os.path.exists(output_folder):
             shutil.rmtree(output_folder)
         os.makedirs(output_folder)
@@ -22,9 +22,9 @@ def test_inference_classification_prob(input_data_dir, input_models_dir):
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "-1")
-        seg_config.set('System', 'inputs_folder', os.path.join(input_data_dir, 'DiffLoader', 'inputs'))
+        seg_config.set('System', 'inputs_folder', os.path.join(test_dir, 'Inputs', 'DiffLoader', 'inputs'))
         seg_config.set('System', 'output_folder', output_folder)
-        seg_config.set('System', 'model_folder', os.path.join(input_models_dir, 'MRI_SequenceClassifier'))
+        seg_config.set('System', 'model_folder', os.path.join(test_dir, 'Models', 'MRI_SequenceClassifier'))
         seg_config.add_section('Runtime')
         seg_config.set('Runtime', 'folds_ensembling', 'False')
         seg_config.set('Runtime', 'ensembling_strategy', 'average')
@@ -56,14 +56,14 @@ def test_inference_classification_prob(input_data_dir, input_models_dir):
     if os.path.exists(output_folder):
         shutil.rmtree(output_folder)
 
-def test_inference_classification_labels(input_data_dir, input_models_dir):
+def test_inference_classification_labels(test_dir):
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
     logging.info("Running standard inference test as a Python package.\n")
 
     logging.info("Preparing configuration file.\n")
     try:
-        output_folder = os.path.join(os.path.dirname(input_data_dir), "output_package")
+        output_folder = os.path.join(test_dir, "output_package")
         if os.path.exists(output_folder):
             shutil.rmtree(output_folder)
         os.makedirs(output_folder)
@@ -71,9 +71,9 @@ def test_inference_classification_labels(input_data_dir, input_models_dir):
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "-1")
-        seg_config.set('System', 'inputs_folder', os.path.join(input_data_dir, 'DiffLoader', 'inputs'))
+        seg_config.set('System', 'inputs_folder', os.path.join(test_dir, 'Inputs', 'DiffLoader', 'inputs'))
         seg_config.set('System', 'output_folder', output_folder)
-        seg_config.set('System', 'model_folder', os.path.join(input_models_dir, 'MRI_SequenceClassifier'))
+        seg_config.set('System', 'model_folder', os.path.join(test_dir, 'Models', 'MRI_SequenceClassifier'))
         seg_config.add_section('Runtime')
         seg_config.set('Runtime', 'folds_ensembling', 'False')
         seg_config.set('Runtime', 'ensembling_strategy', 'average')

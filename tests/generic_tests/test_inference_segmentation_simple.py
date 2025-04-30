@@ -9,7 +9,7 @@ import nibabel as nib
 import numpy as np
 
 
-def test_inference_cli(input_data_dir, input_models_dir):
+def test_inference_cli(test_dir):
     """
     Executing the module as a command line argument
     Parameters
@@ -27,16 +27,16 @@ def test_inference_cli(input_data_dir, input_models_dir):
 
     logging.info("Preparing configuration file.\n")
     try:
-        output_folder = os.path.join(os.path.dirname(input_data_dir), "output_cli")
+        output_folder = os.path.join(test_dir, "output_cli")
         if os.path.exists(output_folder):
             shutil.rmtree(output_folder)
         os.makedirs(output_folder)
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "-1")
-        seg_config.set('System', 'inputs_folder', os.path.join(input_data_dir, 'PreopNeuro', 'inputs'))
+        seg_config.set('System', 'inputs_folder', os.path.join(test_dir, 'Inputs', 'PreopNeuro', 'inputs'))
         seg_config.set('System', 'output_folder', output_folder)
-        seg_config.set('System', 'model_folder', os.path.join(input_models_dir, 'MRI_Brain'))
+        seg_config.set('System', 'model_folder', os.path.join(test_dir, 'Models', 'MRI_Brain'))
         seg_config.add_section('Runtime')
         seg_config.set('Runtime', 'folds_ensembling', 'False')
         seg_config.set('Runtime', 'ensembling_strategy', 'average')
@@ -73,7 +73,7 @@ def test_inference_cli(input_data_dir, input_models_dir):
         logging.info("Collecting and comparing results.\n")
         segmentation_pred_filename = os.path.join(output_folder, 'labels_Brain.nii.gz')
         assert os.path.exists(segmentation_pred_filename), "No brain mask was generated.\n"
-        segmentation_gt_filename = os.path.join(input_data_dir, 'PreopNeuro', 'inputs', 'input0_label_Brain.nii.gz')
+        segmentation_gt_filename = os.path.join(test_dir, 'Inputs', 'PreopNeuro', 'inputs', 'input0_label_Brain.nii.gz')
         segmentation_pred = nib.load(segmentation_pred_filename).get_fdata()[:]
         segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
         assert np.array_equal(segmentation_pred,
@@ -85,7 +85,7 @@ def test_inference_cli(input_data_dir, input_models_dir):
         shutil.rmtree(output_folder)
 
 
-def test_inference_package(input_data_dir, input_models_dir):
+def test_inference_package(test_dir):
     """
     Executing the module as a Python package
     Parameters
@@ -103,7 +103,7 @@ def test_inference_package(input_data_dir, input_models_dir):
 
     logging.info("Preparing configuration file.\n")
     try:
-        output_folder = os.path.join(os.path.dirname(input_data_dir), "output_package")
+        output_folder = os.path.join(test_dir, "output_package")
         if os.path.exists(output_folder):
             shutil.rmtree(output_folder)
         os.makedirs(output_folder)
@@ -111,9 +111,9 @@ def test_inference_package(input_data_dir, input_models_dir):
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "-1")
-        seg_config.set('System', 'inputs_folder', os.path.join(input_data_dir, 'PreopNeuro', 'inputs'))
+        seg_config.set('System', 'inputs_folder', os.path.join(test_dir, 'Inputs', 'PreopNeuro', 'inputs'))
         seg_config.set('System', 'output_folder', output_folder)
-        seg_config.set('System', 'model_folder', os.path.join(input_models_dir, 'MRI_Brain'))
+        seg_config.set('System', 'model_folder', os.path.join(test_dir, 'Models', 'MRI_Brain'))
         seg_config.add_section('Runtime')
         seg_config.set('Runtime', 'folds_ensembling', 'False')
         seg_config.set('Runtime', 'ensembling_strategy', 'average')
@@ -134,7 +134,7 @@ def test_inference_package(input_data_dir, input_models_dir):
             logging.info("Collecting and comparing results.\n")
             segmentation_pred_filename = os.path.join(output_folder, 'labels_Brain.nii.gz')
             assert os.path.exists(segmentation_pred_filename), "Inference CLI test failed, no brain mask was generated.\n"
-            segmentation_gt_filename = os.path.join(input_data_dir, 'PreopNeuro', 'inputs', 'input0_label_Brain.nii.gz')
+            segmentation_gt_filename = os.path.join(test_dir, 'Inputs', 'PreopNeuro', 'inputs', 'input0_label_Brain.nii.gz')
             segmentation_pred = nib.load(segmentation_pred_filename).get_fdata()[:]
             segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
             assert np.array_equal(segmentation_pred, segmentation_gt), "Ground truth and prediction arrays are not identical"
