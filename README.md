@@ -4,6 +4,8 @@
 [![](https://img.shields.io/badge/python-3.8|3.9|3.10|3.11-blue.svg)](https://www.python.org/downloads/)
 [![Paper](https://zenodo.org/badge/DOI/10.3389/fneur.2022.932219.svg)](https://www.frontiersin.org/articles/10.3389/fneur.2022.932219/full)
 [![codecov](https://codecov.io/gh/dbouget/raidionics_seg_lib/branch/master/graph/badge.svg?token=ZSPQVR7RKX)](https://codecov.io/gh/dbouget/raidionics_seg_lib)
+[![PyPI version](https://img.shields.io/pypi/v/raidionicsseg.svg)](https://pypi.org/project/raidionicsseg/)
+
 
 The code corresponds to the segmentation or classification backend of MRI/CT volumes, using ONNX runtime for inference.  
 The module can either be used as a Python library, as CLI, or as Docker container. By default, inference is performed on CPU only.
@@ -11,17 +13,10 @@ The module can either be used as a Python library, as CLI, or as Docker containe
 ## [Installation](https://github.com/dbouget/raidionics_seg_lib#installation)
 
 ```
+pip install raidionicsseg
+(or)
 pip install git+https://github.com/dbouget/raidionics_seg_lib.git
 ```
-
-## [Continuous integration](https://github.com/dbouget/raidionics_seg_lib#continuous-integration)
-
-| Operating System | Status                                                                                                                                                                                                   |
-|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Windows**      | [![Build Windows](https://github.com/dbouget/raidionics_seg_lib/actions/workflows/build_windows.yml/badge.svg)](https://github.com/dbouget/raidionics_seg_lib/actions/workflows/build_windows.yml)       |
-| **Ubuntu**       | [![Build Ubuntu](https://github.com/dbouget/raidionics_seg_lib/actions/workflows/build_ubuntu.yml/badge.svg)](https://github.com/dbouget/raidionics_seg_lib/actions/workflows/build_ubuntu.yml)          |
-| **macOS**        | [![Build macOS](https://github.com/dbouget/raidionics_seg_lib/actions/workflows/build_macos.yml/badge.svg)](https://github.com/dbouget/raidionics_seg_lib/actions/workflows/build_macos.yml)             |
-| **macOS ARM**    | [![Build macOS ARM](https://github.com/dbouget/raidionics_seg_lib/actions/workflows/build_macos_arm.yml/badge.svg)](https://github.com/dbouget/raidionics_seg_lib/actions/workflows/build_macos_arm.yml) |
 
 ## [How to cite](https://github.com/dbouget/raidionics_seg_lib#how-to-cite)
 If you are using Raidionics in your research, please cite the following references.
