@@ -129,7 +129,7 @@ def intensity_clipping(volume: np.ndarray, parameters: ConfigResources) -> np.nd
         result = np.clip(volume, limits[0], limits[1])
     elif (
         parameters.intensity_clipping_values is not None
-        and len(parameters.intensity_clipping_values) == 0
+        and len(parameters.intensity_clipping_values) != 0
         and parameters.intensity_clipping_values[1] > parameters.intensity_clipping_values[0]
     ):
         result[volume < parameters.intensity_clipping_values[0]] = parameters.intensity_clipping_values[0]
