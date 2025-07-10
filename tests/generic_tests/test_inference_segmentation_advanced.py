@@ -98,6 +98,8 @@ def test_inference_segmentation_model_ensembling(test_dir):
             segmentation_gt_filename = os.path.join(test_dir, 'Inputs', 'DiffLoader', 'verif', 'input0_labels_TumorCE_foldensemble.nii.gz')
             segmentation_pred = nib.load(segmentation_pred_filename).get_fdata()[:]
             segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
+            logging.info(
+                f"Ground truth and prediction arrays difference: {np.count_nonzero(abs(segmentation_gt - segmentation_pred))} pixels")
             # assert np.array_equal(segmentation_pred, segmentation_gt), "Ground truth and prediction arrays are not identical"
             assert np.count_nonzero(np.abs(
                 segmentation_pred - segmentation_gt)) < 600, "Ground truth and prediction arrays are very different"

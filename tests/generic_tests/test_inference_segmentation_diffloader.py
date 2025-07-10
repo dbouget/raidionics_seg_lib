@@ -61,6 +61,8 @@ def test_inference_diffloader_neuro(test_dir):
             segmentation_pred = nib.load(segmentation_pred_filename).get_fdata()[:]
             segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
             # assert np.array_equal(segmentation_pred, segmentation_gt), "Ground truth and prediction arrays are not identical"
+            logging.info(
+                f"Ground truth and prediction arrays difference: {np.count_nonzero(abs(segmentation_gt - segmentation_pred))} pixels")
             assert np.count_nonzero(np.abs(segmentation_pred - segmentation_gt)) < 600, "Ground truth and prediction arrays are very different"
         except Exception as e:
             logging.error(f"Error during inference Python package test with: \n {traceback.format_exc()}.\n")
