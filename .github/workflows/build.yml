@@ -154,8 +154,14 @@ jobs:
         - name: Clone repo
           uses: actions/checkout@v4
 
-        - name: Cleanup test environment
+        - name: Cleanup test environment on Linux/macOS
+          if: runner.os != 'Windows'
           run: rm -rf test_env/
+
+        - name: Cleanup test environment on Windows
+          if: runner.os == 'Windows'
+          run: Remove-Item -Recurse -Force test_env
+          shell: pwsh
 
         - name: Create clean test environment
           run: |
