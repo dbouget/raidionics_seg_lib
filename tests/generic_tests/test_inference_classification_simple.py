@@ -7,22 +7,28 @@ import pandas as pd
 import numpy as np
 
 
-def test_inference_classification_prob(test_dir):
+def test_inference_classification_prob(test_dir, tmp_path):
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
     logging.info("Running standard inference test as a Python package.\n")
 
     logging.info("Preparing configuration file.\n")
     try:
-        output_folder = os.path.join(test_dir, "output_package")
+        output_folder = os.path.join(tmp_path, "output_classif_prob")
         if os.path.exists(output_folder):
             shutil.rmtree(output_folder)
         os.makedirs(output_folder)
 
+        test_raw_input_fn = os.path.join(test_dir, "Inputs", 'DiffLoader')
+        tmp_test_input_fn = os.path.join(tmp_path, "results", "input_classif_prob")
+        if os.path.exists(tmp_test_input_fn):
+            shutil.rmtree(tmp_test_input_fn)
+        shutil.copytree(test_raw_input_fn, tmp_test_input_fn)
+
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "-1")
-        seg_config.set('System', 'inputs_folder', os.path.join(test_dir, 'Inputs', 'DiffLoader', 'inputs'))
+        seg_config.set('System', 'inputs_folder', os.path.join(tmp_test_input_fn, 'inputs'))
         seg_config.set('System', 'output_folder', output_folder)
         seg_config.set('System', 'model_folder', os.path.join(test_dir, 'Models', 'MRI_SequenceClassifier'))
         seg_config.add_section('Runtime')
@@ -46,6 +52,8 @@ def test_inference_classification_prob(test_dir):
             assert np.argmax(results["Prediction"].values) == 0, "The classification results is not T1-CE"
         except Exception as e:
             logging.error(f"Error during inference Python package test with: \n {traceback.format_exc()}.\n")
+            if os.path.exists(tmp_test_input_fn):
+                shutil.rmtree(tmp_test_input_fn)
             if os.path.exists(output_folder):
                 shutil.rmtree(output_folder)
             raise ValueError("Error during inference Python package test.\n")
@@ -53,25 +61,33 @@ def test_inference_classification_prob(test_dir):
         logging.error(f"Error during inference Python package test with: \n {traceback.format_exc()}.\n")
         raise ValueError("Error during inference Python package test.\n")
 
+    if os.path.exists(tmp_test_input_fn):
+        shutil.rmtree(tmp_test_input_fn)
     if os.path.exists(output_folder):
         shutil.rmtree(output_folder)
 
-def test_inference_classification_labels(test_dir):
+def test_inference_classification_labels(test_dir, tmp_path):
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
     logging.info("Running standard inference test as a Python package.\n")
 
     logging.info("Preparing configuration file.\n")
     try:
-        output_folder = os.path.join(test_dir, "output_package")
+        output_folder = os.path.join(test_dir, "output_classif_labels")
         if os.path.exists(output_folder):
             shutil.rmtree(output_folder)
         os.makedirs(output_folder)
 
+        test_raw_input_fn = os.path.join(test_dir, "Inputs", 'DiffLoader')
+        tmp_test_input_fn = os.path.join(tmp_path, "results", "input_classif_labels")
+        if os.path.exists(tmp_test_input_fn):
+            shutil.rmtree(tmp_test_input_fn)
+        shutil.copytree(test_raw_input_fn, tmp_test_input_fn)
+
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "-1")
-        seg_config.set('System', 'inputs_folder', os.path.join(test_dir, 'Inputs', 'DiffLoader', 'inputs'))
+        seg_config.set('System', 'inputs_folder', os.path.join(tmp_test_input_fn, 'inputs'))
         seg_config.set('System', 'output_folder', output_folder)
         seg_config.set('System', 'model_folder', os.path.join(test_dir, 'Models', 'MRI_SequenceClassifier'))
         seg_config.add_section('Runtime')
@@ -95,6 +111,8 @@ def test_inference_classification_labels(test_dir):
             assert results["Class"].values[0] == "T1-CE", "The classification results is not T1-CE"
         except Exception as e:
             logging.error(f"Error during inference Python package test with: \n {traceback.format_exc()}.\n")
+            if os.path.exists(tmp_test_input_fn):
+                shutil.rmtree(tmp_test_input_fn)
             if os.path.exists(output_folder):
                 shutil.rmtree(output_folder)
             raise ValueError("Error during inference Python package test.\n")
@@ -102,5 +120,7 @@ def test_inference_classification_labels(test_dir):
         logging.error(f"Error during inference Python package test with: \n {traceback.format_exc()}.\n")
         raise ValueError("Error during inference Python package test.\n")
 
+    if os.path.exists(tmp_test_input_fn):
+        shutil.rmtree(tmp_test_input_fn)
     if os.path.exists(output_folder):
         shutil.rmtree(output_folder)
