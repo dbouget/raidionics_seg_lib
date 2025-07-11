@@ -49,9 +49,18 @@ def test_inference_segmentation_tta_single_input(test_dir, tmp_path):
             run_model(seg_config_filename)
 
             logging.info("Collecting and comparing results.\n")
-            brain_segmentation_filename = os.path.join(output_folder, 'labels_Brain.nii.gz')
-            assert os.path.exists(brain_segmentation_filename), "No brain mask was generated.\n"
-            # @TODO. How to test further?
+            segmentation_pred_filename = os.path.join(output_folder, 'labels_Brain.nii.gz')
+            assert os.path.exists(segmentation_pred_filename), "No brain mask was generated.\n"
+            segmentation_gt_filename = os.path.join(tmp_test_input_fn, 'inputs', 'input0_label_Brain.nii.gz')
+            segmentation_pred_nib = nib.load(segmentation_pred_filename)
+            segmentation_gt_nib = nib.load(segmentation_gt_filename)
+            pred_volume = np.count_nonzero(segmentation_pred_nib.get_fdata()[:]) * np.prod(
+                segmentation_pred_nib.header.get_zooms()[0:3]) * 1e-3
+            gt_volume = np.count_nonzero(segmentation_gt_nib.get_fdata()[:]) * np.prod(
+                segmentation_gt_nib.header.get_zooms()[0:3]) * 1e-3
+            logging.info(f"Volume difference: {abs(pred_volume - gt_volume)}\n")
+            assert abs(pred_volume - gt_volume) < 0.5, \
+                "Ground truth and prediction arrays are very different"
         except Exception as e:
             logging.error(f"Error during inference with TTA Python package test with: {e}\n {traceback.format_exc()}.\n")
             if os.path.exists(tmp_test_input_fn):
@@ -117,9 +126,9 @@ def test_inference_segmentation_model_ensembling(test_dir, tmp_path):
             segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
             logging.info(
                 f"Ground truth and prediction arrays difference: {np.count_nonzero(abs(segmentation_gt - segmentation_pred))} pixels")
-            # assert np.array_equal(segmentation_pred, segmentation_gt), "Ground truth and prediction arrays are not identical"
-            assert np.count_nonzero(np.abs(
-                segmentation_pred - segmentation_gt)) < 200, "Ground truth and prediction arrays are very different"
+            assert np.array_equal(segmentation_pred, segmentation_gt), "Ground truth and prediction arrays are not identical"
+            # assert np.count_nonzero(np.abs(
+            #     segmentation_pred - segmentation_gt)) < 200, "Ground truth and prediction arrays are very different"
         except Exception as e:
             logging.error(f"Error during model ensembling inference with: {e}\n {traceback.format_exc()}.\n")
             if os.path.exists(tmp_test_input_fn):

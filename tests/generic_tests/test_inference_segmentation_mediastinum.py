@@ -9,7 +9,7 @@ import nibabel as nib
 import numpy as np
 
 
-def test_inference_cli(test_dir):
+def test_inference_cli(test_dir, tmp_path):
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
     logging.info("Running standard inference using the CLI for a mediastinum model.\n")
@@ -20,10 +20,17 @@ def test_inference_cli(test_dir):
         if os.path.exists(output_folder):
             shutil.rmtree(output_folder)
         os.makedirs(output_folder)
+
+        test_raw_input_fn = os.path.join(test_dir, "Inputs", 'Mediastinum')
+        tmp_test_input_fn = os.path.join(tmp_path, "results", "input_medi_cli")
+        if os.path.exists(tmp_test_input_fn):
+            shutil.rmtree(tmp_test_input_fn)
+        shutil.copytree(test_raw_input_fn, tmp_test_input_fn)
+
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "-1")
-        seg_config.set('System', 'inputs_folder', os.path.join(test_dir, 'Inputs', "Mediastinum", 'inputs'))
+        seg_config.set('System', 'inputs_folder', os.path.join(tmp_test_input_fn, 'inputs'))
         seg_config.set('System', 'output_folder', output_folder)
         seg_config.set('System', 'model_folder', os.path.join(test_dir, 'Models', 'CT_Tumor/hr'))
         seg_config.add_section('Runtime')
@@ -67,6 +74,8 @@ def test_inference_cli(test_dir):
                                        '--verbose', 'debug'])
         except Exception as e:
             logging.error(f"Error during test with: \n {traceback.format_exc()}.\n")
+            if os.path.exists(tmp_test_input_fn):
+                shutil.rmtree(tmp_test_input_fn)
             if os.path.exists(output_folder):
                 shutil.rmtree(output_folder)
             raise ValueError("Error during test.\n")
@@ -74,7 +83,7 @@ def test_inference_cli(test_dir):
         logging.info("Collecting and comparing results.\n")
         segmentation_filename = os.path.join(output_folder, 'labels_Tumor.nii.gz')
         assert os.path.exists(segmentation_filename), "No tumor mask was generated.\n"
-        segmentation_gt_filename = os.path.join(test_dir, 'Inputs', 'Mediastinum', 'verif', 'input0_labels_Tumor.nii.gz')
+        segmentation_gt_filename = os.path.join(tmp_test_input_fn, 'verif', 'input0_labels_Tumor.nii.gz')
         segmentation_pred = nib.load(segmentation_filename).get_fdata()[:]
         segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
         assert np.array_equal(segmentation_pred,
@@ -82,26 +91,34 @@ def test_inference_cli(test_dir):
     except Exception as e:
         logging.error(f"Error during test with: {e} \n {traceback.format_exc()}.\n")
         raise ValueError("Error during test.\n")
+    if os.path.exists(tmp_test_input_fn):
+        shutil.rmtree(tmp_test_input_fn)
     if os.path.exists(output_folder):
         shutil.rmtree(output_folder)
 
 
-def test_inference_package(test_dir):
+def test_inference_package(test_dir, tmp_path):
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
     logging.info("Running standard inference test as a Python package for a mediastinum model.\n")
 
     logging.info("Preparing configuration file.\n")
     try:
-        output_folder = os.path.join(test_dir, "output_package")
+        output_folder = os.path.join(test_dir, "output_medi_package")
         if os.path.exists(output_folder):
             shutil.rmtree(output_folder)
         os.makedirs(output_folder)
 
+        test_raw_input_fn = os.path.join(test_dir, "Inputs", 'Mediastinum')
+        tmp_test_input_fn = os.path.join(tmp_path, "results", "input_medi_package")
+        if os.path.exists(tmp_test_input_fn):
+            shutil.rmtree(tmp_test_input_fn)
+        shutil.copytree(test_raw_input_fn, tmp_test_input_fn)
+
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "-1")
-        seg_config.set('System', 'inputs_folder', os.path.join(test_dir, 'Inputs', 'Mediastinum', 'inputs'))
+        seg_config.set('System', 'inputs_folder', os.path.join(tmp_test_input_fn, 'inputs'))
         seg_config.set('System', 'output_folder', output_folder)
         seg_config.set('System', 'model_folder', os.path.join(test_dir, 'Models', 'CT_Tumor/hr'))
         seg_config.add_section('Runtime')
@@ -128,13 +145,15 @@ def test_inference_package(test_dir):
             logging.info("Collecting and comparing results.\n")
             segmentation_filename = os.path.join(output_folder, 'labels_Tumor.nii.gz')
             assert os.path.exists(segmentation_filename), "No tumor mask was generated.\n"
-            segmentation_gt_filename = os.path.join(test_dir, 'Inputs', 'Mediastinum', 'verif', 'input0_labels_Tumor.nii.gz')
+            segmentation_gt_filename = os.path.join(tmp_test_input_fn, 'verif', 'input0_labels_Tumor.nii.gz')
             segmentation_pred = nib.load(segmentation_filename).get_fdata()[:]
             segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
             assert np.array_equal(segmentation_pred,
                                   segmentation_gt), "Ground truth and prediction arrays are not identical"
         except Exception as e:
             logging.error(f"Error during test with: {e} \n {traceback.format_exc()}.\n")
+            if os.path.exists(tmp_test_input_fn):
+                shutil.rmtree(tmp_test_input_fn)
             if os.path.exists(output_folder):
                 shutil.rmtree(output_folder)
             raise ValueError("Error during test.\n")
@@ -142,6 +161,8 @@ def test_inference_package(test_dir):
         logging.error(f"Error during test with: {e} \n {traceback.format_exc()}.\n")
         raise ValueError("Error during test.\n")
 
+    if os.path.exists(tmp_test_input_fn):
+        shutil.rmtree(tmp_test_input_fn)
     if os.path.exists(output_folder):
         shutil.rmtree(output_folder)
 

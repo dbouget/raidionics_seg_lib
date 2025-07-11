@@ -26,7 +26,7 @@ def test_inference_diffloader_neuro(test_dir, tmp_path):
 
     logging.info("Preparing configuration file.\n")
     try:
-        output_folder = os.path.join(test_dir, "output_diffloader")
+        output_folder = os.path.join(test_dir, "output_package_diffloader")
         if os.path.exists(output_folder):
             shutil.rmtree(output_folder)
         os.makedirs(output_folder)
