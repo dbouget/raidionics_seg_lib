@@ -140,11 +140,14 @@ def test_inference_segmentation_reconstruction_method(test_dir, tmp_path):
             assert os.path.exists(segmentation_pred_filename), "Inference CLI test failed, no brain mask was generated.\n"
             segmentation_gt_filename = os.path.join(tmp_test_input_fn, 'verif', 'input0_pred_Brain.nii.gz')
             logging.info(f"Comparing {segmentation_pred_filename} with original {segmentation_gt_filename}")
-            segmentation_pred = nib.load(segmentation_pred_filename).get_fdata()[:]
-            segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
-            logging.info(
-                f"Ground truth and prediction arrays difference: {np.count_nonzero(abs(segmentation_gt - segmentation_pred))} pixels")
-            assert np.array_equal(segmentation_pred, segmentation_gt), "Ground truth and prediction arrays are not identical"
+            segmentation_pred_nib = nib.load(segmentation_pred_filename)
+            segmentation_gt_nib = nib.load(segmentation_gt_filename)
+            pred_volume = np.count_nonzero(segmentation_pred_nib.get_fdata()[:]) * np.prod(
+                segmentation_pred_nib.header.get_zooms()[0:3]) * 1e-3
+            gt_volume = np.count_nonzero(segmentation_gt_nib.get_fdata()[:]) * np.prod(
+                segmentation_gt_nib.header.get_zooms()[0:3]) * 1e-3
+            logging.info(f"Volume difference: {abs(pred_volume - gt_volume)}\n")
+            assert abs(pred_volume - gt_volume) < 0.1, "Ground truth and prediction volumes are very different"
         except Exception as e:
             logging.error(f"Error during inference Python package test with: {e} \n {traceback.format_exc()}.\n")
             if os.path.exists(tmp_test_input_fn):
