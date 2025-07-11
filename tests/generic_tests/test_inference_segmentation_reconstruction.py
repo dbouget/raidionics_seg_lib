@@ -123,8 +123,11 @@ def test_inference_segmentation_reconstruction_method(test_dir):
             segmentation_pred_filename = os.path.join(output_folder, 'pred_Brain.nii.gz')
             assert os.path.exists(segmentation_pred_filename), "Inference CLI test failed, no brain mask was generated.\n"
             segmentation_gt_filename = os.path.join(test_dir, 'Inputs', 'PreopNeuro', 'verif', 'input0_pred_Brain.nii.gz')
+            logging.info(f"Comparing {segmentation_pred_filename} with original {segmentation_gt_filename}")
             segmentation_pred = nib.load(segmentation_pred_filename).get_fdata()[:]
             segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
+            logging.info(
+                f"Ground truth and prediction arrays difference: {np.count_nonzero(abs(segmentation_gt - segmentation_pred))} pixels")
             # assert np.array_equal(segmentation_pred, segmentation_gt), "Ground truth and prediction arrays are not identical"
         except Exception as e:
             logging.error(f"Error during inference Python package test with: {e} \n {traceback.format_exc()}.\n")

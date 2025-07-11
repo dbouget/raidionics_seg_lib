@@ -1,10 +1,9 @@
-name: Build Universal Wheel
+name: Run integration tests
 
 on:
   push:
-    branches: [ master,update ]
-  pull_request:
-    branches: [ master ]
+    branches:
+      - '*'
   workflow_dispatch:
 
 jobs:
@@ -68,69 +67,6 @@ jobs:
         include:
           - os: ubuntu-22.04
             python-version: "3.9"
-          - os: ubuntu-22.04
-            python-version: "3.10"
-          - os: ubuntu-22.04
-            python-version: "3.11"
-          - os: ubuntu-22.04
-            python-version: "3.12"
-          - os: ubuntu-22.04
-            python-version: "3.13"
-          - os: ubuntu-24.04
-            python-version: "3.9"
-          - os: ubuntu-24.04
-            python-version: "3.10"
-          - os: ubuntu-24.04
-            python-version: "3.11"
-          - os: ubuntu-24.04
-            python-version: "3.12"
-          - os: ubuntu-24.04
-            python-version: "3.13"
-          - os: windows-2022
-            python-version: "3.9"
-          - os: windows-2022
-            python-version: "3.10"
-          - os: windows-2022
-            python-version: "3.11"
-          - os: windows-2022
-            python-version: "3.12"
-          - os: windows-2022
-            python-version: "3.13"
-          - os: windows-2025
-            python-version: "3.9"
-          - os: windows-2025
-            python-version: "3.10"
-          - os: windows-2025
-            python-version: "3.11"
-          - os: windows-2025
-            python-version: "3.12"
-          - os: windows-2025
-            python-version: "3.13"
-          - os: macos-13
-            python-version: "3.9"
-          - os: macos-13
-            python-version: "3.10"
-          - os: macos-13
-            python-version: "3.11"
-          - os: macos-13
-            python-version: "3.12"
-          - os: macos-14
-            python-version: "3.10"
-          - os: macos-14
-            python-version: "3.11"
-          - os: macos-14
-            python-version: "3.12"
-          - os: macos-14
-            python-version: "3.13"
-          - os: macos-15
-            python-version: "3.10"
-          - os: macos-15
-            python-version: "3.11"
-          - os: macos-15
-            python-version: "3.12"
-          - os: macos-15
-            python-version: "3.13"
-
     steps:
         - name: Set up Python ${{ matrix.python-version }}
           uses: actions/setup-python@v5
@@ -182,11 +118,3 @@ jobs:
               pip install pytest pytest-cov pytest-timeout requests
               cd test_env
               pytest -vvv --cov=raidionicsseg tests/generic_tests --cov-report=xml --timeout=1500 --log-cli-level=DEBUG
-
-        - name: Upload coverage to Codecov
-          if: ${{ matrix.os == 'ubuntu-22.04' && matrix.python-version == '3.9' }}
-          uses: codecov/codecov-action@v4
-          with:
-            token: ${{ secrets.CODECOV_TOKEN  }}
-            slug: dbouget/raidionics_seg_lib
-            verbose: true
