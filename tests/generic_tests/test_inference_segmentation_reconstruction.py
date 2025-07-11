@@ -144,6 +144,13 @@ def test_inference_segmentation_reconstruction_method(test_dir, tmp_path):
             segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
             logging.info(
                 f"Ground truth and prediction arrays difference: {np.count_nonzero(abs(segmentation_gt - segmentation_pred))} pixels")
+            segmentation_pred_nib = nib.load(segmentation_pred_filename)
+            segmentation_gt_nib = nib.load(segmentation_gt_filename)
+            pred_volume = np.count_nonzero(segmentation_pred_nib.get_fdata()[:]) * np.prod(
+                segmentation_pred_nib.header.get_zooms()[0:3]) * 1e-3
+            gt_volume = np.count_nonzero(segmentation_gt_nib.get_fdata()[:]) * np.prod(
+                segmentation_gt_nib.header.get_zooms()[0:3]) * 1e-3
+            logging.info(f"Volume difference: {abs(pred_volume - gt_volume)}\n")
             assert np.array_equal(segmentation_pred, segmentation_gt), "Ground truth and prediction arrays are not identical"
         except Exception as e:
             logging.error(f"Error during inference Python package test with: {e} \n {traceback.format_exc()}.\n")
