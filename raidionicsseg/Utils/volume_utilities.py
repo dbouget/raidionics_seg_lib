@@ -4,6 +4,7 @@ import numpy as np
 import SimpleITK as sitk
 from skimage.transform import resize
 
+from ..Utils.resample_or_resize import get_resizer
 from .configuration_parser import ConfigResources
 from .configuration_parser import ImagingModalityType
 
@@ -38,7 +39,7 @@ def input_file_category_disambiguation(input_filename: str) -> str:
     return category
 
 
-def resize_volume(volume, new_slice_size, slicing_plane, order=1):
+def resize_volume(volume, new_slice_size, slicing_plane, order=1, type='cpu'):
     new_volume = None
     if not new_slice_size:
         return volume
@@ -46,15 +47,18 @@ def resize_volume(volume, new_slice_size, slicing_plane, order=1):
     if len(new_slice_size) == 2:
         if slicing_plane == "axial":
             new_val = int(volume.shape[2] * (new_slice_size[1] / volume.shape[1]))
-            new_volume = resize(volume, (new_slice_size[0], new_slice_size[1], new_val), order=order)
+            new_slice_size = (new_slice_size[0], new_slice_size[1], new_val)
         elif slicing_plane == "sagittal":
             new_val = new_slice_size[0]
-            new_volume = resize(volume, (new_val, new_slice_size[0], new_slice_size[1]), order=order)
+            new_slice_size = (new_val, new_slice_size[0], new_slice_size[1])
         elif slicing_plane == "coronal":
             new_val = new_slice_size[0]
-            new_volume = resize(volume, (new_slice_size[0], new_val, new_slice_size[1]), order=order)
-    elif len(new_slice_size) == 3:
+            new_slice_size = (new_slice_size[0], new_val, new_slice_size[1])
+    if type == 'cpu':
         new_volume = resize(volume, new_slice_size, order=order)
+    else:
+        resizer = get_resizer(type, target_shape=new_slice_size, order=order)
+        new_volume = resizer.resize(volume, target_shape=new_slice_size)
     return new_volume
 
 

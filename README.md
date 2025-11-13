@@ -112,6 +112,8 @@ Alternatively, all existing Raidionics models can be browsed [here](https://gith
 # [Developers](https://github.com/dbouget/raidionics_seg_lib#developers)
 For running inference on GPU, your machine must be properly configured (cf. [here](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html))  
 In the configuration file, the gpu_id parameter should then point to the GPU that is to be used during inference.
+The onnxruntime-gpu Python package must be installed in addition, with a version matching the driver and cuda version,
+more info can be accessed [here](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#cuda-12x)
 
 To run the unit tests, type the following within your virtual environment and within the raidionics_seg_lib folder:
 ```

@@ -6,6 +6,7 @@ from typing import List
 from typing import Tuple
 from typing import Union
 
+import nibabel as nib
 import numpy as np
 from nibabel.processing import resample_to_output
 from scipy.ndimage import binary_fill_holes
@@ -17,8 +18,7 @@ from ..Utils.io import load_nifti_volume
 
 
 def crop_MR_background(
-    volume: np.ndarray,
-    new_spacing: Tuple[float],
+    volume: nib.Nifti1Image,
     parameters: ConfigResources,
     crop_bbox: List[int] = None,
 ) -> Tuple[np.ndarray, List[int]]:
@@ -52,11 +52,11 @@ def crop_MR_background(
     if parameters.crop_background == "minimum":
         return crop_background_minimum(volume=volume, crop_bbox=crop_bbox)
     elif parameters.crop_background == "brain_clip" or parameters.crop_background == "brain_mask":
-        return skull_stripping(volume=volume, new_spacing=new_spacing, parameters=parameters)
+        return skull_stripping(volume=volume, parameters=parameters)
 
 
 def crop_background_minimum(
-    volume: np.ndarray, crop_bbox: Union[None, List[int]] = None
+    volume: nib.Nifti1Image, crop_bbox: Union[None, List[int]] = None
 ) -> Tuple[np.ndarray, List[int]]:
     """
     Performs background cropping inside an MRI volume in 'minimum' mode whereby the black space around
@@ -75,7 +75,7 @@ def crop_background_minimum(
         Indices of a bounding region within the volume parametrizing the cropping.
         The bounding region is expressed as: [minx, miny, minz, maxx, maxy, maxz].
     """
-    original_volume = np.copy(volume)
+    original_volume = np.copy(volume.get_fdata())
     if crop_bbox is None:
         limit = int((np.max(volume) - np.min(volume)) * 0.2)
         volume[original_volume >= limit] = 1
@@ -102,11 +102,12 @@ def crop_background_minimum(
             min_row, min_col, min_depth, max_row, max_col, max_depth
         )
     )
-    return cropped_volume, crop_bbox
+    cropped_volume_nib = nib.Nifti1Image(cropped_volume, affine=volume.affine)
+    return cropped_volume_nib, crop_bbox
 
 
 def skull_stripping(
-    volume: np.ndarray, new_spacing: Tuple[float], parameters: ConfigResources
+    volume: nib.Nifti1Image, new_spacing: Tuple[float], parameters: ConfigResources
 ) -> Tuple[np.ndarray, List[int]]:
     """
     Performs skull stripping over the provided input volume using the brain mask manually provided.
@@ -133,8 +134,7 @@ def skull_stripping(
         brain_mask_filename = parameters.runtime_brain_mask_filepath
 
     brain_mask_ni = load_nifti_volume(brain_mask_filename)
-    resampled_volume = resample_to_output(brain_mask_ni, new_spacing, order=0)
-    brain_mask = resampled_volume.get_fdata().astype("uint8")
+    brain_mask = brain_mask_ni.get_fdata().astype("uint8")
 
     # In case of noisy segmentation (which should not happen), only the biggest component is kept.
     labels, nb_components = label(brain_mask)
@@ -153,7 +153,7 @@ def skull_stripping(
 
 
 def advanced_crop_exclude_background(
-    volume: np.ndarray, crop_mode: str, brain_mask: np.ndarray
+    volume: nib.Nifti1Image, crop_mode: str, brain_mask: np.ndarray
 ) -> Tuple[np.ndarray, List[int]]:
     """
     Performs skull stripping either in mode 'brain_clip' or mode 'brain_mask'.
@@ -175,7 +175,7 @@ def advanced_crop_exclude_background(
         Indices of a bounding region within the volume parametrizing the cropping.
         The bounding region is expressed as: [minx, miny, minz, maxx, maxy, maxz].
     """
-    original_data = np.copy(volume)
+    original_data = np.copy(volume.get_fdata())
     regions = regionprops(brain_mask)
     min_row, min_col, min_depth, max_row, max_col, max_depth = regions[0].bbox
 
@@ -189,4 +189,5 @@ def advanced_crop_exclude_background(
             min_row, min_col, min_depth, max_row, max_col, max_depth
         )
     )
-    return cropped_data, bbox
+    cropped_data_nib = nib.Nifti1Image(cropped_data, affine=volume.affine)
+    return cropped_data_nib, bbox

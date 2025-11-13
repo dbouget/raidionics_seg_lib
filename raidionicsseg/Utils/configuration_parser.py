@@ -48,6 +48,8 @@ class ConfigResources:
         self.output_folder = None
         self.model_folder = None
 
+        self.inference_batch_size = 1
+        self.resampler = "nibabel"
         self.predictions_non_overlapping = True
         self.predictions_folds_ensembling = False
         self.predictions_ensembling_strategy = "average"
@@ -97,11 +99,10 @@ class ConfigResources:
             if self.config["System"]["model_folder"].split("#")[0].strip() != "":
                 self.model_folder = self.config["System"]["model_folder"].split("#")[0].strip()
 
-        if self.config.has_option("Runtime", "non_overlapping"):
-            if self.config["Runtime"]["non_overlapping"].split("#")[0].strip() != "":
-                self.predictions_non_overlapping = (
-                    True if self.config["Runtime"]["non_overlapping"].split("#")[0].lower().strip() == "true" else False
-                )
+        if self.config.has_option("Runtime", "batch_size"):
+            if self.config["Runtime"]["batch_size"].split("#")[0].strip() != "":
+                self.inference_batch_size = int(self.config["Runtime"]["batch_size"].split("#")[0].strip())
+
 
         if self.config.has_option("Runtime", "folds_ensembling"):
             if self.config["Runtime"]["folds_ensembling"].split("#")[0].strip() != "":

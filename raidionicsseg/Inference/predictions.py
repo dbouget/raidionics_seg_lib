@@ -321,9 +321,11 @@ def __run_predictions_patch(
     data: np.ndarray, model, parameters: ConfigResources, deep_supervision: bool = False
 ) -> np.ndarray:
     try:
-        logging.debug("Starting inference in patch-wise mode.")
+        batch_size = parameters.inference_batch_size
         patch_size = parameters.training_patch_size
         patch_offset = parameters.training_patch_offset
+        logging.debug(f"Starting inference in patch-wise mode with batch-size {batch_size}.")
+
         if parameters.predictions_overlapping_ratio is not None:
             patch_offset = [int(parameters.predictions_overlapping_ratio * x) for x in patch_size]
 
@@ -371,17 +373,22 @@ def __run_predictions_patch(
                             continue
                         patch_boundaries_z = new_patch_boundaries_z
                     all_patch_boundaries.append([patch_boundaries_x, patch_boundaries_y, patch_boundaries_z])
-        for patch_boundaries in tqdm(all_patch_boundaries):
-            patch_boundaries_x = patch_boundaries[0]
-            patch_boundaries_y = patch_boundaries[1]
-            patch_boundaries_z = patch_boundaries[2]
-            model_input = data[
-                :,
-                patch_boundaries_x[0] : patch_boundaries_x[1],
-                patch_boundaries_y[0] : patch_boundaries_y[1],
-                patch_boundaries_z[0] : patch_boundaries_z[1],
-                :,
-            ]
+        for bs_ind in tqdm(range(ceil(len(all_patch_boundaries)/batch_size))):
+            batch_inputs = []
+            patch_boundaries = all_patch_boundaries[bs_ind * batch_size: min(len(all_patch_boundaries), (bs_ind+1) * batch_size)]
+            for pb in patch_boundaries:
+                patch_boundaries_x = pb[0]
+                patch_boundaries_y = pb[1]
+                patch_boundaries_z = pb[2]
+                batch_inputs.append(data[
+                                        0,
+                                        patch_boundaries_x[0]: patch_boundaries_x[1],
+                                        patch_boundaries_y[0]: patch_boundaries_y[1],
+                                        patch_boundaries_z[0]: patch_boundaries_z[1],
+                                        :,
+                                    ])
+            model_input = np.stack(batch_inputs, axis=0)
+
             if parameters.preprocessing_channels_order == "channels_first":
                 model_input = np.transpose(model_input, axes=(0, 4, 1, 2, 3))
             if parameters.swap_training_input and parameters.preprocessing_channels_order == "channels_first":
@@ -400,20 +407,24 @@ def __run_predictions_patch(
                 patch_pred = np.transpose(patch_pred, axes=(0, 2, 3, 1, 4))
 
             # In case of overlapping inference, taking the maximum probabilities overall.
-            final_result[
-                patch_boundaries_x[0] : patch_boundaries_x[1],
-                patch_boundaries_y[0] : patch_boundaries_y[1],
-                patch_boundaries_z[0] : patch_boundaries_z[1],
-                :,
-            ] = np.maximum(
-                np.squeeze(patch_pred, axis=0),
+            for pbi, pb in enumerate(patch_boundaries):
+                patch_boundaries_x = pb[0]
+                patch_boundaries_y = pb[1]
+                patch_boundaries_z = pb[2]
                 final_result[
-                    patch_boundaries_x[0] : patch_boundaries_x[1],
-                    patch_boundaries_y[0] : patch_boundaries_y[1],
-                    patch_boundaries_z[0] : patch_boundaries_z[1],
+                    patch_boundaries_x[0]: patch_boundaries_x[1],
+                    patch_boundaries_y[0]: patch_boundaries_y[1],
+                    patch_boundaries_z[0]: patch_boundaries_z[1],
                     :,
-                ],
-            )
+                ] = np.maximum(patch_pred[pbi],
+                    final_result[
+                        patch_boundaries_x[0]: patch_boundaries_x[1],
+                        patch_boundaries_y[0]: patch_boundaries_y[1],
+                        patch_boundaries_z[0]: patch_boundaries_z[1],
+                        :,
+                    ],
+                )
+
         final_result = final_result[
             extra_dims[0] : final_result.shape[0] - extra_dims[1],
             extra_dims[2] : final_result.shape[1] - extra_dims[3],

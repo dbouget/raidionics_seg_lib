@@ -1,12 +1,11 @@
 import logging
 import os
+import time
 from copy import deepcopy
 from typing import List
 from typing import Tuple
-
 import nibabel as nib
 import numpy as np
-from nibabel.processing import resample_to_output
 
 from ..Utils.configuration_parser import ConfigResources
 from ..Utils.configuration_parser import ImagingModalityType
@@ -15,8 +14,10 @@ from ..Utils.volume_utilities import input_file_category_disambiguation
 from ..Utils.volume_utilities import intensity_clipping
 from ..Utils.volume_utilities import intensity_normalization
 from ..Utils.volume_utilities import resize_volume
+from ..Utils.resample_or_resize import get_resampler
 from .brain_clipping import crop_MR_background
 from .mediastinum_clipping import crop_mediastinum_volume
+from .foreground_selection import extract_foreground
 
 
 def prepare_pre_processing(
@@ -29,7 +30,7 @@ def prepare_pre_processing(
     #     break
     non_norm_inputs = []
     input_file = os.path.join(folder, "input0.nii.gz")
-    nib_volume, resampled_volume, data, crop_bbox, data_non_norm = run_pre_processing(
+    nib_volume, fg_volume, resampled_volume, data, crop_bbox, data_non_norm = run_pre_processing(
         input_file, pre_processing_parameters, storage_path
     )
     non_norm_inputs.append(data_non_norm)
@@ -39,7 +40,7 @@ def prepare_pre_processing(
     final_data[..., 0] = data
     for i in range(1, pre_processing_parameters.preprocessing_number_inputs):
         input_file = os.path.join(folder, "input" + str(i) + ".nii.gz")
-        _, _, data, _, data_non_norm = run_pre_processing(
+        _, _, _, data, _, data_non_norm = run_pre_processing(
             input_file, pre_processing_parameters, storage_path, crop_bbox=crop_bbox
         )
         non_norm_inputs.append(data_non_norm)
@@ -56,7 +57,7 @@ def prepare_pre_processing(
             )
             # new_input_norm = intensity_normalization(volume=new_input, parameters=pre_processing_parameters)
             final_data = np.append(final_data, np.expand_dims(np.expand_dims(data, axis=-1), axis=0), axis=-1)
-    return nib_volume, resampled_volume, final_data, crop_bbox
+    return nib_volume, fg_volume, resampled_volume, final_data, crop_bbox
 
 
 def run_pre_processing(
@@ -89,40 +90,26 @@ def run_pre_processing(
     logging.debug("Preprocessing - Extracting input data.")
     nib_volume = load_nifti_volume(filename)
     input_category = input_file_category_disambiguation(filename)
-    processing_order = 1
+    processing_order = 3
     if input_category == "Annotation":
         processing_order = 0
     else:
         nib_volume = nib.Nifti1Image(nib_volume.get_fdata()[:].astype("float32"), affine=nib_volume.affine)
 
+    logging.debug("Preprocessing - Foreground selection.")
+    fg_data, crop_bbox = extract_foreground(input=nib_volume, pre_processing_parameters=pre_processing_parameters,
+                                            crop_bbox=crop_bbox)
+
     logging.debug("Preprocessing - Resampling.")
     new_spacing = pre_processing_parameters.output_spacing
-    if pre_processing_parameters.output_spacing is None:
-        tmp = np.min(nib_volume.header.get_zooms())
+    if pre_processing_parameters.output_spacing is None: # @ To Remove?
+        tmp = np.min(fg_data.header.get_zooms())
         new_spacing = [tmp, tmp, tmp]
 
-    resampled_volume = resample_to_output(nib_volume, new_spacing, order=processing_order)
-    data = resampled_volume.get_fdata()[:].astype("float32")
-
-    logging.debug("Preprocessing - Background clipping.")
-    if pre_processing_parameters.imaging_modality == ImagingModalityType.CT:
-        # @TODO. Have to include the crop_bbox as input parameter to ensure same cropping to all inputs (if multiple)
-        # Exclude background
-        if (
-            pre_processing_parameters.crop_background is not None
-            and pre_processing_parameters.crop_background != "false"
-        ):
-            data, crop_bbox = crop_mediastinum_volume(
-                volume=data, new_spacing=new_spacing, parameters=pre_processing_parameters, crop_bbox=crop_bbox
-            )
-    else:
-        if (
-            pre_processing_parameters.crop_background is not None
-            and not pre_processing_parameters.predictions_use_preprocessed_data
-        ):
-            data, crop_bbox = crop_MR_background(
-                volume=data, new_spacing=new_spacing, parameters=pre_processing_parameters, crop_bbox=crop_bbox
-            )
+    resampler = get_resampler(type=pre_processing_parameters.resampler, input_voxel_size=fg_data.header.get_zooms(),
+                              target_voxel_size=new_spacing, order=processing_order)
+    resampled_nib = resampler.resample(volume_nib=fg_data)
+    data = resampled_nib.get_fdata()[:]
 
     if pre_processing_parameters.new_axial_size:
         logging.debug("Preprocessing - Volume resizing.")
@@ -131,6 +118,7 @@ def run_pre_processing(
             pre_processing_parameters.new_axial_size,
             pre_processing_parameters.slicing_plane,
             order=processing_order,
+            type=pre_processing_parameters.resampler
         )
     data_nonnorm = deepcopy(data)
     if input_category == "Volume":
@@ -142,7 +130,7 @@ def run_pre_processing(
     if pre_processing_parameters.swap_training_input:
         data = np.transpose(data, axes=(1, 0, 2))
 
-    return nib_volume, resampled_volume, data, crop_bbox, data_nonnorm
+    return nib_volume, fg_data, resampled_nib, data, crop_bbox, data_nonnorm
 
 
 def run_pre_processing_diffloader(
