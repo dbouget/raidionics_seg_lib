@@ -75,14 +75,15 @@ def crop_background_minimum(
         Indices of a bounding region within the volume parametrizing the cropping.
         The bounding region is expressed as: [minx, miny, minz, maxx, maxy, maxz].
     """
-    original_volume = np.copy(volume.get_fdata())
+    vol = volume.get_fdata()
+    original_volume = np.copy(vol)
     if crop_bbox is None:
-        limit = int((np.max(volume) - np.min(volume)) * 0.2)
-        volume[original_volume >= limit] = 1
-        volume[original_volume < limit] = 0
-        volume = volume.astype(np.uint8)
-        volume = binary_fill_holes(volume).astype(np.uint8)
-        regions = regionprops(volume)
+        limit = int((np.max(original_volume) - np.min(original_volume)) * 0.2)
+        vol[original_volume >= limit] = 1
+        vol[original_volume < limit] = 0
+        vol = vol.astype(np.uint8)
+        vol = binary_fill_holes(vol).astype(np.uint8)
+        regions = regionprops(vol)
         min_row, min_col, min_depth, max_row, max_col, max_depth = regions[0].bbox
         cropped_volume = original_volume[min_row:max_row, min_col:max_col, min_depth:max_depth]
         crop_bbox = [min_row, min_col, min_depth, max_row, max_col, max_depth]
