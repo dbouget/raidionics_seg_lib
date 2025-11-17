@@ -40,3 +40,5 @@ quickpkg/
 notebooks/
 tests/unit_tests_results_dir/
 unit_tests_results_dir/
+*.tar*
+*.run

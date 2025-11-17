@@ -1,4 +1,5 @@
 import logging
+import time
 import traceback
 from copy import deepcopy
 from typing import List
@@ -141,6 +142,7 @@ def __resample_predictions(
 ):
     try:
         logging.debug("Resampling predictions with {}.".format(reconstruction_method))
+        start = time.time()
         labels_type = predictions.dtype
         order = 0 if labels_type == np.uint8 else 1
         data = deepcopy(predictions).astype(labels_type)
@@ -152,7 +154,7 @@ def __resample_predictions(
                 data = np.transpose(data, axes=(1, 0, 2))  # undo transpose
 
         if resampled_volume.shape != predictions.shape[:-1]:
-            resizer = get_resizer(type=resampler_type, target_shape=resampled_volume.shape)
+            resizer = get_resizer(type=resampler_type, target_shape=resampled_volume.shape, order=order)
             data = resizer.resize(data, resampled_volume.shape)
             # A resize was additionally performed
             # resize_ratio = tuple(np.asarray(resampled_volume.shape) / np.asarray(data.shape[:-1])) + (1.,)
@@ -193,4 +195,5 @@ def __resample_predictions(
         logging.error(f"Following error collected during predictions resampling: \n {e}\n{traceback.format_exc()}")
         raise ValueError("Predictions resampling process could not fully proceed.")
 
+    logging.debug(f"Predictions resampling took: {time.time() - start}")
     return final_predictions

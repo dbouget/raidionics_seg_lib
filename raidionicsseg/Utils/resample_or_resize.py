@@ -1,5 +1,7 @@
 import onnxruntime as ort
 import nibabel as nib
+import time
+from scipy.ndimage import zoom
 from nibabel.processing import resample_to_output
 import numpy as np
 import logging
@@ -100,9 +102,9 @@ def get_resizer(type="cpu", target_shape=(128, 128, 128), order=3):
         except ImportError:
             logging.warning("PyTorch not installed, cannot use TorchResampler. Defaulting to NibabelResampler!")
             return CPUResizer(target_shape=target_shape)
-        return GPUResizer(target_shape=target_shape)
+        return GPUResizer(target_shape=target_shape, order=order)
     else:
-        return CPUResizer(target_shape=target_shape)
+        return CPUResizer(target_shape=target_shape, order=order)
 
 class BaseResizer:
     def resize(self, input, target_shape):
@@ -116,7 +118,6 @@ class CPUResizer(BaseResizer):
         self.target_shape = target_shape
 
     def resize(self, input, target_shape):
-        from scipy.ndimage import zoom
         if len(input.shape) > len(target_shape):
             resize_ratio = tuple(np.asarray(target_shape) / np.asarray(input.shape[:-1])) + (1.,)
         else:
@@ -135,12 +136,12 @@ class GPUResizer(BaseResizer):
 
     def resize(self, input, target_shape):
         import torch
-        if len(input.shape) > target_shape:
+        if len(input.shape) > len(target_shape):
             input_t = torch.from_numpy(input).permute(3, 0, 1, 2).unsqueeze(0).to(self.device)
         else:
             input_t = torch.from_numpy(input).unsqueeze(0).unsqueeze(0).to(self.device)
         resize_t = self.model(input_t, target_shape)
-        if len(input.shape) > target_shape:
+        if len(input.shape) > len(target_shape):
             resize_a = resize_t[0].permute(1, 2, 3, 0).detach().cpu().numpy()
         else:
             resize_a = resize_t[0][0].detach().cpu().numpy()

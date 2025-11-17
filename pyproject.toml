@@ -24,6 +24,7 @@ dependencies = [
 
 [project.optional-dependencies]
 torch = ["torch>=2.0.0"]
+ort-gpu = ["onnxruntime-gpu"]
 
 [project.scripts]
 raidionicsseg = "raidionicsseg.__main__:main"

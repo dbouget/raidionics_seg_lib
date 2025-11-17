@@ -49,7 +49,7 @@ class ConfigResources:
         self.model_folder = None
 
         self.inference_batch_size = 1
-        self.resampler = "nibabel"
+        self.resampler = "cpu"
         self.predictions_non_overlapping = True
         self.predictions_folds_ensembling = False
         self.predictions_ensembling_strategy = "average"
@@ -103,6 +103,11 @@ class ConfigResources:
             if self.config["Runtime"]["batch_size"].split("#")[0].strip() != "":
                 self.inference_batch_size = int(self.config["Runtime"]["batch_size"].split("#")[0].strip())
 
+        if self.config.has_option("Runtime", "resampler"):
+            if self.config["Runtime"]["resampler"].split("#")[0].strip() != "":
+                self.resampler = self.config["Runtime"]["resampler"].split("#")[0].strip()
+        if self.resampler not in ["cpu", "gpu"]:
+            self.resampler = "cpu"
 
         if self.config.has_option("Runtime", "folds_ensembling"):
             if self.config["Runtime"]["folds_ensembling"].split("#")[0].strip() != "":

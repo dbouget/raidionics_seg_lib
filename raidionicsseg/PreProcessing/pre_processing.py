@@ -106,7 +106,7 @@ def run_pre_processing(
         tmp = np.min(fg_data.header.get_zooms())
         new_spacing = [tmp, tmp, tmp]
 
-    resampler = get_resampler(type=pre_processing_parameters.resampler, input_voxel_size=fg_data.header.get_zooms(),
+    resampler = get_resampler(type="cpu", input_voxel_size=fg_data.header.get_zooms(),
                               target_voxel_size=new_spacing, order=processing_order)
     resampled_nib = resampler.resample(volume_nib=fg_data)
     data = resampled_nib.get_fdata()[:]

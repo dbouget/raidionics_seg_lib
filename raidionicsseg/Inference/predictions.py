@@ -49,14 +49,14 @@ def run_predictions(data: np.ndarray, models_path: List[str], parameters: Config
             final_result = __run_predictions_whole(
                 data=data, model=model, parameters=parameters, deep_supervision=parameters.training_deep_supervision
             )
-        elif parameters.new_axial_size and len(parameters.new_axial_size) == 2:
-            final_result = __run_predictions_slabbed(
-                data=data,
-                model=model,
-                model_outputs=model_outputs,
-                parameters=parameters,
-                deep_supervision=parameters.training_deep_supervision,
-            )
+        # elif parameters.new_axial_size and len(parameters.new_axial_size) == 2:
+        #     final_result = __run_predictions_slabbed(
+        #         data=data,
+        #         model=model,
+        #         model_outputs=model_outputs,
+        #         parameters=parameters,
+        #         deep_supervision=parameters.training_deep_supervision,
+        #     )
         else:
             final_result = __run_predictions_patch(
                 data=data, model=model, parameters=parameters, deep_supervision=parameters.training_deep_supervision
@@ -322,8 +322,8 @@ def __run_predictions_patch(
 ) -> np.ndarray:
     try:
         batch_size = parameters.inference_batch_size
-        patch_size = parameters.training_patch_size
-        patch_offset = parameters.training_patch_offset
+        patch_size = parameters.training_patch_size if parameters.training_patch_size is not None else parameters.new_axial_size + [parameters.training_slab_size]
+        patch_offset = parameters.training_patch_offset if parameters.training_patch_offset is not None else [0] * len(patch_size)
         logging.debug(f"Starting inference in patch-wise mode with batch-size {batch_size}.")
 
         if parameters.predictions_overlapping_ratio is not None:
@@ -398,8 +398,8 @@ def __run_predictions_patch(
             # model_input = np.expand_dims(patch, axis=0)
             patch_pred = model.run(None, {"input": model_input})
             # @TODO. Have to test with a non deep supervision model with ONNX, to do array indexing always
-            if deep_supervision or parameters.training_backend == "Torch":
-                patch_pred = patch_pred[0]
+            # if deep_supervision or parameters.training_backend == "Torch":
+            patch_pred = patch_pred[0]
 
             if parameters.preprocessing_channels_order == "channels_first":
                 patch_pred = np.transpose(patch_pred, axes=(0, 2, 3, 4, 1))
