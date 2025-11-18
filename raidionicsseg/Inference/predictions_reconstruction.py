@@ -45,13 +45,14 @@ def reconstruct_post_predictions(
     .       Predictions expressed in the original patient space.
     """
     logging.debug("Reconstructing predictions.")
-    resampler_type = parameters.resampler
+    system_acceleration = parameters.system_acceleration
     nb_classes = parameters.training_nb_classes
     final_activation_type = parameters.training_activation_layer_type
     reconstruction_order = parameters.predictions_reconstruction_order
     reconstruction_method = parameters.predictions_reconstruction_method
     probability_thresholds = parameters.training_optimal_thresholds
     swap_input = parameters.swap_training_input
+    device_id = parameters.gpu_id
 
     if reconstruction_order == "resample_first":
         resampled_predictions = __resample_predictions(
@@ -64,7 +65,7 @@ def reconstruct_post_predictions(
             reconstruction_method=reconstruction_method,
             reconstruction_order=reconstruction_order,
             swap_input=swap_input,
-            resampler_type=resampler_type,
+            system_acceleration=system_acceleration,
         )
 
         final_predictions = __cut_predictions(
@@ -72,6 +73,8 @@ def reconstruct_post_predictions(
             reconstruction_method=reconstruction_method,
             probability_threshold=probability_thresholds,
             final_activation_type=final_activation_type,
+            system_acceleration=system_acceleration,
+            device_id=device_id
         )
     else:
         thresh_predictions = __cut_predictions(
@@ -79,6 +82,8 @@ def reconstruct_post_predictions(
             reconstruction_method=reconstruction_method,
             probability_threshold=probability_thresholds,
             final_activation_type=final_activation_type,
+            system_acceleration=system_acceleration,
+            device_id=device_id
         )
         final_predictions = __resample_predictions(
             predictions=thresh_predictions,
@@ -90,42 +95,114 @@ def reconstruct_post_predictions(
             reconstruction_method=reconstruction_method,
             reconstruction_order=reconstruction_order,
             swap_input=swap_input,
-            resampler_type=resampler_type,
+            system_acceleration=system_acceleration,
         )
 
     return final_predictions
 
 
-def __cut_predictions(predictions, probability_threshold, reconstruction_method, final_activation_type="softmax"):
+def __cut_predictions(predictions, probability_threshold, reconstruction_method, final_activation_type="softmax",
+                      system_acceleration="cpu", device_id="-1"):
     try:
-        logging.debug("Clipping predictions with {}.".format(reconstruction_method))
+        logging.debug(f"Clipping predictions with {reconstruction_method}.")
+        if system_acceleration == "torch":
+            return __cut_predictions_torch(predictions=predictions, probability_threshold=probability_threshold,
+                                           reconstruction_method=reconstruction_method,
+                                           final_activation_type=final_activation_type, device_id=device_id)
+
         if reconstruction_method == "probabilities":
             return predictions
         elif reconstruction_method == "thresholding":
-            final_predictions = np.zeros(predictions.shape).astype("uint8")
             if len(probability_threshold) != predictions.shape[-1]:
                 probability_threshold = np.full(shape=(predictions.shape[-1]), fill_value=probability_threshold[0])
+            final_predictions = (predictions >= probability_threshold).astype("uint8")
 
-            for c in range(0, predictions.shape[-1]):
-                channel = deepcopy(predictions[:, :, :, c])
-                channel[channel < probability_threshold[c]] = 0
-                channel[channel >= probability_threshold[c]] = 1
-                final_predictions[:, :, :, c] = channel.astype("uint8")
         elif reconstruction_method == "argmax":
             if final_activation_type == "sigmoid":
-                new_predictions = np.zeros(predictions.shape[:-1] + (predictions.shape[-1] + 1,))
-                new_predictions[..., 0][np.max(predictions, axis=-1) <= 0.5] = 1
-                new_predictions[..., 1:] = predictions
+                # new array (H,W,D,C+1)
+                # Background channel is 1 where max(pred) <= 0.5
+                bg = (np.max(predictions, axis=-1) <= 0.5).astype(predictions.dtype)
+                bg = bg[..., None]  # shape expand
+
+                # Stack background + predictions
+                new_predictions = np.concatenate([bg, predictions], axis=-1)
+
                 final_predictions = np.argmax(new_predictions, axis=-1).astype("uint8")
+                # new_predictions = np.zeros(predictions.shape[:-1] + (predictions.shape[-1] + 1,))
+                # new_predictions[..., 0][np.max(predictions, axis=-1) <= 0.5] = 1
+                # new_predictions[..., 1:] = predictions
+                # final_predictions = np.argmax(new_predictions, axis=-1).astype("uint8")
             else:
                 final_predictions = np.argmax(predictions, axis=-1).astype("uint8")
         else:
-            raise ValueError("Unknown reconstruction_method with {}!".format(reconstruction_method))
+            raise ValueError(f"Unknown reconstruction_method with {reconstruction_method}!")
     except Exception as e:
         logging.error(f"Following error collected during predictions clipping: \n {e}\n{traceback.format_exc()}")
         raise ValueError("Predictions clipping process could not fully proceed.")
 
     return final_predictions
+
+
+def __cut_predictions_torch(predictions,
+                          probability_threshold,
+                          reconstruction_method,
+                          final_activation_type="softmax",
+                          device_id="0"):
+    """
+    predictions: NumPy array or torch.Tensor of shape (H,W,D,C)
+    returns: NumPy uint8 array
+    """
+    import torch
+
+    device = f"cuda:{device_id}"
+    if isinstance(predictions, np.ndarray):
+        preds = torch.from_numpy(predictions).to(device)
+    else:
+        preds = predictions.to(device)
+
+    C = preds.shape[-1]
+    if reconstruction_method == "thresholding":
+        if len(probability_threshold) != C:
+            th = torch.tensor([probability_threshold[0]] * C, device=device).view(1,1,1,C)
+        else:
+            th = torch.tensor(probability_threshold, device=device).view(1,1,1,C)
+
+    # -------------------------------------------------------------------------
+    # Probabilities
+    # -------------------------------------------------------------------------
+    if reconstruction_method == "probabilities":
+        return preds.detach().cpu().numpy()
+
+    # -------------------------------------------------------------------------
+    # Thresholding (vectorized)
+    # -------------------------------------------------------------------------
+    elif reconstruction_method == "thresholding":
+        final_predictions = (preds >= th).to(torch.uint8)
+        return final_predictions.cpu().numpy()
+
+    # -------------------------------------------------------------------------
+    # Argmax
+    # -------------------------------------------------------------------------
+    elif reconstruction_method == "argmax":
+
+        if final_activation_type == "sigmoid":
+            # Create extra class channel 0:
+            # If max prob ≤ 0.5 → background
+            max_val = torch.max(preds, dim=-1, keepdim=True).values
+            bg = (max_val <= 0.5).to(preds.dtype)
+
+            # new shape: (H,W,D,C+1)
+            new_preds = torch.cat([bg, preds], dim=-1)
+
+            final_predictions = torch.argmax(new_preds, dim=-1).to(torch.uint8)
+            return final_predictions.cpu().numpy()
+
+        else:
+            final_predictions = torch.argmax(preds, dim=-1).to(torch.uint8)
+            return final_predictions.cpu().numpy()
+
+    else:
+        raise ValueError(f"Unknown reconstruction_method '{reconstruction_method}'")
 
 
 def __resample_predictions(
@@ -138,7 +215,7 @@ def __resample_predictions(
     reconstruction_method,
     reconstruction_order,
     swap_input,
-    resampler_type,
+    system_acceleration,
 ):
     try:
         logging.debug("Resampling predictions with {}.".format(reconstruction_method))
@@ -154,12 +231,8 @@ def __resample_predictions(
                 data = np.transpose(data, axes=(1, 0, 2))  # undo transpose
 
         if resampled_volume.shape != predictions.shape[:-1]:
-            resizer = get_resizer(type=resampler_type, target_shape=resampled_volume.shape, order=order)
+            resizer = get_resizer(type=system_acceleration, target_shape=resampled_volume.shape, order=order)
             data = resizer.resize(data, resampled_volume.shape)
-            # A resize was additionally performed
-            # resize_ratio = tuple(np.asarray(resampled_volume.shape) / np.asarray(data.shape[:-1])) + (1.,)
-            # data = zoom(data, list(resize_ratio), order=order)
-
 
         # Resampling to the size and spacing of the original input volume
         if (

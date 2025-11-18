@@ -90,7 +90,7 @@ def run_pre_processing(
     logging.debug("Preprocessing - Extracting input data.")
     nib_volume = load_nifti_volume(filename)
     input_category = input_file_category_disambiguation(filename)
-    processing_order = 3
+    processing_order = 1
     if input_category == "Annotation":
         processing_order = 0
     else:
@@ -118,7 +118,7 @@ def run_pre_processing(
             pre_processing_parameters.new_axial_size,
             pre_processing_parameters.slicing_plane,
             order=processing_order,
-            type=pre_processing_parameters.resampler
+            type=pre_processing_parameters.system_acceleration
         )
     data_nonnorm = deepcopy(data)
     if input_category == "Volume":

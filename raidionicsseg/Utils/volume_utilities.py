@@ -143,20 +143,24 @@ def intensity_clipping(volume: np.ndarray, parameters: ConfigResources) -> np.nd
 
 def padding_for_inference(data, slab_size, slicing_plane):
     new_data = deepcopy(data)
+    extra_dims = [0] * 6
     if slicing_plane == "axial":
         missing_dimension = (slab_size - (data.shape[3] % slab_size)) % slab_size
         if missing_dimension != 0:
             new_data = np.pad(data, ((0, 0), (0, 0), (0, 0), (0, missing_dimension), (0, 0)), mode="edge")
+            extra_dims[5] = missing_dimension
     elif slicing_plane == "sagittal":
         missing_dimension = (slab_size - (data.shape[1] % slab_size)) % slab_size
         if missing_dimension != 0:
             new_data = np.pad(data, ((0, 0), (0, missing_dimension), (0, 0), (0, 0), (0, 0)), mode="edge")
+            extra_dims[1] = missing_dimension
     elif slicing_plane == "coronal":
         missing_dimension = (slab_size - (data.shape[2] % slab_size)) % slab_size
         if missing_dimension != 0:
             new_data = np.pad(data, ((0, 0), (0, 0), (0, missing_dimension), (0, 0), (0, 0)), mode="edge")
+            extra_dims[3] = missing_dimension
 
-    return new_data, missing_dimension
+    return new_data, extra_dims
 
 
 def padding_for_inference_both_ends(data, slab_size, slicing_plane):

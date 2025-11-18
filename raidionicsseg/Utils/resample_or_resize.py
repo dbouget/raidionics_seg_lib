@@ -7,16 +7,16 @@ import numpy as np
 import logging
 
 
-def get_resampler(type="cpu", input_voxel_size=(1.0,1.0,1.0), target_voxel_size=(1.0,1.0,1.0), order=3):
-    if type == "gpu":
+def get_resampler(type="cpu", input_voxel_size=(1.0,1.0,1.0), target_voxel_size=(1.0,1.0,1.0), order=1):
+    if type == "torch":
         try:
             import torch
         except ImportError:
             logging.warning("PyTorch not installed, cannot use TorchResampler. Defaulting to NibabelResampler!")
-            return NibabelResampler(target_voxel_size=target_voxel_size)
-        return TorchResampler(input_voxel_size=input_voxel_size, target_voxel_size=target_voxel_size)
+            return NibabelResampler(target_voxel_size=target_voxel_size, order=order)
+        return TorchResampler(input_voxel_size=input_voxel_size, target_voxel_size=target_voxel_size, order=order)
     else:
-        return NibabelResampler(target_voxel_size=target_voxel_size)
+        return NibabelResampler(target_voxel_size=target_voxel_size, order=order)
 
 class BaseResampler:
     def resample(self, volume: np.ndarray):
@@ -24,7 +24,7 @@ class BaseResampler:
 
 
 class NibabelResampler(BaseResampler):
-    def __init__(self, input_voxel_size=(1.0, 1.0, 1.0), target_voxel_size=(1.0, 1.0, 1.0), order=3):
+    def __init__(self, input_voxel_size=(1.0, 1.0, 1.0), target_voxel_size=(1.0, 1.0, 1.0), order=1):
         self.input_voxel_size = input_voxel_size
         self.target_voxel_size = target_voxel_size
         self.interpolation_order = order
@@ -95,8 +95,8 @@ class TorchResampler(BaseResampler):
             return out_nib, affine_out_nib, mask_out_nib
 
 
-def get_resizer(type="cpu", target_shape=(128, 128, 128), order=3):
-    if type == "gpu":
+def get_resizer(type="cpu", target_shape=(128, 128, 128), order=1):
+    if type == "torch":
         try:
             import torch
         except ImportError:
@@ -112,8 +112,7 @@ class BaseResizer:
 
 
 class CPUResizer(BaseResizer):
-    def __init__(self, target_shape=(1.0,1.0,1.0), order=3):
-        from ..Utils.Torch.modules import TorchResizer
+    def __init__(self, target_shape=(1.0,1.0,1.0), order=1):
         self.interpolation_order = order
         self.target_shape = target_shape
 

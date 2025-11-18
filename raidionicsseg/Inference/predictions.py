@@ -49,14 +49,14 @@ def run_predictions(data: np.ndarray, models_path: List[str], parameters: Config
             final_result = __run_predictions_whole(
                 data=data, model=model, parameters=parameters, deep_supervision=parameters.training_deep_supervision
             )
-        # elif parameters.new_axial_size and len(parameters.new_axial_size) == 2:
-        #     final_result = __run_predictions_slabbed(
-        #         data=data,
-        #         model=model,
-        #         model_outputs=model_outputs,
-        #         parameters=parameters,
-        #         deep_supervision=parameters.training_deep_supervision,
-        #     )
+        elif parameters.new_axial_size and len(parameters.new_axial_size) == 2:
+            final_result = __run_predictions_slabbed(
+                data=data,
+                model=model,
+                model_outputs=model_outputs,
+                parameters=parameters,
+                deep_supervision=parameters.training_deep_supervision,
+            )
         else:
             final_result = __run_predictions_patch(
                 data=data, model=model, parameters=parameters, deep_supervision=parameters.training_deep_supervision
@@ -175,8 +175,8 @@ def __run_predictions_slabbed(
     data: np.ndarray, model, model_outputs: List[str], parameters: ConfigResources, deep_supervision: bool = False
 ) -> np.ndarray:
     """
-    @TODO. Slab-wise inference working for axial-based slabbing, not tested for the other use-cases.
-    @TODO. Also not tested for PyTorch but will most likely never be a use-case now that the patch-wise method is
+
+    @OBS. Not tested for PyTorch, but will most likely never be a use-case now that the patch-wise method is
      stable.
     """
     try:
@@ -184,6 +184,7 @@ def __run_predictions_slabbed(
         slicing_plane = parameters.slicing_plane
         slab_size = parameters.training_slab_size
         new_axial_size = parameters.new_axial_size
+        batch_size = parameters.inference_batch_size
         if parameters.swap_training_input:
             tmp = deepcopy(new_axial_size)
             new_axial_size[0] = tmp[1]
@@ -198,119 +199,100 @@ def __run_predictions_slabbed(
         # Placeholder for the final predictions -- the actual probabilities
         final_result = np.zeros(data.shape[1:-1] + (parameters.training_nb_classes,))
         count = 0
+        overlapping_factor = slab_size
+        if parameters.predictions_overlapping_ratio is not None:
+            overlapping_factor = int(slab_size - (parameters.predictions_overlapping_ratio * slab_size))
 
-        if parameters.predictions_non_overlapping:
-            data, pad_value = padding_for_inference(data=data, slab_size=slab_size, slicing_plane=slicing_plane)
-            scale = ceil(upper_boundary / slab_size)
-            unpad = False
-            for chunk in range(scale):
-                if chunk == scale - 1 and pad_value != 0:
-                    unpad = True
+        data, extra_dims = padding_for_inference(data=data, slab_size=slab_size, slicing_plane=slicing_plane)
+        all_slabs_boundaries = []
+        for i in range(ceil(upper_boundary / overlapping_factor)):
+            slab_boundaries_x = []
+            slab_boundaries_y = []
+            slab_boundaries_z = []
 
-                if slicing_plane == "axial":
-                    slab_CT = data[:, :, :, int(chunk * slab_size) : int((chunk + 1) * slab_size), :]
-                elif slicing_plane == "sagittal":
-                    tmp = data[:, int(chunk * slab_size) : int((chunk + 1) * slab_size), :, :, :]
-                    slab_CT = tmp.transpose((0, 2, 3, 1, 4))
+            if slicing_plane == "axial":
+                slab_boundaries_x = [0, data.shape[1]]
+                slab_boundaries_y = [0, data.shape[2]]
+                slab_boundaries_z = [int(i*overlapping_factor), min(data.shape[3], int(i*overlapping_factor) + slab_size)]
+            elif slicing_plane == "sagittal":
+                slab_boundaries_x = [int(i*overlapping_factor), min(data.shape[1], int(i*overlapping_factor) + slab_size)]
+                slab_boundaries_y = [0, data.shape[2]]
+                slab_boundaries_z = [0, data.shape[3]]
+            elif slicing_plane == "coronal":
+                slab_boundaries_x = [0, data.shape[1]]
+                slab_boundaries_y = [int(i*overlapping_factor), min(data.shape[2], int(i*overlapping_factor) + slab_size)]
+                slab_boundaries_z = [0, data.shape[3]]
+
+            all_slabs_boundaries.append([slab_boundaries_x, slab_boundaries_y, slab_boundaries_z])
+
+        for bs_ind in tqdm(range(ceil(len(all_slabs_boundaries) / batch_size))):
+            batch_inputs = []
+            slab_boundaries = all_slabs_boundaries[
+                bs_ind * batch_size: min(len(all_slabs_boundaries), (bs_ind + 1) * batch_size)]
+            for sb in slab_boundaries:
+                slab_boundaries_x = sb[0]
+                slab_boundaries_y = sb[1]
+                slab_boundaries_z = sb[2]
+                slab_arr = data[0, slab_boundaries_x[0]: slab_boundaries_x[1],
+                slab_boundaries_y[0]: slab_boundaries_y[1], slab_boundaries_z[0]: slab_boundaries_z[1], :,]
+                if slicing_plane == "sagittal":
+                    slab_arr = slab_arr.transpose((1, 2, 0, 3))
                 elif slicing_plane == "coronal":
-                    tmp = data[:, :, int(chunk * slab_size) : int((chunk + 1) * slab_size), :, :]
-                    slab_CT = tmp.transpose((0, 1, 3, 2, 4))
+                    slab_arr = slab_arr.transpose((0, 2, 1, 3))
+                batch_inputs.append(slab_arr)
+            model_input = np.stack(batch_inputs, axis=0)
 
-                # slab_CT = np.expand_dims(np.expand_dims(slab_CT, axis=0), axis=-1)
-                if parameters.fix_orientation:
-                    slab_CT = np.transpose(slab_CT, axes=(0, 3, 1, 2, 4))
-                slab_CT_pred = model.run(model_outputs, {"input": slab_CT})
+            if parameters.fix_orientation:
+                model_input = np.transpose(model_input, axes=(0, 3, 1, 2, 4))
 
-                # When running inference with ONNX, the outputs are packed into a list (even if one output only)
-                slab_CT_pred = slab_CT_pred[0]
+            if parameters.preprocessing_channels_order == "channels_first":
+                model_input = np.transpose(model_input, axes=(0, 4, 1, 2, 3))
+            if parameters.swap_training_input and parameters.preprocessing_channels_order == "channels_first":
+                model_input = np.transpose(model_input, axes=(0, 1, 4, 2, 3))
+            elif parameters.swap_training_input and parameters.preprocessing_channels_order == "channels_last":
+                model_input = np.transpose(model_input, axes=(0, 3, 1, 2, 4))
+            # model_input = np.expand_dims(patch, axis=0)
+            slab_pred = model.run(None, {"input": model_input})
+            # @TODO. Have to test with a non deep supervision model with ONNX, to do array indexing always
+            # if deep_supervision or parameters.training_backend == "Torch":
+            slab_pred = slab_pred[0]
 
-                if deep_supervision:
-                    slab_CT_pred = slab_CT_pred[0]
-                if parameters.fix_orientation:
-                    slab_CT_pred = np.transpose(slab_CT_pred, axes=(0, 2, 3, 1, 4))
+            if parameters.preprocessing_channels_order == "channels_first":
+                slab_pred = np.transpose(slab_pred, axes=(0, 2, 3, 4, 1))
+            if parameters.swap_training_input:
+                slab_pred = np.transpose(slab_pred, axes=(0, 2, 3, 1, 4))
+            if parameters.fix_orientation:
+                slab_pred = np.transpose(slab_pred, axes=(0, 2, 3, 1, 4))
 
-                if not unpad:
-                    for c in range(0, slab_CT_pred.shape[-1]):
-                        if slicing_plane == "axial":
-                            final_result[:, :, int(chunk * slab_size) : int((chunk + 1) * slab_size), c] = slab_CT_pred[
-                                0
-                            ][:, :, :slab_size, c]
-                        elif slicing_plane == "sagittal":
-                            final_result[int(chunk * slab_size) : int((chunk + 1) * slab_size), :, :, c] = slab_CT_pred[
-                                0
-                            ][:, :, :slab_size, c].transpose((2, 0, 1))
-                        elif slicing_plane == "coronal":
-                            final_result[:, int(chunk * slab_size) : int((chunk + 1) * slab_size), :, c] = slab_CT_pred[
-                                0
-                            ][:, :, :slab_size, c].transpose((0, 2, 1))
-                else:
-                    for c in range(0, slab_CT_pred.shape[-1]):
-                        if slicing_plane == "axial":
-                            final_result[:, :, int(chunk * slab_size) :, c] = slab_CT_pred[0][
-                                :, :, : slab_size - pad_value, c
-                            ]
-                        elif slicing_plane == "sagittal":
-                            final_result[int(chunk * slab_size) :, :, :, c] = slab_CT_pred[0][
-                                :, :, : slab_size - pad_value, c
-                            ].transpose((2, 0, 1))
-                        elif slicing_plane == "coronal":
-                            final_result[:, int(chunk * slab_size) :, :, c] = slab_CT_pred[0][
-                                :, :, : slab_size - pad_value, c
-                            ].transpose((0, 2, 1))
-
-                print(count)
-                count = count + 1
-        else:
-            if slab_size == 1:
-                for slice in range(0, data.shape[2]):
-                    slab_CT = data[:, :, slice, 0]
-                    if np.sum(slab_CT > 0.1) == 0:
-                        continue
-                    slab_CT_pred = model.run(
-                        model_outputs, {"input": np.reshape(slab_CT, (1, new_axial_size[0], new_axial_size[1], 1))}
-                    )
-                    if deep_supervision:
-                        slab_CT_pred = slab_CT_pred[0]
-                    for c in range(0, slab_CT_pred.shape[-1]):
-                        final_result[:, :, slice, c] = slab_CT_pred[:, :, c]
-            else:
-                # @TODO. Should pad also to make sure all the initial slices have a prediction
-                data = padding_for_inference_both_ends(data=data, slab_size=slab_size, slicing_plane=slicing_plane)
-                half_slab_size = int(slab_size / 2)
-                # for slice in range(half_slab_size, upper_boundary - half_slab_size):
-                for slice in range(half_slab_size, upper_boundary):
-                    if slicing_plane == "axial":
-                        slab_CT = data[:, :, slice - half_slab_size : slice + half_slab_size, 0]
-                    elif slicing_plane == "sagittal":
-                        slab_CT = data[slice - half_slab_size : slice + half_slab_size, :, :, 0]
-                        slab_CT = slab_CT.transpose((1, 2, 0))
-                    elif slicing_plane == "coronal":
-                        slab_CT = data[:, slice - half_slab_size : slice + half_slab_size, :, 0]
-                        slab_CT = slab_CT.transpose((0, 2, 1))
-
-                    slab_CT = np.reshape(slab_CT, (1, new_axial_size[0], new_axial_size[1], slab_size, 1))
-                    if np.sum(slab_CT > 0.1) == 0:
-                        continue
-
-                    if parameters.fix_orientation:
-                        slab_CT = np.transpose(slab_CT, axes=(0, 3, 1, 2, 4))
-                    slab_CT_pred = model.run(model_outputs, {"input": slab_CT})
-                    if deep_supervision:
-                        slab_CT_pred = slab_CT_pred[0]
-                    if parameters.fix_orientation:
-                        slab_CT_pred = np.transpose(slab_CT_pred, axes=(0, 2, 3, 1, 4))
-
-                    for c in range(0, slab_CT_pred.shape[-1]):
-                        if slicing_plane == "axial":
-                            # final_result[:, :, slice, c] = slab_CT_pred[0][:, :, half_slab_size, c]
-                            final_result[:, :, slice - half_slab_size, c] = slab_CT_pred[0][:, :, half_slab_size, c]
-                        elif slicing_plane == "sagittal":
-                            final_result[slice, :, :, c] = slab_CT_pred[0][:, :, half_slab_size, c]
-                        elif slicing_plane == "coronal":
-                            final_result[:, slice, :, c] = slab_CT_pred[0][:, :, half_slab_size, c]
-
-                    print(count)
-                    count = count + 1
+            # In case of overlapping inference, taking the maximum probabilities overall.
+            for pbi, pb in enumerate(slab_boundaries):
+                slab_pred_arr = slab_pred[pbi]
+                if slicing_plane == "sagittal":
+                    slab_pred_arr = slab_pred_arr.transpose((2, 0, 1, 3))
+                elif slicing_plane == "coronal":
+                    slab_pred_arr = slab_pred_arr.transpose((0, 2, 1, 3))
+                slab_boundaries_x = pb[0]
+                slab_boundaries_y = pb[1]
+                slab_boundaries_z = pb[2]
+                final_result[
+                    slab_boundaries_x[0]: slab_boundaries_x[1],
+                    slab_boundaries_y[0]: slab_boundaries_y[1],
+                    slab_boundaries_z[0]: slab_boundaries_z[1],
+                    :,
+                ] = np.maximum(slab_pred_arr,
+                    final_result[
+                        slab_boundaries_x[0]: slab_boundaries_x[1],
+                        slab_boundaries_y[0]: slab_boundaries_y[1],
+                        slab_boundaries_z[0]: slab_boundaries_z[1],
+                        :,
+                    ],
+                )
+        final_result = final_result[
+            extra_dims[0] : final_result.shape[0] - extra_dims[1],
+            extra_dims[2] : final_result.shape[1] - extra_dims[3],
+            extra_dims[4] : final_result.shape[2] - extra_dims[5],
+            :,
+        ]
     except Exception as e:
         logging.error(f"Following error collected during model inference (slab mode): \n {e}")
         raise ValueError("Segmentation inference (slab mode) could not fully proceed.")

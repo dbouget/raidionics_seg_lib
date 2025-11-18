@@ -33,6 +33,7 @@ raidionicsseg = "raidionicsseg.__main__:main"
 include = [
   "raidionicsseg",
   "raidionicsseg.Utils",
+  "raidionicsseg.Utils.Torch",
   "raidionicsseg.PreProcessing",
   "raidionicsseg.Inference",
   "tests", ]
