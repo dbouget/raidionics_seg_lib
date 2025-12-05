@@ -56,6 +56,8 @@ def test_docker_inference_segmentation_simple(test_dir):
                           '--network=host', '--ipc=host']
             if not os.environ.get("GITHUB_ACTIONS") and sys.platform != "win32":
                 cmd_docker.extend(['--user', str(os.geteuid())])
+            elif os.environ.get("GITHUB_ACTIONS"):
+                cmd_docker.extend(['-u',f"{os.getuid()}:{os.getgid()}"])
             cmd_docker.extend([image_name, '-c', '/workspace/resources/test_seg_config.ini', '-v', 'debug'])
             logging.info("Executing the following Docker call: {}".format(cmd_docker))
             if platform.system() == 'Windows':
