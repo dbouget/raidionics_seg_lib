@@ -29,12 +29,13 @@ def test_docker_inference_segmentation_simple(test_dir):
         if os.environ.get("GITHUB_ACTIONS"):
             image_name = "dbouget/raidionics-segmenter:" + os.environ["IMAGE_TAG"]
 
+
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "-1")
-        seg_config.set('System', 'inputs_folder', '/workspace/resources/inputs')
+        seg_config.set('System', 'inputs_folder', '/workspace/resources/Inputs/PreopNeuro/inputs')
         seg_config.set('System', 'output_folder', '/workspace/resources/outputs')
-        seg_config.set('System', 'model_folder', '/workspace/resources/MRI_Brain')
+        seg_config.set('System', 'model_folder', '/workspace/resources/Models/MRI_Brain')
         seg_config.add_section('Runtime')
         seg_config.set('Runtime', 'folds_ensembling', 'False')
         seg_config.set('Runtime', 'ensembling_strategy', 'average')
