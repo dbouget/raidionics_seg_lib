@@ -1,9 +1,6 @@
 name: Run integration tests
 
 on:
-  push:
-    branches:
-      - '*'
   workflow_dispatch:
 
 jobs:
@@ -114,6 +111,8 @@ jobs:
             path: ./test-env/unit_tests_results_dir
 
         - name: Integration tests
+          env:
+            GITHUB_ACTIONS: true
           run: |
               pip install pytest pytest-cov pytest-timeout requests
               cd test_env

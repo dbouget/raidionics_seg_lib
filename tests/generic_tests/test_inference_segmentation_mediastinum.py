@@ -265,7 +265,11 @@ def test_inference_batchsize(test_dir, tmp_path):
         seg_config.set('Runtime', 'folds_ensembling', 'False')
         seg_config.set('Runtime', 'ensembling_strategy', 'average')
         seg_config.set('Runtime', 'overlapping_ratio', '0.')
-        seg_config.set('Runtime', 'batch_size', '4')
+        if os.environ.get("GITHUB_ACTIONS"):
+            seg_config.set('Runtime', 'batch_size', '1')
+            logging.warning("Defaulting batch size to 1 when running test on the CI is mandatory because of memory.")
+        else:
+            seg_config.set('Runtime', 'batch_size', '4')
         seg_config.set('Runtime', 'reconstruction_method', 'thresholding')
         seg_config.set('Runtime', 'reconstruction_order', 'resample_first')
         seg_config.set('Runtime', 'test_time_augmentation_iteration', '0')
