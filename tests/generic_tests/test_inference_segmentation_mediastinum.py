@@ -7,6 +7,7 @@ import subprocess
 import traceback
 import nibabel as nib
 import numpy as np
+import pytest
 
 
 def test_inference_cli(test_dir, tmp_path):
@@ -240,6 +241,8 @@ def test_inference_slabwise(test_dir, tmp_path):
 def test_inference_batchsize(test_dir, tmp_path):
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
+    if os.environ.get("GITHUB_ACTIONS"):
+        pytest.skip("Skipping this test on Github Actions due to memory limits.")
     logging.info("Running higher batch size inference test as a Python package for a mediastinum model.\n")
 
     logging.info("Preparing configuration file.\n")
@@ -265,11 +268,7 @@ def test_inference_batchsize(test_dir, tmp_path):
         seg_config.set('Runtime', 'folds_ensembling', 'False')
         seg_config.set('Runtime', 'ensembling_strategy', 'average')
         seg_config.set('Runtime', 'overlapping_ratio', '0.')
-        if os.environ.get("GITHUB_ACTIONS"):
-            seg_config.set('Runtime', 'batch_size', '1')
-            logging.warning("Defaulting batch size to 1 when running test on the CI is mandatory because of memory.")
-        else:
-            seg_config.set('Runtime', 'batch_size', '4')
+        seg_config.set('Runtime', 'batch_size', '4')
         seg_config.set('Runtime', 'reconstruction_method', 'thresholding')
         seg_config.set('Runtime', 'reconstruction_order', 'resample_first')
         seg_config.set('Runtime', 'test_time_augmentation_iteration', '0')
