@@ -4,6 +4,7 @@ from copy import deepcopy
 from typing import List
 from typing import Tuple
 
+import nibabel as nib
 import numpy as np
 import scipy.ndimage.measurements as smeas
 import scipy.ndimage.morphology as smo
@@ -12,11 +13,11 @@ from skimage.measure import regionprops
 
 from ..Utils.configuration_parser import ConfigResources
 from ..Utils.io import load_nifti_volume
+from ..Utils.resample_or_resize import get_resampler
 
 
-def crop_mediastinum_volume(
-    volume: np.ndarray, new_spacing: Tuple[float], parameters: ConfigResources, crop_bbox: List[int] = None
-) -> Tuple[np.ndarray, List[int]]:
+def crop_mediastinum_volume(volume: nib.Nifti1Image, parameters: ConfigResources,
+                            crop_bbox: List[int] = None) -> Tuple[np.ndarray, List[int]]:
     """
     Performs different background cropping inside a mediastinal CT volume, as defined by the 'crop_background' stored
     in a model preprocessing configuration file.
@@ -25,9 +26,7 @@ def crop_mediastinum_volume(
 
     Parameters
     ----------
-    volume : np.ndarray
-        .
-    new_spacing : Tuple[float]
+    volume : nib.Nifti1Image
         .
     parameters :  :obj:`ConfigResources`
         Loaded configuration specifying runtime parameters.
@@ -43,17 +42,15 @@ def crop_mediastinum_volume(
     if parameters.crop_background == "minimum":
         return mediastinum_clipping(volume=volume, parameters=parameters, crop_bbox=crop_bbox)
     elif parameters.crop_background == "lungs_clip" or parameters.crop_background == "lungs_mask":
-        return mediastinum_clipping_advanced(
-            volume=volume, new_spacing=new_spacing, parameters=parameters
-        )
+        return mediastinum_clipping_advanced(volume=volume, parameters=parameters)
 
 
 def mediastinum_clipping(
-    volume: np.ndarray, parameters: ConfigResources, crop_bbox=None
+    volume: nib.Nifti1Image, parameters: ConfigResources, crop_bbox=None
 ) -> Tuple[np.ndarray, List[int]]:
     if crop_bbox is None:
         intensity_threshold = -250
-        airmetal_mask = deepcopy(volume)
+        airmetal_mask = deepcopy(volume.get_fdata()[:])
         airmetal_mask[airmetal_mask > intensity_threshold] = 0
         airmetal_mask[airmetal_mask <= intensity_threshold] = 1
 
@@ -114,12 +111,12 @@ def mediastinum_clipping(
             crop_bbox[0], crop_bbox[1], crop_bbox[2], crop_bbox[3], crop_bbox[4], crop_bbox[5]
         )
     )
-    return cropped_volume, crop_bbox
+    cropped_volume_nib = nib.Nifti1Image(cropped_volume, affine=volume.affine)
+    return cropped_volume_nib, crop_bbox
 
 
 def mediastinum_clipping_advanced(
-    volume: np.ndarray, new_spacing: Tuple[float], parameters: ConfigResources
-) -> Tuple[np.ndarray, List[int]]:
+    volume: nib.Nifti1Image, parameters: ConfigResources) -> Tuple[nib.Nifti1Image, List[int]]:
     """
 
     Parameters
@@ -134,14 +131,25 @@ def mediastinum_clipping_advanced(
     """
     if not parameters.runtime_lungs_mask_filepath and not os.path.exists(parameters.runtime_lungs_mask_filepath):
         raise ValueError(
-            "A brain segmentation mask must be provided inside ['Mediastinum']['lungs_segmentation_filename']"
+            "A valid mask must be provided inside ['Mediastinum']['lungs_segmentation_filename']"
         )
     else:
         lungs_mask_filename = parameters.runtime_lungs_mask_filepath
 
+    data = volume.get_fdata()[:]
     lungs_mask_ni = load_nifti_volume(lungs_mask_filename)
-    resampled_volume = resample_to_output(lungs_mask_ni, new_spacing, order=0)
-    lungs_mask = resampled_volume.get_fdata().astype("uint8")
+    lungs_mask = lungs_mask_ni.get_fdata()[:].astype('uint8')
+    # if mask is None:
+    #
+    #     resampler = get_resampler(use_torch=True, input_voxel_size=lungs_mask_ni.header.get_zooms(),
+    #                               target_voxel_size=new_spacing, order=0)
+    #     lungs_mask, _ = resampler.resample(volume_nib=lungs_mask_ni)
+    #     logging.debug(f"Foreground mask shape is: {lungs_mask.shape}")
+    #     lungs_mask = lungs_mask.astype('uint8')
+    # else:
+    #     lungs_mask = mask.astype('uint8')
+    # # resampled_volume = resample_to_output(lungs_mask_ni, new_spacing, order=0)
+    # # lungs_mask = resampled_volume.get_fdata().astype("uint8")
 
     # In case the lungs mask has a different label for each lung
     lungs_mask[lungs_mask != 0] = 1
@@ -150,9 +158,14 @@ def mediastinum_clipping_advanced(
     if parameters.crop_background == "invert":
         max_depth = min_depth
         min_depth = 0
-    print("cropping params", min_row, min_col, min_depth, max_row, max_col, max_depth)
 
-    cropped_volume = volume[min_row:max_row, min_col:max_col, min_depth:max_depth]
-    bbox = [min_row, min_col, min_depth, max_row, max_col, max_depth]
+    cropped_volume = data[min_row:max_row, min_col:max_col, min_depth:max_depth]
+    crop_bbox = [min_row, min_col, min_depth, max_row, max_col, max_depth]
+    logging.debug(
+        "Mediastinum background cropping with: [{}, {}, {}, {}, {}, {}].\n".format(
+            crop_bbox[0], crop_bbox[1], crop_bbox[2], crop_bbox[3], crop_bbox[4], crop_bbox[5]
+        )
+    )
 
-    return cropped_volume, bbox
+    cropped_volume_nib = nib.Nifti1Image(cropped_volume, affine=volume.affine)
+    return cropped_volume_nib, crop_bbox

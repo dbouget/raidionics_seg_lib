@@ -87,7 +87,7 @@ def __segment(pre_processing_parameters: ConfigResources) -> None:
 
     try:
         logging.info("LOG: Segmentation - Preprocessing - Begin (1/4)")
-        nib_volume, resampled_volume, data, crop_bbox = prepare_pre_processing(
+        nib_volume, fg_volume, resampled_volume, data, crop_bbox = prepare_pre_processing(
             folder=inputs_folder, pre_processing_parameters=pre_processing_parameters, storage_path=output_path
         )
         logging.info("LOG: Segmentation - Runtime: {} seconds.".format(time.time() - start))
@@ -106,6 +106,7 @@ def __segment(pre_processing_parameters: ConfigResources) -> None:
             parameters=pre_processing_parameters,
             crop_bbox=crop_bbox,
             nib_volume=nib_volume,
+            fg_volume=fg_volume,
             resampled_volume=resampled_volume,
         )
         logging.info("LOG: Segmentation - Runtime: {} seconds.".format(time.time() - start))
@@ -151,7 +152,7 @@ def __classify(pre_processing_parameters: ConfigResources):
 
     try:
         logging.info("LOG: Classification - Preprocessing - Begin (1/3)")
-        nib_volume, resampled_volume, data, crop_bbox = prepare_pre_processing(
+        nib_volume, fg_volume, resampled_volume, data, crop_bbox = prepare_pre_processing(
             folder=inputs_folder, pre_processing_parameters=pre_processing_parameters, storage_path=output_path
         )
         logging.info("LOG: Classification - Runtime: {} seconds.".format(time.time() - start))

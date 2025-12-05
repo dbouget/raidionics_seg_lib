@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "raidionicsseg"
-version = "1.4.2"
+version = "1.5.0"
 description = "Raidionics segmentation and classification back-end with ONNX runtime"
 readme = "README.md"
 license = { text = "BSD-2-Clause" }
@@ -22,6 +22,10 @@ dependencies = [
   "numpy",
   "onnxruntime",]
 
+[project.optional-dependencies]
+torch = ["torch>=2.0.0"]
+ort-gpu = ["onnxruntime-gpu"]
+
 [project.scripts]
 raidionicsseg = "raidionicsseg.__main__:main"
 
@@ -29,6 +33,7 @@ raidionicsseg = "raidionicsseg.__main__:main"
 include = [
   "raidionicsseg",
   "raidionicsseg.Utils",
+  "raidionicsseg.Utils.Torch",
   "raidionicsseg.PreProcessing",
   "raidionicsseg.Inference",
   "tests", ]

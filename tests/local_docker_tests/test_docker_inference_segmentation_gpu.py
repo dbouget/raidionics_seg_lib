@@ -25,6 +25,9 @@ def test_docker_inference_segmentation_simple(test_dir):
 
     logging.info("Preparing configuration file.\n")
     try:
+        image_name = "'dbouget/raidionics-segmenter:v1.4-py39-cuda12.4'"
+        if os.environ.get("GITHUB_ACTIONS"):
+            image_name = "dbouget/raidionics-segmenter:" + os.environ["IMAGE_TAG_GPU"]
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "0")
@@ -48,9 +51,10 @@ def test_docker_inference_segmentation_simple(test_dir):
         try:
             import platform
             cmd_docker = ['docker', 'run', '-v', '{}:/workspace/resources'.format(test_dir),
-                          '--network=host', '--ipc=host', '--gpus=all', '--user', str(os.geteuid()),
-                          'dbouget/raidionics-segmenter:v1.4-py39-cuda12.4',
-                          '-c', '/workspace/resources/test_seg_config.ini', '-v', 'debug']
+                          '--network=host', '--ipc=host', '--gpus=all']
+            if not os.environ.get("GITHUB_ACTIONS") and sys.platform != "win32":
+                cmd_docker.extend(['--user', str(os.geteuid())])
+            cmd_docker.extend([image_name, '-c', '/workspace/resources/test_seg_config.ini', '-v', 'debug'])
             logging.info("Executing the following Docker call: {}".format(cmd_docker))
             if platform.system() == 'Windows':
                 subprocess.check_call(cmd_docker, shell=True)

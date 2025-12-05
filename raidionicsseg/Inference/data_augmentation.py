@@ -88,7 +88,7 @@ class Zoom(Transform):
 
     def randomize(self):
         self.prob_zoom = random.uniform(0, 1)
-        self.zoom_ratio = random.uniform(0.75, 1.5)
+        self.zoom_ratio = random.uniform(0.75, 1.25)
 
     def transform(self, data, direction):
         data_aug = deepcopy(data)

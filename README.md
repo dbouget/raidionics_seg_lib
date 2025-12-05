@@ -18,6 +18,12 @@ pip install raidionicsseg
 pip install git+https://github.com/dbouget/raidionics_seg_lib.git
 ```
 
+Additional packages (i.e., torch and onnxruntime-gpu), if needed, can also be installed as follows:
+```
+pip instal raidionicsseg[ort-gpu]
+pip instal raidionicsseg[torch]
+```
+
 ## [How to cite](https://github.com/dbouget/raidionics_seg_lib#how-to-cite)
 If you are using Raidionics in your research, please cite the following references.
 
@@ -75,12 +81,12 @@ the GPU (see further down below). If the CUDA version does not match your machin
 simply modifying the base torch image to pull from inside Dockerfile_gpu.
 
 ```
-docker pull dbouget/raidionics-segmenter:v1.4-py39-cpu
+docker pull dbouget/raidionics-segmenter:v1.5-py39-cpu
 ```
 
 For opening the Docker image and interacting with it, run:  
 ```
-docker run --entrypoint /bin/bash -v /home/<username>/<resources_path>:/workspace/resources -t -i --network=host --ipc=host --user $(id -u) dbouget/raidionics-segmenter:v1.4-py39-cpu
+docker run --entrypoint /bin/bash -v /home/<username>/<resources_path>:/workspace/resources -t -i --network=host --ipc=host --user $(id -u) dbouget/raidionics-segmenter:v1.5-py39-cpu
 ```
 
 The `/home/<username>/<resources_path>` before the column sign has to be changed to match a directory on your local 
@@ -90,7 +96,7 @@ be placed.
 
 For launching the Docker image as a CLI, run:  
 ```
-docker run -v /home/<username>/<resources_path>:/workspace/resources -t -i --network=host --ipc=host --user $(id -u) dbouget/raidionics-segmenter:v1.4-py39-cpu -c /workspace/resources/<path>/<to>/main_config.ini -v <verbose>
+docker run -v /home/<username>/<resources_path>:/workspace/resources -t -i --network=host --ipc=host --user $(id -u) dbouget/raidionics-segmenter:v1.5-py39-cpu -c /workspace/resources/<path>/<to>/main_config.ini -v <verbose>
 ```
 
 The `<path>/<to>/main_config.ini` must point to a valid configuration file on your machine, as a relative path to the `/home/<username>/<resources_path>` described above.
@@ -100,7 +106,7 @@ The `<verbose>` level can be selected from [debug, info, warning, error].
 
 For running models on the GPU inside the Docker image, run the following CLI, with the gpu_id properly filled in the configuration file:
 ```
-docker run -v /home/<username>/<resources_path>:/workspace/resources -t -i --runtime=nvidia --network=host --ipc=host --user $(id -u) dbouget/raidionics-segmenter:v1.4-py39-cuda12.4 -c /workspace/resources/<path>/<to>/main_config.ini -v <verbose>
+docker run -v /home/<username>/<resources_path>:/workspace/resources -t -i --runtime=nvidia --network=host --ipc=host --user $(id -u) dbouget/raidionics-segmenter:v1.5-py39-cuda12.4 -c /workspace/resources/<path>/<to>/main_config.ini -v <verbose>
 ```
 
 # [Models](https://github.com/dbouget/raidionics_seg_lib#models)
@@ -112,6 +118,8 @@ Alternatively, all existing Raidionics models can be browsed [here](https://gith
 # [Developers](https://github.com/dbouget/raidionics_seg_lib#developers)
 For running inference on GPU, your machine must be properly configured (cf. [here](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html))  
 In the configuration file, the gpu_id parameter should then point to the GPU that is to be used during inference.
+The onnxruntime-gpu Python package must be installed in addition, with a version matching the driver and cuda version,
+more info can be accessed [here](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#cuda-12x)
 
 To run the unit tests, type the following within your virtual environment and within the raidionics_seg_lib folder:
 ```

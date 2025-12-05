@@ -8,9 +8,9 @@ import zipfile
 
 def download_resources(test_dir: str):
     try:
-        test_preop_neuro_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-RaidionicsSegLib-UnitTest-PreopNeuro.zip'
-        test_diffloader_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-RaidionicsSegLib-UnitTest-DiffLoader.zip'
-        test_medi_url = "https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-RaidionicsSegLib-UnitTest-Mediastinum.zip"
+        test_preop_neuro_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-RaidionicsSegLib-UnitTest-PreopNeuro-v1.5.zip'
+        test_diffloader_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-RaidionicsSegLib-UnitTest-DiffLoader-v1.5.zip'
+        test_medi_url = "https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-RaidionicsSegLib-UnitTest-Mediastinum-v1.5.zip"
         dest_dir = os.path.join(test_dir, "Inputs")
         os.makedirs(dest_dir, exist_ok=True)
 
@@ -56,6 +56,7 @@ def download_resources(test_dir: str):
         postop_model_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Raidionics-MRI_TumorCE_Postop-v13.zip'
         seq_classif_model_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Raidionics-MRI_SequenceClassifier-v13.zip'
         ct_tumor_model_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Raidionics-CT_Tumor-v13.zip'
+        hp_tumor_model_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Raidionics-CT_PulmSystHeart-v13.zip'
         dest_dir = os.path.join(test_dir, "Models")
         os.makedirs(dest_dir, exist_ok=True)
 
@@ -95,6 +96,17 @@ def download_resources(test_dir: str):
         archive_dl_dest = os.path.join(dest_dir, 'ct_tumor_model.zip')
         headers = {}
         response = requests.get(ct_tumor_model_url, headers=headers, stream=True)
+        response.raise_for_status()
+        if response.status_code == requests.codes.ok:
+            with open(archive_dl_dest, "wb") as f:
+                for chunk in response.iter_content(chunk_size=1048576):
+                    f.write(chunk)
+        with zipfile.ZipFile(archive_dl_dest, 'r') as zip_ref:
+            zip_ref.extractall(dest_dir)
+
+        archive_dl_dest = os.path.join(dest_dir, 'hp_tumor_model.zip')
+        headers = {}
+        response = requests.get(hp_tumor_model_url, headers=headers, stream=True)
         response.raise_for_status()
         if response.status_code == requests.codes.ok:
             with open(archive_dl_dest, "wb") as f:
