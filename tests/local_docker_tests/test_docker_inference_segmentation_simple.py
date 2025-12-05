@@ -60,7 +60,7 @@ def test_docker_inference_segmentation_simple(test_dir):
             if platform.system() == 'Windows':
                 subprocess.check_call(cmd_docker, shell=True)
             else:
-                subprocess.check_call(cmd_docker)
+                subprocess.check_call(cmd_docker, stdout=sys.stdout, stderr=sys.stderr)
         except Exception as e:
             raise ValueError("Error during inference test in Docker container.\n")
 

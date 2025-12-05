@@ -56,7 +56,7 @@ jobs:
            IMAGE_TAG_GPU: ${{ steps.vars.outputs.tag_gpu }}
         run: |
           pip install pytest
-          pytest -vvv tests/local_docker_tests --log-cli-level=DEBUG
+          python -u -m pytest -s -vvv tests/local_docker_tests --log-cli-level=DEBUG
 
       - name: Push Docker image cpu
         uses: docker/build-push-action@v5
