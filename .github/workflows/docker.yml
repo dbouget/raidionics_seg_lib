@@ -71,16 +71,11 @@ jobs:
           push: false
           tags: dbouget/raidionics-segmenter:${{ steps.vars.outputs.tag_gpu }}
 
-      - name: Create clean test environment
-        run: |
-          mkdir test_env
-          cp -r tests test-env/
-
       - name: Download test resources
         uses: actions/download-artifact@v4
         with:
           name: test-resources
-          path: ./test-env/unit_tests_results_dir
+          path: ./tests/unit_tests_results_dir
 
       - name: Integration tests
         env:
