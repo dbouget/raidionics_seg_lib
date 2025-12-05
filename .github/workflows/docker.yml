@@ -6,7 +6,29 @@ on:
   workflow_dispatch:
 
 jobs:
+  setup-test-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.9
+
+      - name: Download test resources
+        working-directory: tests
+        run: |
+          pip install requests
+          python -c "from download_resources import download_resources; download_resources('../test_data')"
+
+      - name: Upload test resources
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-resources
+          path: ./test_data
   build-and-push:
+    needs: [setup-test-data]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
