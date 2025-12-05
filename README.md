@@ -81,12 +81,12 @@ the GPU (see further down below). If the CUDA version does not match your machin
 simply modifying the base torch image to pull from inside Dockerfile_gpu.
 
 ```
-docker pull dbouget/raidionics-segmenter:v1.5-py39-cpu
+docker pull dbouget/raidionics-segmenter:v1.5.0-py39-cpu
 ```
 
 For opening the Docker image and interacting with it, run:  
 ```
-docker run --entrypoint /bin/bash -v /home/<username>/<resources_path>:/workspace/resources -t -i --network=host --ipc=host --user $(id -u) dbouget/raidionics-segmenter:v1.5-py39-cpu
+docker run --entrypoint /bin/bash -v /home/<username>/<resources_path>:/workspace/resources -t -i --network=host --ipc=host --user $(id -u) dbouget/raidionics-segmenter:v1.5.0-py39-cpu
 ```
 
 The `/home/<username>/<resources_path>` before the column sign has to be changed to match a directory on your local 
@@ -96,7 +96,7 @@ be placed.
 
 For launching the Docker image as a CLI, run:  
 ```
-docker run -v /home/<username>/<resources_path>:/workspace/resources -t -i --network=host --ipc=host --user $(id -u) dbouget/raidionics-segmenter:v1.5-py39-cpu -c /workspace/resources/<path>/<to>/main_config.ini -v <verbose>
+docker run -v /home/<username>/<resources_path>:/workspace/resources -t -i --network=host --ipc=host --user $(id -u) dbouget/raidionics-segmenter:v1.5.0-py39-cpu -c /workspace/resources/<path>/<to>/main_config.ini -v <verbose>
 ```
 
 The `<path>/<to>/main_config.ini` must point to a valid configuration file on your machine, as a relative path to the `/home/<username>/<resources_path>` described above.
@@ -106,7 +106,7 @@ The `<verbose>` level can be selected from [debug, info, warning, error].
 
 For running models on the GPU inside the Docker image, run the following CLI, with the gpu_id properly filled in the configuration file:
 ```
-docker run -v /home/<username>/<resources_path>:/workspace/resources -t -i --runtime=nvidia --network=host --ipc=host --user $(id -u) dbouget/raidionics-segmenter:v1.5-py39-cuda12.4 -c /workspace/resources/<path>/<to>/main_config.ini -v <verbose>
+docker run -v /home/<username>/<resources_path>:/workspace/resources -t -i --runtime=nvidia --network=host --ipc=host --user $(id -u) dbouget/raidionics-segmenter:v1.5.0-py39-cuda12.4 -c /workspace/resources/<path>/<to>/main_config.ini -v <verbose>
 ```
 
 # [Models](https://github.com/dbouget/raidionics_seg_lib#models)

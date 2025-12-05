@@ -13,7 +13,7 @@ import numpy as np
 def test_docker_inference_segmentation_simple(test_dir):
     """
     Testing the CLI within a Docker container for a simple segmentation inference unit test, running on CPU.
-    The latest Docker image is being hosted at: dbouget/raidionics-segmenter:v1.4-py39-cpu
+    The latest Docker image is being hosted at: dbouget/raidionics-segmenter:v1.5.0-py39-cpu
 
     Returns
     -------
@@ -25,16 +25,17 @@ def test_docker_inference_segmentation_simple(test_dir):
 
     logging.info("Preparing configuration file.\n")
     try:
-        image_name = "dbouget/raidionics-segmenter:v1.4-py39-cpu"
+        image_name = "dbouget/raidionics-segmenter:v1.5.0-py39-cpu"
         if os.environ.get("GITHUB_ACTIONS"):
             image_name = "dbouget/raidionics-segmenter:" + os.environ["IMAGE_TAG"]
+
 
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "-1")
-        seg_config.set('System', 'inputs_folder', '/workspace/resources/inputs')
+        seg_config.set('System', 'inputs_folder', '/workspace/resources/Inputs/PreopNeuro/inputs')
         seg_config.set('System', 'output_folder', '/workspace/resources/outputs')
-        seg_config.set('System', 'model_folder', '/workspace/resources/MRI_Brain')
+        seg_config.set('System', 'model_folder', '/workspace/resources/Models/MRI_Brain')
         seg_config.add_section('Runtime')
         seg_config.set('Runtime', 'folds_ensembling', 'False')
         seg_config.set('Runtime', 'ensembling_strategy', 'average')
@@ -55,12 +56,14 @@ def test_docker_inference_segmentation_simple(test_dir):
                           '--network=host', '--ipc=host']
             if not os.environ.get("GITHUB_ACTIONS") and sys.platform != "win32":
                 cmd_docker.extend(['--user', str(os.geteuid())])
+            elif os.environ.get("GITHUB_ACTIONS"):
+                cmd_docker.extend(['-u',f"{os.getuid()}:{os.getgid()}"])
             cmd_docker.extend([image_name, '-c', '/workspace/resources/test_seg_config.ini', '-v', 'debug'])
             logging.info("Executing the following Docker call: {}".format(cmd_docker))
             if platform.system() == 'Windows':
                 subprocess.check_call(cmd_docker, shell=True)
             else:
-                subprocess.check_call(cmd_docker)
+                subprocess.check_call(cmd_docker, stdout=sys.stdout, stderr=sys.stderr)
         except Exception as e:
             raise ValueError("Error during inference test in Docker container.\n")
 
