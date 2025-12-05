@@ -13,7 +13,7 @@ import numpy as np
 def test_docker_inference_segmentation_simple(test_dir):
     """
     Testing the CLI within a Docker container for a simple segmentation inference unit test, running on CPU.
-    The latest Docker image is being hosted at: dbouget/raidionics-segmenter:v1.4-py39-cpu
+    The latest Docker image is being hosted at: dbouget/raidionics-segmenter:v1.5.0-py39-cpu
 
     Returns
     -------
@@ -25,7 +25,7 @@ def test_docker_inference_segmentation_simple(test_dir):
 
     logging.info("Preparing configuration file.\n")
     try:
-        image_name = "dbouget/raidionics-segmenter:v1.4-py39-cpu"
+        image_name = "dbouget/raidionics-segmenter:v1.5.0-py39-cpu"
         if os.environ.get("GITHUB_ACTIONS"):
             image_name = "dbouget/raidionics-segmenter:" + os.environ["IMAGE_TAG"]
 

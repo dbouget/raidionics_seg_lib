@@ -14,7 +14,7 @@ import pytest
 def test_docker_inference_segmentation_simple(test_dir):
     """
     Testing the CLI within a Docker container for a simple segmentation inference unit test, running on GPU.
-    The latest Docker image is being hosted at: dbouget/raidionics-segmenter:v1.4-py39-cuda12.4
+    The latest Docker image is being hosted at: dbouget/raidionics-segmenter:v1.5.0-py39-cuda12.4
 
     Returns
     -------
@@ -28,7 +28,7 @@ def test_docker_inference_segmentation_simple(test_dir):
 
     logging.info("Preparing configuration file.\n")
     try:
-        image_name = "'dbouget/raidionics-segmenter:v1.4-py39-cuda12.4'"
+        image_name = "'dbouget/raidionics-segmenter:v1.5.0-py39-cuda12.4'"
         if os.environ.get("GITHUB_ACTIONS"):
             image_name = "dbouget/raidionics-segmenter:" + os.environ["IMAGE_TAG_GPU"]
         seg_config = configparser.ConfigParser()
