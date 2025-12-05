@@ -8,6 +8,7 @@ import subprocess
 import traceback
 import nibabel as nib
 import numpy as np
+import pytest
 
 
 def test_docker_inference_segmentation_simple(test_dir):
@@ -21,6 +22,8 @@ def test_docker_inference_segmentation_simple(test_dir):
     """
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
+    if os.environ.get("GITHUB_ACTIONS"):
+        pytest.skip("Skipping this test on Github Actions due to GPU restrictions.")
     logging.info("Running inference test in Docker container.\n")
 
     logging.info("Preparing configuration file.\n")
