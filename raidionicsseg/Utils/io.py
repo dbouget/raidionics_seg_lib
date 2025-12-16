@@ -56,8 +56,10 @@ def dump_predictions(
         modified_header = nib_volume.header.copy()
         if parameters.predictions_reconstruction_method != "probabilities":
             modified_header.set_data_dtype(np.uint8)
+            assert predictions.dtype == np.uint8
         else:
             modified_header.set_data_dtype(np.float32)
+            assert predictions.dtype == np.float32
         if len(predictions.shape) == 4:
             first_class = 0 if parameters.training_activation_layer_type == "sigmoid" else 1
             for c in range(first_class, predictions.shape[-1]):
