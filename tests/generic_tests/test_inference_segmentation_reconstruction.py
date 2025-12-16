@@ -148,6 +148,7 @@ def test_inference_segmentation_reconstruction_method(test_dir, tmp_path):
                 segmentation_gt_nib.header.get_zooms()[0:3]) * 1e-3
             logging.info(f"Volume difference: {abs(pred_volume - gt_volume)}\n")
             assert abs(pred_volume - gt_volume) < 0.1, "Ground truth and prediction volumes are very different"
+            assert segmentation_pred_nib.get_data_dtype() == np.float32, "Predictions is not of type float32"
         except Exception as e:
             logging.error(f"Error during inference Python package test with: {e} \n {traceback.format_exc()}.\n")
             if os.path.exists(tmp_test_input_fn):

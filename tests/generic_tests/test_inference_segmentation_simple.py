@@ -87,6 +87,7 @@ def test_inference_cli(test_dir, tmp_path):
         segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
         assert np.array_equal(segmentation_pred,
                               segmentation_gt), "Ground truth and prediction arrays are not identical"
+        assert nib.load(segmentation_pred_filename).get_data_dtype() == np.uint8, "Tresholded predictions is not of type uint8"
     except Exception as e:
         logging.error(f"Error during inference CLI test with: {e}\n {traceback.format_exc()}.\n")
         raise ValueError("Error during inference CLI test.\n")
@@ -155,6 +156,8 @@ def test_inference_package(test_dir, tmp_path):
             segmentation_pred = nib.load(segmentation_pred_filename).get_fdata()[:]
             segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
             assert np.array_equal(segmentation_pred, segmentation_gt), "Ground truth and prediction arrays are not identical"
+            assert nib.load(
+                segmentation_pred_filename).get_data_dtype() == np.uint8, "Tresholded predictions is not of type uint8"
         except Exception as e:
             logging.error(f"Error during inference Python package test with: {e} \n {traceback.format_exc()}.\n")
             if os.path.exists(tmp_test_input_fn):

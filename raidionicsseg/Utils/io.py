@@ -53,16 +53,22 @@ def dump_predictions(
     try:
         naming_suffix = "pred" if parameters.predictions_reconstruction_method == "probabilities" else "labels"
         class_names = parameters.training_class_names
-
+        modified_header = nib_volume.header.copy()
+        if parameters.predictions_reconstruction_method != "probabilities":
+            modified_header.set_data_dtype(np.uint8)
+            assert predictions.dtype == np.uint8
+        else:
+            modified_header.set_data_dtype(np.float32)
+            assert predictions.dtype == np.float32
         if len(predictions.shape) == 4:
             first_class = 0 if parameters.training_activation_layer_type == "sigmoid" else 1
             for c in range(first_class, predictions.shape[-1]):
-                img = nib.Nifti1Image(predictions[..., c], affine=nib_volume.affine, header=nib_volume.header)
+                img = nib.Nifti1Image(predictions[..., c], affine=nib_volume.affine, header=modified_header)
                 predictions_output_path = os.path.join(storage_path, naming_suffix + "_" + class_names[c] + ".nii.gz")
                 os.makedirs(os.path.dirname(predictions_output_path), exist_ok=True)
                 nib.save(img, predictions_output_path)
         else:
-            img = nib.Nifti1Image(predictions, affine=nib_volume.affine, header=nib_volume.header)
+            img = nib.Nifti1Image(predictions, affine=nib_volume.affine, header=modified_header)
             predictions_output_path = os.path.join(storage_path, naming_suffix + "_" + "argmax" + ".nii.gz")
             os.makedirs(os.path.dirname(predictions_output_path), exist_ok=True)
             nib.save(img, predictions_output_path)
