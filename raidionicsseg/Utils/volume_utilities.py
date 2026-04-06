@@ -2,6 +2,7 @@ from copy import deepcopy
 
 import numpy as np
 import SimpleITK as sitk
+import nibabel as nib
 from skimage.transform import resize
 
 from ..Utils.resample_or_resize import get_resizer
@@ -238,3 +239,27 @@ def softmax(x):
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
+
+
+def ensure_orthonormal_direction(input_volume: nib.Nifti1Image) -> nib.Nifti1Image:
+    """
+    Ensure the input prediction volume has proper orthogonal direction, even if header and affine were copied from the
+    original volume.
+    """
+    affine = input_volume.affine
+    A = affine[:3, :3]
+    if np.allclose(A.T @ A, np.eye(3), atol=1e-4):
+        return input_volume
+
+    M = A
+    spacing = np.linalg.norm(M, axis=0)  # Extract spacing (voxel sizes)
+    direction = M / spacing  # Normalize columns → direction cosines
+    U, _, Vt = np.linalg.svd(direction)  # Orthonormalize direction
+    direction_ortho = U @ Vt
+    M_fixed = direction_ortho * spacing  # Reapply spacing
+    A_fixed = affine.copy()
+    A_fixed[:3, :3] = M_fixed
+
+    fixed = nib.Nifti1Image(input_volume.get_fdata()[:].astype(input_volume.get_data_dtype()), A_fixed,
+                            header=input_volume.header)
+    return fixed

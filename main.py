@@ -5,7 +5,6 @@ import traceback
 import logging
 from raidionicsseg.fit import run_model, run_model_wrapper
 
-
 def main(argv):
     config_filename = None
     try:
