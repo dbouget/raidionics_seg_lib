@@ -65,13 +65,13 @@ def dump_predictions(
             first_class = 0 if parameters.training_activation_layer_type == "sigmoid" else 1
             for c in range(first_class, predictions.shape[-1]):
                 img = nib.Nifti1Image(predictions[..., c], affine=nib_volume.affine, header=modified_header)
-                img = ensure_orthonormal_direction(input=img)
+                img = ensure_orthonormal_direction(input_volume=img)
                 predictions_output_path = os.path.join(storage_path, naming_suffix + "_" + class_names[c] + ".nii.gz")
                 os.makedirs(os.path.dirname(predictions_output_path), exist_ok=True)
                 nib.save(img, predictions_output_path)
         else:
             img = nib.Nifti1Image(predictions, affine=nib_volume.affine, header=modified_header)
-            img = ensure_orthonormal_direction(input=img)
+            img = ensure_orthonormal_direction(input_volume=img)
             predictions_output_path = os.path.join(storage_path, naming_suffix + "_" + "argmax" + ".nii.gz")
             os.makedirs(os.path.dirname(predictions_output_path), exist_ok=True)
             nib.save(img, predictions_output_path)
