@@ -32,7 +32,7 @@ class AffineResampler3D(nn.Module):
         D_out = int(torch.ceil(D * voxel_sizes[0] / self.target_voxel_size[2]).item())
         H_out = int(torch.ceil(H * voxel_sizes[1] / self.target_voxel_size[1]).item())
         W_out = int(torch.ceil(W * voxel_sizes[2] / self.target_voxel_size[0]).item())
-        print(f"✅ Output shape (PyTorch D,H,W): ({D_out}, {H_out}, {W_out})")
+        # print(f"✅ Output shape (PyTorch D,H,W): ({D_out}, {H_out}, {W_out})")
 
         # --- Step 4: build output affine ---
         affine_out = torch.eye(4, device=device, dtype=dtype)

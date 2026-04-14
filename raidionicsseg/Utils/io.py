@@ -8,6 +8,7 @@ import SimpleITK as sitk
 from nibabel import four_to_three
 
 from .configuration_parser import ConfigResources
+from .volume_utilities import ensure_orthonormal_direction
 
 
 def load_nifti_volume(volume_path):
@@ -56,19 +57,25 @@ def dump_predictions(
         modified_header = nib_volume.header.copy()
         if parameters.predictions_reconstruction_method != "probabilities":
             modified_header.set_data_dtype(np.uint8)
-            assert predictions.dtype == np.uint8
+            if predictions.dtype != np.uint8:
+                raise TypeError(f"Expected uint8 predictions for reconstruction method "
+                                f"'{parameters.predictions_reconstruction_method}', got {predictions.dtype}.")
         else:
             modified_header.set_data_dtype(np.float32)
-            assert predictions.dtype == np.float32
+            if predictions.dtype != np.float32:
+                raise TypeError(f"Expected float32 predictions for reconstruction method 'probabilities', "
+                                f"got {predictions.dtype}.")
         if len(predictions.shape) == 4:
             first_class = 0 if parameters.training_activation_layer_type == "sigmoid" else 1
             for c in range(first_class, predictions.shape[-1]):
                 img = nib.Nifti1Image(predictions[..., c], affine=nib_volume.affine, header=modified_header)
+                img = ensure_orthonormal_direction(input_volume=img)
                 predictions_output_path = os.path.join(storage_path, naming_suffix + "_" + class_names[c] + ".nii.gz")
                 os.makedirs(os.path.dirname(predictions_output_path), exist_ok=True)
                 nib.save(img, predictions_output_path)
         else:
             img = nib.Nifti1Image(predictions, affine=nib_volume.affine, header=modified_header)
+            img = ensure_orthonormal_direction(input_volume=img)
             predictions_output_path = os.path.join(storage_path, naming_suffix + "_" + "argmax" + ".nii.gz")
             os.makedirs(os.path.dirname(predictions_output_path), exist_ok=True)
             nib.save(img, predictions_output_path)
@@ -118,7 +125,6 @@ def dump_classification_predictions(predictions: np.ndarray, parameters: ConfigR
                 "No classification reconstruction method for {}. \n "
                 "Please select a valid method.".format(reconstruction_method)
             )
-        file.close()
     except Exception as e:
         logging.error(
             f"Following error collected during model predictions dump on disk: \n {e}\n{traceback.format_exc()}"
