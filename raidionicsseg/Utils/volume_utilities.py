@@ -69,8 +69,8 @@ def __intensity_normalization_CT(volume: np.ndarray, parameters: ConfigResources
     if parameters.normalization_method == "zeromean":
         mean_val = np.mean(result)
         var_val = np.std(result)
-        tmp = (result - mean_val) / var_val
-        result = tmp
+        if var_val != 0:
+            result = (result - mean_val) / var_val
     elif parameters.normalization_method == "default":
         min_val = np.min(result)
         max_val = np.max(result)
@@ -97,14 +97,15 @@ def __intensity_normalization_MRI(volume: np.ndarray, parameters: ConfigResource
     if parameters.normalization_method == "zeromean":
         mean_val = np.mean(result)
         var_val = np.std(result)
-        tmp = (result - mean_val) / var_val
-        result = tmp
+        if var_val != 0:
+            result = (result - mean_val) / var_val
     elif parameters.normalization_method == "zeromean_nonzero":
         slices = result != 0
         masked_img = result[slices]
         mean_val = np.mean(masked_img)
         var_val = np.std(masked_img, ddof=1)
-        result[slices] = (masked_img - mean_val) / var_val
+        if var_val != 0:
+            result[slices] = (masked_img - mean_val) / var_val
     elif parameters.normalization_method == "default":
         min_val = np.min(result)
         max_val = np.max(result)
@@ -130,8 +131,8 @@ def intensity_clipping(volume: np.ndarray, parameters: ConfigResources) -> np.nd
         result[result < 0] = 0  # Soft clipping at 0 for MRI
 
     if parameters.intensity_clipping_range[1] - parameters.intensity_clipping_range[0] != 100:
-        limits = np.percentile(volume, q=parameters.intensity_clipping_range)
-        result = np.clip(volume, limits[0], limits[1])
+        limits = np.percentile(result, q=parameters.intensity_clipping_range)
+        result = np.clip(result, limits[0], limits[1])
     elif (
         parameters.intensity_clipping_values is not None
         and len(parameters.intensity_clipping_values) != 0
@@ -232,10 +233,16 @@ def final_activation(x, act_type):
         return softmax(x)
 
 
-def softmax(x):
-    """Compute softmax values for each sets of scores in x."""
-    return np.exp(x) / np.sum(np.exp(x), axis=-1, keepdims=True)
+def softmax(x: np.ndarray) -> np.ndarray:
+    """
+    Compute softmax values for each sets of scores in x.
+    Subtract max(logits) to prevent overflow during exponentiation
+    """
+    # return np.exp(x) / np.sum(np.exp(x), axis=-1, keepdims=True)
 
+    shift_logits = x - np.max(x, axis=-1, keepdims=True)
+    exps = np.exp(shift_logits)
+    return exps / np.sum(exps, axis=-1, keepdims=True)
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))

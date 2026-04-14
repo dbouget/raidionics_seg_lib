@@ -1,5 +1,5 @@
 # creates virtual ubuntu in docker image
-FROM python:3.9-slim
+FROM python:3.12-slim
 
 # maintainer of docker file
 MAINTAINER David Bouget <david.bouget@sintef.no>

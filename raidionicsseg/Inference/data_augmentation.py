@@ -192,7 +192,12 @@ class Rotate(Transform):
         self.rotation_angle2 = random.randint(-20, 20)
         self.rotation_angle3 = random.randint(-20, 20)
 
-    def transform(self, data, direction):
+    def transform(self, data: np.ndarray, direction: str) -> np.ndarray:
+        """
+        In the forward pass, the input is 4D/5D (i.e., including batch dimension and/or channels dimension).
+        In the backward pass, the input is 3D (i.e., without batch dimension).
+        As such, there is a mismatch in the axes used, but on purpose.
+        """
         data_aug = deepcopy(data)
         if direction == "forward":
             if self.prob_rotate1 > 0.5:

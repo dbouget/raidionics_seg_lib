@@ -129,7 +129,7 @@ def mediastinum_clipping_advanced(
     -------
 
     """
-    if not parameters.runtime_lungs_mask_filepath and not os.path.exists(parameters.runtime_lungs_mask_filepath):
+    if not parameters.runtime_lungs_mask_filepath or not os.path.exists(parameters.runtime_lungs_mask_filepath):
         raise ValueError(
             "A valid mask must be provided inside ['Mediastinum']['lungs_segmentation_filename']"
         )
@@ -154,6 +154,8 @@ def mediastinum_clipping_advanced(
     # In case the lungs mask has a different label for each lung
     lungs_mask[lungs_mask != 0] = 1
     lung_region = regionprops(lungs_mask)
+    if not lung_region:
+        raise ValueError("Lungs mask is empty; cannot compute mediastinum crop bounding box.")
     min_row, min_col, min_depth, max_row, max_col, max_depth = lung_region[0].bbox
     if parameters.crop_background == "invert":
         max_depth = min_depth
