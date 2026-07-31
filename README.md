@@ -7,7 +7,7 @@
 Use it as a Python package, a CLI tool, or a Docker container — backend engine behind [Raidionics](https://github.com/raidionics/Raidionics) and [Raidionics-Slicer](https://github.com/raidionics/Raidionics-Slicer).
 
 [![PyPI version](https://img.shields.io/pypi/v/raidionicsseg.svg)](https://pypi.org/project/raidionicsseg/)
-[![Python](https://img.shields.io/badge/python-3.9%7C3.10%7C3.11%7C3.12%7C3.13-blue.svg)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/python-3.10%7C3.11%7C3.12%7C3.13-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause)
 [![codecov](https://img.shields.io/codecov/c/github/dbouget/raidionics_seg_lib)](https://codecov.io/gh/dbouget/raidionics_seg_lib)
 [![Paper](https://img.shields.io/badge/DOI-10.3389%2Ffneur.2022.932219-blue.svg)](https://www.frontiersin.org/articles/10.3389/fneur.2022.932219/full)
