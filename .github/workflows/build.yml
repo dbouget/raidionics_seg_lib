@@ -18,11 +18,11 @@ jobs:
             CMD_BUILD: python -m build --wheel
 
     steps:
-      - uses: actions/checkout@v5
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v7
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
@@ -42,12 +42,12 @@ jobs:
   setup-test-data:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
-          python-version: 3.11
+          python-version: 3.12
 
       - name: Download test resources
         working-directory: tests
@@ -67,8 +67,6 @@ jobs:
       matrix:
         include:
           - os: ubuntu-22.04
-            python-version: "3.9"
-          - os: ubuntu-22.04
             python-version: "3.10"
           - os: ubuntu-22.04
             python-version: "3.11"
@@ -77,8 +75,6 @@ jobs:
           - os: ubuntu-22.04
             python-version: "3.13"
           - os: ubuntu-24.04
-            python-version: "3.9"
-          - os: ubuntu-24.04
             python-version: "3.10"
           - os: ubuntu-24.04
             python-version: "3.11"
@@ -86,8 +82,14 @@ jobs:
             python-version: "3.12"
           - os: ubuntu-24.04
             python-version: "3.13"
-          - os: windows-2022
-            python-version: "3.9"
+          - os: ubuntu-26.04
+            python-version: "3.10"
+          - os: ubuntu-26.04
+            python-version: "3.11"
+          - os: ubuntu-26.04
+            python-version: "3.12"
+          - os: ubuntu-26.04
+            python-version: "3.13"
           - os: windows-2022
             python-version: "3.10"
           - os: windows-2022
@@ -96,8 +98,6 @@ jobs:
             python-version: "3.12"
           - os: windows-2022
             python-version: "3.13"
-          - os: windows-2025
-            python-version: "3.9"
           - os: windows-2025
             python-version: "3.10"
           - os: windows-2025
@@ -124,7 +124,7 @@ jobs:
             python-version: "3.13"
     steps:
         - name: Set up Python ${{ matrix.python-version }}
-          uses: actions/setup-python@v6
+          uses: actions/setup-python@v7
           with:
             python-version: ${{ matrix.python-version }}
 
@@ -143,7 +143,7 @@ jobs:
           run: raidionicsseg --help
 
         - name: Clone repo
-          uses: actions/checkout@v5
+          uses: actions/checkout@v7
 
         - name: Cleanup test environment on Linux/macOS
           if: runner.os != 'Windows'
@@ -175,8 +175,8 @@ jobs:
               pytest -vvv --cov=raidionicsseg tests/generic_tests --cov-report=xml --timeout=1500 --log-cli-level=DEBUG
 
         - name: Upload coverage to Codecov
-          if: ${{ matrix.os == 'ubuntu-22.04' && matrix.python-version == '3.11' }}
-          uses: codecov/codecov-action@v6
+          if: ${{ matrix.os == 'ubuntu-22.04' && matrix.python-version == '3.12' }}
+          uses: codecov/codecov-action@v7
           with:
             token: ${{ secrets.CODECOV_TOKEN  }}
             slug: dbouget/raidionics_seg_lib

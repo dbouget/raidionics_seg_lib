@@ -1,128 +1,153 @@
-# Raidionics backend for segmentation and classification
+<div align="center">
 
-[![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause)
-[![](https://img.shields.io/badge/python-3.9|3.10|3.11|3.12|3.13-blue.svg)](https://www.python.org/downloads/)
-[![Paper](https://zenodo.org/badge/DOI/10.3389/fneur.2022.932219.svg)](https://www.frontiersin.org/articles/10.3389/fneur.2022.932219/full)
-[![codecov](https://codecov.io/gh/dbouget/raidionics_seg_lib/branch/master/graph/badge.svg?token=ZSPQVR7RKX)](https://codecov.io/gh/dbouget/raidionics_seg_lib)
+# Raidionics Segmentation Backend
+
+**Segmentation and classification library for MRI/CT volumes, powered by ONNX Runtime.**
+
+Use it as a Python package, a CLI tool, or a Docker container — backend engine behind [Raidionics](https://github.com/raidionics/Raidionics) and [Raidionics-Slicer](https://github.com/raidionics/Raidionics-Slicer).
+
 [![PyPI version](https://img.shields.io/pypi/v/raidionicsseg.svg)](https://pypi.org/project/raidionicsseg/)
+[![Python](https://img.shields.io/badge/python-3.9%7C3.10%7C3.11%7C3.12%7C3.13-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause)
+[![codecov](https://img.shields.io/codecov/c/github/dbouget/raidionics_seg_lib)](https://codecov.io/gh/dbouget/raidionics_seg_lib)
+[![Paper](https://img.shields.io/badge/DOI-10.3389%2Ffneur.2022.932219-blue.svg)](https://www.frontiersin.org/articles/10.3389/fneur.2022.932219/full)
 
+</div>
 
-The code corresponds to the segmentation or classification backend of MRI/CT volumes, using ONNX runtime for inference.  
-The module can either be used as a Python library, as CLI, or as Docker container. By default, inference is performed on CPU only.
+---
 
-## [Installation](https://github.com/dbouget/raidionics_seg_lib#installation)
+## Table of contents
 
-```
+- [Overview](#overview)
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Usage](#usage)
+  - [CLI](#cli)
+  - [Python module](#python-module)
+  - [Docker](#docker)
+- [Models](#models)
+- [GPU support](#gpu-support)
+- [Development](#development)
+- [How to cite](#how-to-cite)
+- [License](#license)
+
+---
+
+## Overview
+
+This library provides the inference backend for segmenting and classifying central nervous system tumors (and related structures) in MRI/CT volumes. It runs on **ONNX Runtime** by default (CPU-only), with optional GPU acceleration via `onnxruntime-gpu` or PyTorch.
+
+It is designed to be used in three ways:
+
+| Mode | Best for |
+|---|---|
+| **Python module** | Integrating segmentation into your own pipeline |
+| **CLI** | Quick, scriptable inference from a config file |
+| **Docker** | Reproducible environments, no local Python setup needed |
+
+---
+
+## Installation
+
+```bash
 pip install raidionicsseg
-(or)
+```
+
+Or install the latest development version directly from GitHub:
+
+```bash
 pip install git+https://github.com/dbouget/raidionics_seg_lib.git
 ```
 
-Additional packages (i.e., torch and onnxruntime-gpu), if needed, can also be installed as follows:
-```
-pip instal raidionicsseg[ort-gpu]
-pip instal raidionicsseg[torch]
+**Optional extras** (only needed for GPU inference):
+
+```bash
+pip install raidionicsseg[ort-gpu]   # ONNX Runtime GPU
+pip install raidionicsseg[torch]     # PyTorch backend
 ```
 
-## [How to cite](https://github.com/dbouget/raidionics_seg_lib#how-to-cite)
-If you are using Raidionics in your research, please cite the following references.
+---
 
-The final software including updated performance metrics for preoperative tumors and introducing postoperative tumor segmentation:
-```
-@article{bouget2023raidionics,
-    author = {Bouget, David and Alsinan, Demah and Gaitan, Valeria and Holden Helland, Ragnhild and Pedersen, André and Solheim, Ole and Reinertsen, Ingerid},
-    year = {2023},
-    month = {09},
-    pages = {},
-    title = {Raidionics: an open software for pre-and postoperative central nervous system tumor segmentation and standardized reporting},
-    volume = {13},
-    journal = {Scientific Reports},
-    doi = {10.1038/s41598-023-42048-7},
-}
+## Quick start
+
+1. Copy [`blank_main_config.ini`](blank_main_config.ini) and fill in your input/output paths and model selection.
+2. Run inference:
+
+```bash
+raidionicsseg /path/to/your_config.ini
 ```
 
-For the preliminary preoperative tumor segmentation validation and software features:
-```
-@article{bouget2022preoptumorseg,
-    title={Preoperative Brain Tumor Imaging: Models and Software for Segmentation and Standardized Reporting},
-    author={Bouget, David and Pedersen, André and Jakola, Asgeir S. and Kavouridis, Vasileios and Emblem, Kyrre E. and Eijgelaar, Roelant S. and Kommers, Ivar and Ardon, Hilko and Barkhof, Frederik and Bello, Lorenzo and Berger, Mitchel S. and Conti Nibali, Marco and Furtner, Julia and Hervey-Jumper, Shawn and Idema, Albert J. S. and Kiesel, Barbara and Kloet, Alfred and Mandonnet, Emmanuel and Müller, Domenique M. J. and Robe, Pierre A. and Rossi, Marco and Sciortino, Tommaso and Van den Brink, Wimar A. and Wagemakers, Michiel and Widhalm, Georg and Witte, Marnix G. and Zwinderman, Aeilko H. and De Witt Hamer, Philip C. and Solheim, Ole and Reinertsen, Ingerid},
-    journal={Frontiers in Neurology},
-    volume={13},
-    year={2022},
-    url={https://www.frontiersin.org/articles/10.3389/fneur.2022.932219},
-    doi={10.3389/fneur.2022.932219},
-    issn={1664-2295}
-}
-```
+That's it — see [Usage](#usage) below for the Python API and Docker equivalents.
 
-# [Usage](https://github.com/dbouget/raidionics_seg_lib#usage)
+---
 
-## [1. CLI](https://github.com/dbouget/raidionics_seg_lib#cli)
-```
+## Usage
+
+### CLI
+
+```bash
 raidionicsseg CONFIG
 ```
 
-CONFIG should point to a configuration file (*.ini), specifying all runtime parameters,
-according to the pattern from [**blank_main_config.ini**](https://github.com/dbouget/raidionics-seg-lib/blob/master/blank_main_config.ini).
+`CONFIG` is a path to an `.ini` file specifying all runtime parameters, following the structure in [`blank_main_config.ini`](blank_main_config.ini).
 
-## [2. Python module](https://github.com/dbouget/raidionics_seg_lib#python-module)
-```
+### Python module
+
+```python
 from raidionicsseg import run_model
+
 run_model(config_filename="/path/to/main_config.ini")
 ```
 
-## [3. Docker](https://github.com/dbouget/raidionics_seg_lib#docker)
-When calling Docker images, the --user flag must be properly used in order for the folders and files created inside
-the container to inherit the proper read/write permissions. The user ID is retrieved on-the-fly in the following
-examples, but it can be given in a more hard-coded fashion if known by the user.
+### Docker
 
-:warning: The following Docker image can only perform inference using the CPU. Another Docker image has been created, able to leverage
-the GPU (see further down below). If the CUDA version does not match your machine, a new Docker image can be built manually, 
-simply modifying the base torch image to pull from inside Dockerfile_gpu.
-
-```
+```bash
 docker pull dbouget/raidionics-segmenter:v1.5.0-py39-cpu
+
+docker run \
+  -v /home/<username>/<resources_path>:/workspace/resources \
+  -t -i --network=host --ipc=host --user $(id -u) \
+  dbouget/raidionics-segmenter:v1.5.0-py39-cpu \
+  -c /workspace/resources/<path>/<to>/main_config.ini -v <verbose>
 ```
 
-For opening the Docker image and interacting with it, run:  
-```
-docker run --entrypoint /bin/bash -v /home/<username>/<resources_path>:/workspace/resources -t -i --network=host --ipc=host --user $(id -u) dbouget/raidionics-segmenter:v1.5.0-py39-cpu
-```
+This runs CPU-only inference. For GPU support, an interactive shell, path-mapping details, and troubleshooting, see the full **[Docker guide](docs/docker.md)**.
 
-The `/home/<username>/<resources_path>` before the column sign has to be changed to match a directory on your local 
-machine containing the data to expose to the docker image. Namely, it must contain folder(s) with images you want to 
-run inference on, as long as a folder with the trained models to use, and a destination folder where the results will 
-be placed.
+---
 
-For launching the Docker image as a CLI, run:  
-```
-docker run -v /home/<username>/<resources_path>:/workspace/resources -t -i --network=host --ipc=host --user $(id -u) dbouget/raidionics-segmenter:v1.5.0-py39-cpu -c /workspace/resources/<path>/<to>/main_config.ini -v <verbose>
-```
+## Models
 
-The `<path>/<to>/main_config.ini` must point to a valid configuration file on your machine, as a relative path to the `/home/<username>/<resources_path>` described above.
-For example, if the file is located on my machine under `/home/myuser/Data/Segmentation/main_config.ini`, 
-and that `/home/myuser/Data` is the mounted resources partition mounted on the Docker image, the new relative path will be `Segmentation/main_config.ini`.  
-The `<verbose>` level can be selected from [debug, info, warning, error].
+Trained models are downloaded automatically when running Raidionics or Raidionics-Slicer. To browse all available models directly, see the [Raidionics-models](https://github.com/dbouget/Raidionics-models) repository.
 
-For running models on the GPU inside the Docker image, run the following CLI, with the gpu_id properly filled in the configuration file:
-```
-docker run -v /home/<username>/<resources_path>:/workspace/resources -t -i --runtime=nvidia --network=host --ipc=host --user $(id -u) dbouget/raidionics-segmenter:v1.5.0-py39-cuda12.4 -c /workspace/resources/<path>/<to>/main_config.ini -v <verbose>
-```
+---
 
-# [Models](https://github.com/dbouget/raidionics_seg_lib#models)
+## GPU support
 
-The trained models are automatically downloaded when running Raidionics or Raidionics-Slicer.  
-Alternatively, all existing Raidionics models can be browsed [here](https://github.com/dbouget/Raidionics-models) directly.
+To run inference on GPU:
 
+1. Configure your machine per the [ONNX Runtime CUDA execution provider guide](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html).
+2. Install `onnxruntime-gpu` matching your driver/CUDA version ([compatibility table](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#cuda-12x)).
+3. Set the `gpu_id` parameter in your configuration file to the target GPU.
 
-# [Developers](https://github.com/dbouget/raidionics_seg_lib#developers)
-For running inference on GPU, your machine must be properly configured (cf. [here](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html))  
-In the configuration file, the gpu_id parameter should then point to the GPU that is to be used during inference.
-The onnxruntime-gpu Python package must be installed in addition, with a version matching the driver and cuda version,
-more info can be accessed [here](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#cuda-12x)
+---
 
-To run the unit tests, type the following within your virtual environment and within the raidionics_seg_lib folder:
-```
+## Development
+
+Run the test suite from within the repository root and your virtual environment:
+
+```bash
 pip install pytest
 pytest tests/
 ```
+
+---
+
+## How to cite
+
+If you use Raidionics in your research, please cite the software and the associated papers. Citation metadata is provided in [`CITATION.cff`](CITATION.cff) — click **"Cite this repository"** in the sidebar for ready-to-use APA/BibTeX formats, covering both the main software release (Scientific Reports, 2023) and the preliminary validation study (Frontiers in Neurology, 2022).
+
+---
+
+## License
+
+Distributed under the [BSD-2-Clause License](LICENSE.md).

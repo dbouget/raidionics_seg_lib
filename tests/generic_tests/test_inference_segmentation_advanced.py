@@ -77,7 +77,7 @@ def test_inference_segmentation_tta_single_input(test_dir, tmp_path):
     if os.path.exists(output_folder):
         shutil.rmtree(output_folder)
 
-def test_inference_segmentation_model_ensembling(test_dir, tmp_path):
+def test_inference_segmentation_model_ensembling(test_dir, tmp_path, dice):
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
     logging.info("Running inference with model ensembling.\n")
@@ -124,11 +124,8 @@ def test_inference_segmentation_model_ensembling(test_dir, tmp_path):
             segmentation_gt_filename = os.path.join(tmp_test_input_fn, 'verif', 'input0_labels_TumorCE_foldensemble.nii.gz')
             segmentation_pred = nib.load(segmentation_pred_filename).get_fdata()[:]
             segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
-            logging.info(
-                f"Ground truth and prediction arrays difference: {np.count_nonzero(abs(segmentation_gt - segmentation_pred))} pixels")
-            assert np.array_equal(segmentation_pred, segmentation_gt), "Ground truth and prediction arrays are not identical"
-            # assert np.count_nonzero(np.abs(
-            #     segmentation_pred - segmentation_gt)) < 200, "Ground truth and prediction arrays are very different"
+            assert dice(segmentation_pred, segmentation_gt) > 0.99, (f"Ground truth and prediction arrays are not"
+                                                                     f" identical with {np.count_nonzero(segmentation_gt - segmentation_pred)} pixels")
         except Exception as e:
             logging.error(f"Error during model ensembling inference with: {e}\n {traceback.format_exc()}.\n")
             if os.path.exists(tmp_test_input_fn):

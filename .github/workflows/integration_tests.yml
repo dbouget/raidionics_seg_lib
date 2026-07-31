@@ -14,11 +14,11 @@ jobs:
             CMD_BUILD: python -m build --wheel
 
     steps:
-      - uses: actions/checkout@v5
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v7
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
@@ -38,12 +38,12 @@ jobs:
   setup-test-data:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
-          python-version: 3.11
+          python-version: 3.12
 
       - name: Download test resources
         working-directory: tests
@@ -63,10 +63,10 @@ jobs:
       matrix:
         include:
           - os: ubuntu-22.04
-            python-version: "3.11"
+            python-version: "3.12"
     steps:
         - name: Set up Python ${{ matrix.python-version }}
-          uses: actions/setup-python@v6
+          uses: actions/setup-python@v7
           with:
             python-version: ${{ matrix.python-version }}
 

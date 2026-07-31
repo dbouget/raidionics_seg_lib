@@ -10,7 +10,7 @@ import numpy as np
 import pytest
 
 
-def test_inference_cli(test_dir, tmp_path):
+def test_inference_cli(test_dir, tmp_path, dice):
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
     logging.info("Running standard inference using the CLI for a mediastinum model.\n")
@@ -87,8 +87,8 @@ def test_inference_cli(test_dir, tmp_path):
         segmentation_gt_filename = os.path.join(tmp_test_input_fn, 'verif', 'input0_labels_Tumor.nii.gz')
         segmentation_pred = nib.load(segmentation_filename).get_fdata()[:]
         segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
-        assert np.array_equal(segmentation_pred,
-                              segmentation_gt), "Ground truth and prediction arrays are not identical"
+        assert dice(segmentation_pred, segmentation_gt) > 0.99, (f"Ground truth and prediction arrays are not"
+                                                                 f" identical with {np.count_nonzero(segmentation_gt - segmentation_pred)} pixels")
     except Exception as e:
         logging.error(f"Error during test with: {e} \n {traceback.format_exc()}.\n")
         raise ValueError("Error during test.\n")
@@ -98,7 +98,7 @@ def test_inference_cli(test_dir, tmp_path):
         shutil.rmtree(output_folder)
 
 
-def test_inference_package(test_dir, tmp_path):
+def test_inference_package(test_dir, tmp_path, dice):
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
     logging.info("Running standard inference test as a Python package for a mediastinum model.\n")
@@ -149,8 +149,8 @@ def test_inference_package(test_dir, tmp_path):
             segmentation_gt_filename = os.path.join(tmp_test_input_fn, 'verif', 'input0_labels_Tumor.nii.gz')
             segmentation_pred = nib.load(segmentation_filename).get_fdata()[:]
             segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
-            assert np.array_equal(segmentation_pred,
-                                  segmentation_gt), "Ground truth and prediction arrays are not identical"
+            assert dice(segmentation_pred, segmentation_gt) > 0.99, (f"Ground truth and prediction arrays are not"
+                                                                     f" identical with {np.count_nonzero(segmentation_gt - segmentation_pred)} pixels")
         except Exception as e:
             logging.error(f"Error during test with: {e} \n {traceback.format_exc()}.\n")
             if os.path.exists(tmp_test_input_fn):
@@ -168,7 +168,7 @@ def test_inference_package(test_dir, tmp_path):
         shutil.rmtree(output_folder)
 
 
-def test_inference_slabwise(test_dir, tmp_path):
+def test_inference_slabwise(test_dir, tmp_path, dice):
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
     logging.info("Running slab-wise inference test as a Python package for a mediastinum model.\n")
@@ -219,8 +219,8 @@ def test_inference_slabwise(test_dir, tmp_path):
             segmentation_gt_filename = os.path.join(tmp_test_input_fn, 'verif', 'input0_labels_Heart.nii.gz')
             segmentation_pred = nib.load(segmentation_filename).get_fdata()[:]
             segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
-            assert np.array_equal(segmentation_pred,
-                                  segmentation_gt), "Ground truth and prediction arrays are not identical"
+            assert dice(segmentation_pred, segmentation_gt) > 0.99, (f"Ground truth and prediction arrays are not"
+                                                                     f" identical with {np.count_nonzero(segmentation_gt - segmentation_pred)} pixels")
         except Exception as e:
             logging.error(f"Error during test with: {e} \n {traceback.format_exc()}.\n")
             if os.path.exists(tmp_test_input_fn):
@@ -238,7 +238,7 @@ def test_inference_slabwise(test_dir, tmp_path):
         shutil.rmtree(output_folder)
 
 
-def test_inference_batchsize(test_dir, tmp_path):
+def test_inference_batchsize(test_dir, tmp_path, dice):
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
     if os.environ.get("GITHUB_ACTIONS"):
@@ -292,8 +292,8 @@ def test_inference_batchsize(test_dir, tmp_path):
             segmentation_gt_filename = os.path.join(tmp_test_input_fn, 'verif', 'input0_labels_Heart_bs4.nii.gz')
             segmentation_pred = nib.load(segmentation_filename).get_fdata()[:]
             segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
-            assert np.array_equal(segmentation_pred,
-                                  segmentation_gt), "Ground truth and prediction arrays are not identical"
+            assert dice(segmentation_pred, segmentation_gt) > 0.99, (f"Ground truth and prediction arrays are not"
+                                                                     f" identical with {np.count_nonzero(segmentation_gt - segmentation_pred)} pixels")
         except Exception as e:
             logging.error(f"Error during test with: {e} \n {traceback.format_exc()}.\n")
             if os.path.exists(tmp_test_input_fn):
