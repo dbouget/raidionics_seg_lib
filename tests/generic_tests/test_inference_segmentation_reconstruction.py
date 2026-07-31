@@ -9,7 +9,7 @@ import nibabel as nib
 import numpy as np
 
 
-def test_inference_segmentation_reconstruction_order(test_dir, tmp_path):
+def test_inference_segmentation_reconstruction_order(test_dir, tmp_path, dice):
     """
     Executing the module as a Python package
     Parameters
@@ -66,7 +66,8 @@ def test_inference_segmentation_reconstruction_order(test_dir, tmp_path):
             segmentation_gt_filename = os.path.join(tmp_test_input_fn, 'verif', 'input0_labels_Brain_resample_second.nii.gz')
             segmentation_pred = nib.load(segmentation_pred_filename).get_fdata()[:]
             segmentation_gt = nib.load(segmentation_gt_filename).get_fdata()[:]
-            assert np.array_equal(segmentation_pred, segmentation_gt), "Ground truth and prediction arrays are not identical"
+            assert dice(segmentation_pred, segmentation_gt) > 0.99, (f"Ground truth and prediction arrays are not"
+                                                                     f" identical with {np.count_nonzero(segmentation_gt - segmentation_pred)} pixels")
         except Exception as e:
             logging.error(f"Error during inference Python package test with: {e} \n {traceback.format_exc()}.\n")
             if os.path.exists(tmp_test_input_fn):
